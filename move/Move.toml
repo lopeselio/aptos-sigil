@@ -1,0 +1,18 @@
+[package]
+name = "sigil"
+version = "1.0.0"
+authors = []
+
+[addresses]
+sigil = "0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6"
+
+[dev-addresses]
+sigil = "0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6"
+
+
+[dependencies.AptosFramework]
+git = "https://github.com/aptos-labs/aptos-framework.git"
+rev = "devnet"
+subdir = "aptos-framework"
+
+[dev-dependencies]
