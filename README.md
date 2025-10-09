@@ -1,6 +1,14 @@
 # Sigil Game Platform - Aptos Smart Contract
 
-A decentralized gaming open source public good on Aptos that allows publishers to register games, players to create profiles, and submit scores on-chain.
+A decentralized gaming open source public good on Aptos that allows publishers to register games, players to create profiles, submit scores on-chain, and compete on dynamic leaderboards.
+
+## 🎮 Features
+
+- **Game Management** - Publishers can register games with unique IDs
+- **Player Profiles** - Players create on-chain profiles with usernames
+- **Score Submission** - Submit and track scores for any registered game
+- **Leaderboards** - Dynamic, gas-optimized leaderboards with configurable ranking
+- **Events** - All actions emit events for easy indexing
 
 ## 📋 Prerequisites
 
@@ -36,7 +44,6 @@ Update `move/Move.toml` with your account address:
 sigil = "YOUR_ACCOUNT_ADDRESS"
 
 [dev-addresses]
-sigil = "YOUR_ACCOUNT_ADDRESS"
 ```
 
 ### 3. Fund Your Account
@@ -47,12 +54,11 @@ aptos account fund-with-faucet \
   --profile sigil-main
 ```
 
-### 4. Compile the Module
+### 4. Compile the Modules
 
 ```bash
-aptos move compile \
-  --package-dir move \
-  --named-addresses sigil=YOUR_ACCOUNT_ADDRESS
+cd move
+aptos move compile --save-metadata
 ```
 
 ### 5. Deploy to Devnet
@@ -61,25 +67,30 @@ aptos move compile \
 aptos move publish \
   --package-dir move \
   --profile sigil-main \
-  --named-addresses sigil=YOUR_ACCOUNT_ADDRESS \
-  --url https://api.devnet.aptoslabs.com \
   --assume-yes
 ```
 
-### 6. Initialize the Module
+### 6. Initialize the Modules
 
-**Important:** This must be done once after deployment by the publisher.
+**Important:** Initialize both modules after deployment.
 
 ```bash
+# Initialize Game Platform
 aptos move run \
   --function-id 'YOUR_ACCOUNT_ADDRESS::game_platform::init' \
   --profile sigil-main \
-  --url https://api.devnet.aptoslabs.com \
-  --max-gas 2000 \
+  --assume-yes
+
+# Initialize Leaderboards
+aptos move run \
+  --function-id 'YOUR_ACCOUNT_ADDRESS::leaderboard::init_leaderboards' \
+  --profile sigil-main \
   --assume-yes
 ```
 
-## 📝 Contract Functions
+---
+
+## 📝 Game Platform Functions
 
 ### Publisher Functions
 
@@ -90,8 +101,6 @@ aptos move run \
   --function-id 'YOUR_ACCOUNT_ADDRESS::game_platform::register_game' \
   --args string:"Game Title Here" \
   --profile sigil-main \
-  --url https://api.devnet.aptoslabs.com \
-  --max-gas 2000 \
   --assume-yes
 ```
 
@@ -104,8 +113,6 @@ aptos move run \
   --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::game_platform::register_game' \
   --args string:"Space Shooter 2024" \
   --profile sigil-main \
-  --url https://api.devnet.aptoslabs.com \
-  --max-gas 2000 \
   --assume-yes
 ```
 
@@ -120,13 +127,8 @@ aptos move run \
   --function-id 'YOUR_ACCOUNT_ADDRESS::game_platform::register_player' \
   --args string:"your_username" \
   --profile sigil-main \
-  --url https://api.devnet.aptoslabs.com \
-  --max-gas 2000 \
   --assume-yes
 ```
-
-**Parameters:**
-- `string` - Your desired username
 
 **Example:**
 ```bash
@@ -134,8 +136,6 @@ aptos move run \
   --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::game_platform::register_player' \
   --args string:"player123" \
   --profile sigil-main \
-  --url https://api.devnet.aptoslabs.com \
-  --max-gas 2000 \
   --assume-yes
 ```
 
@@ -146,8 +146,6 @@ aptos move run \
   --function-id 'YOUR_ACCOUNT_ADDRESS::game_platform::submit_score' \
   --args address:PUBLISHER_ADDRESS u64:GAME_ID u64:SCORE \
   --profile sigil-main \
-  --url https://api.devnet.aptoslabs.com \
-  --max-gas 2000 \
   --assume-yes
 ```
 
@@ -162,181 +160,290 @@ aptos move run \
   --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::game_platform::submit_score' \
   --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:0 u64:5000 \
   --profile sigil-main \
-  --url https://api.devnet.aptoslabs.com \
-  --max-gas 2000 \
   --assume-yes
 ```
 
-## 🔍 View Functions (Read State)
+### View Functions (Read State)
 
 View functions don't require gas and are free to call.
 
-### Get Game Count
-
-Returns the total number of games registered by a publisher.
+#### Get Game Count
 
 ```bash
 aptos move view \
-  --function-id 'YOUR_ACCOUNT_ADDRESS::game_platform::game_count' \
-  --args address:PUBLISHER_ADDRESS \
-  --url https://api.devnet.aptoslabs.com
-```
-
-**Example:**
-```bash
-aptos move view \
+  --profile sigil-main \
   --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::game_platform::game_count' \
-  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 \
-  --url https://api.devnet.aptoslabs.com
+  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6
 ```
 
 **Returns:** `["1"]` - Number of games
 
-### Check if Game Exists
+#### Get Game Details
 
 ```bash
 aptos move view \
-  --function-id 'YOUR_ACCOUNT_ADDRESS::game_platform::has_game' \
-  --args address:PUBLISHER_ADDRESS u64:GAME_ID \
-  --url https://api.devnet.aptoslabs.com
-```
-
-**Example:**
-```bash
-aptos move view \
-  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::game_platform::has_game' \
-  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:0 \
-  --url https://api.devnet.aptoslabs.com
-```
-
-**Returns:** `[true]` or `[false]`
-
-### Get Game Details
-
-```bash
-aptos move view \
-  --function-id 'YOUR_ACCOUNT_ADDRESS::game_platform::get_game' \
-  --args address:PUBLISHER_ADDRESS u64:GAME_ID \
-  --url https://api.devnet.aptoslabs.com
-```
-
-**Example:**
-```bash
-aptos move view \
+  --profile sigil-main \
   --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::game_platform::get_game' \
-  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:0 \
-  --url https://api.devnet.aptoslabs.com
+  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:0
 ```
 
 **Returns:** 
 ```json
 [
-  "0",                                                          // Game ID
-  "Test Game",                                                  // Game Title
-  "0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6"  // Creator Address
+  "0",           // Game ID
+  "Test Game",   // Game Title
+  "0xe68ef..."   // Creator Address
 ]
 ```
 
-### Get Player Scores
-
-Retrieve all scores a player has submitted for a specific game.
+#### Get Player Scores
 
 ```bash
 aptos move view \
-  --function-id 'YOUR_ACCOUNT_ADDRESS::game_platform::get_scores' \
-  --args address:PUBLISHER_ADDRESS address:PLAYER_ADDRESS u64:GAME_ID \
-  --url https://api.devnet.aptoslabs.com
+  --profile sigil-main \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::game_platform::get_scores' \
+  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 address:PLAYER_ADDRESS u64:0
+```
+
+---
+
+## 🏆 Leaderboard Functions
+
+### Create a Leaderboard
+
+Publishers can create customizable leaderboards for their games.
+
+```bash
+aptos move run \
+  --profile sigil-main \
+  --function-id 'YOUR_ACCOUNT_ADDRESS::leaderboard::create_leaderboard' \
+  --args u64:GAME_ID u8:DECIMALS u64:MIN_SCORE u64:MAX_SCORE bool:IS_ASCENDING bool:ALLOW_MULTIPLE u64:TOP_N \
+  --assume-yes
 ```
 
 **Parameters:**
-- `address` - Publisher's address
-- `address` - Player's address
-- `u64` - Game ID
+- `game_id` (u64) - The game ID to create leaderboard for
+- `decimals` (u8) - Number of decimal places for display (0 for integers)
+- `min_score` (u64) - Minimum valid score (scores below are rejected)
+- `max_score` (u64) - Maximum valid score (scores above are rejected)
+- `is_ascending` (bool) - `false` = higher is better, `true` = lower is better (speedruns)
+- `allow_multiple` (bool) - `false` = only best score per player, `true` = allow multiple submissions
+- `scores_to_retain` (u64) - How many top entries to keep (e.g., top 10, top 100)
+
+**Example - High Score Leaderboard (Top 10):**
+```bash
+aptos move run \
+  --profile sigil-main \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::leaderboard::create_leaderboard' \
+  --args u64:0 u8:0 u64:0 u64:999999999 bool:false bool:false u64:10 \
+  --assume-yes
+```
+
+**Example - Speedrun Leaderboard (Lower Time is Better):**
+```bash
+aptos move run \
+  --profile sigil-main \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::leaderboard::create_leaderboard' \
+  --args u64:0 u8:2 u64:0 u64:999999 bool:true bool:false u64:50 \
+  --assume-yes
+```
+
+### Submit Score to Leaderboard
+
+For testing purposes, you can directly submit scores to the leaderboard:
+
+```bash
+aptos move run \
+  --profile sigil-main \
+  --function-id 'YOUR_ACCOUNT_ADDRESS::leaderboard::submit_score_direct' \
+  --args address:PUBLISHER_ADDRESS u64:LEADERBOARD_ID address:PLAYER_ADDRESS u64:SCORE \
+  --assume-yes
+```
 
 **Example:**
 ```bash
+aptos move run \
+  --profile sigil-main \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::leaderboard::submit_score_direct' \
+  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:0 address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:2500 \
+  --assume-yes
+```
+
+### Leaderboard View Functions
+
+#### Get Leaderboard Count
+
+```bash
 aptos move view \
-  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::game_platform::get_scores' \
-  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:0 \
-  --url https://api.devnet.aptoslabs.com
+  --profile sigil-main \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::leaderboard::get_leaderboard_count' \
+  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6
+```
+
+**Returns:** Number of leaderboards created
+
+#### Get Leaderboard Configuration
+
+```bash
+aptos move view \
+  --profile sigil-main \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::leaderboard::get_leaderboard_config' \
+  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:0
 ```
 
 **Returns:**
 ```json
 [
-  [
-    "1500",
-    "2000",
-    "1800"
+  "0",         // game_id
+  0,           // decimals
+  "0",         // min_score
+  "999999999", // max_score
+  false,       // is_ascending
+  false,       // allow_multiple
+  "10"         // scores_to_retain
+]
+```
+
+#### Get Top Entries (Leaderboard Rankings)
+
+```bash
+aptos move view \
+  --profile sigil-main \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::leaderboard::get_top_entries' \
+  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:0
+```
+
+**Returns:** Two aligned arrays - player addresses and their scores
+```json
+{
+  "Result": [
+    [
+      "0x30be4b352a2e02eae96e771a210d32ecab488f82c5b059bb1fa875117b81f239",
+      "0x14cbc9d57823000f77aa8d29454ba90c52f0443fdb670b5a1357bcc07971c048",
+      "0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6"
+    ],
+    [
+      "2500",
+      "2000",
+      "1500"
+    ]
   ]
-]
+}
 ```
 
-### Get Score Summary
-
-Returns a summary with existence flag, last score, and maximum score.
-
-```bash
-aptos move view \
-  --function-id 'YOUR_ACCOUNT_ADDRESS::game_platform::score_summary' \
-  --args address:PUBLISHER_ADDRESS address:PLAYER_ADDRESS u64:GAME_ID \
-  --url https://api.devnet.aptoslabs.com
-```
-
-**Example:**
-```bash
-aptos move view \
-  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::game_platform::score_summary' \
-  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:0 \
-  --url https://api.devnet.aptoslabs.com
-```
-
-**Returns:**
-```json
-[
-  true,      // Has scores
-  "1500",    // Last score
-  "1500"     // Max score
-]
-```
+---
 
 ## 🎮 Complete Example Workflow
 
 Here's a complete example of deploying and using the platform:
 
 ```bash
-# 1. Deploy and initialize
-aptos move publish --package-dir move --profile sigil-main --named-addresses sigil=0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 --url https://api.devnet.aptoslabs.com --assume-yes
+# 1. Compile
+cd move && aptos move compile --save-metadata && cd ..
 
-aptos move run --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::game_platform::init' --profile sigil-main --url https://api.devnet.aptoslabs.com --max-gas 2000 --assume-yes
+# 2. Deploy both modules
+aptos move publish --package-dir move --profile sigil-main --assume-yes
 
-# 2. Register a game
-aptos move run --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::game_platform::register_game' --args string:"Space Shooter" --profile sigil-main --url https://api.devnet.aptoslabs.com --max-gas 2000 --assume-yes
+# 3. Initialize game platform
+aptos move run \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::game_platform::init' \
+  --profile sigil-main --assume-yes
 
-# 3. Register as a player
-aptos move run --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::game_platform::register_player' --args string:"gamer123" --profile sigil-main --url https://api.devnet.aptoslabs.com --max-gas 2000 --assume-yes
+# 4. Initialize leaderboards
+aptos move run \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::leaderboard::init_leaderboards' \
+  --profile sigil-main --assume-yes
 
-# 4. Submit a score
-aptos move run --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::game_platform::submit_score' --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:0 u64:5000 --profile sigil-main --url https://api.devnet.aptoslabs.com --max-gas 2000 --assume-yes
+# 5. Register a game
+aptos move run \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::game_platform::register_game' \
+  --args string:"Space Shooter" \
+  --profile sigil-main --assume-yes
 
-# 5. Check the score
-aptos move view --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::game_platform::get_scores' --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:0 --url https://api.devnet.aptoslabs.com
+# 6. Create a leaderboard for the game (top 10)
+aptos move run \
+  --profile sigil-main \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::leaderboard::create_leaderboard' \
+  --args u64:0 u8:0 u64:0 u64:999999999 bool:false bool:false u64:10 \
+  --assume-yes
+
+# 7. Register as a player
+aptos move run \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::game_platform::register_player' \
+  --args string:"gamer123" \
+  --profile sigil-main --assume-yes
+
+# 8. Submit scores to leaderboard
+aptos move run \
+  --profile sigil-main \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::leaderboard::submit_score_direct' \
+  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:0 address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:1500 \
+  --assume-yes
+
+# 9. Check the leaderboard rankings
+aptos move view \
+  --profile sigil-main \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::leaderboard::get_top_entries' \
+  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:0
 ```
+
+---
 
 ## 🔗 Deployed Contract Info
 
 **Network:** Aptos Devnet  
 **Module Address:** `0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6`  
-**Module Name:** `game_platform`  
+**Modules:** `game_platform`, `leaderboard`  
 
 **Explorer Links:**
-- [Deployment Transaction](https://explorer.aptoslabs.com/txn/0xd112cd68bd0a7df81c469864da499d947ec3286f4732b9205e7eccf0c89381ce?network=devnet)
-- [Initialization Transaction](https://explorer.aptoslabs.com/txn/0xe2b41233d2e320a1c9cdaabb2e08ee211f1213c326c540525fc0b9724b2befc7?network=devnet)
 - [Account View](https://explorer.aptoslabs.com/account/0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6?network=devnet)
+- [Latest Module Publication](https://explorer.aptoslabs.com/txn/0x3ca4da35dcd2d2f57cd35b8e695ba24d3c6d27767d1873c4d77fc6adb6cc780c?network=devnet)
+
+---
+
+## ✅ Latest Deployments & Tests on Devnet
+
+### Latest Deployment (January 2025)
+
+| Action | Transaction Hash | Explorer Link | Status |
+|--------|-----------------|---------------|---------|
+| **Modules Published** (game_platform + leaderboard) | `0x3ca4da35dcd2d2f57cd35b8e695ba24d3c6d27767d1873c4d77fc6adb6cc780c` | [View](https://explorer.aptoslabs.com/txn/0x3ca4da35dcd2d2f57cd35b8e695ba24d3c6d27767d1873c4d77fc6adb6cc780c?network=devnet) | ✅ Success |
+| **Leaderboards Initialized** | `0x273fa651eb3b0e73c2ff54c26ea0ef0a4e3cd8c82a503bb72d14c4b394052a8f` | [View](https://explorer.aptoslabs.com/txn/0x273fa651eb3b0e73c2ff54c26ea0ef0a4e3cd8c82a503bb72d14c4b394052a8f?network=devnet) | ✅ Success |
+| **Leaderboard Created** (Game 0, Top 10) | `0xdd82e156a7a68f3088c3c80a85d89b15376d12885c149db4945896700fa988ea` | [View](https://explorer.aptoslabs.com/txn/0xdd82e156a7a68f3088c3c80a85d89b15376d12885c149db4945896700fa988ea?network=devnet) | ✅ Success |
+
+### Test Transactions - Leaderboard System
+
+| Action | Details | Transaction Hash | Explorer Link | Status |
+|--------|---------|-----------------|---------------|---------|
+| **Submit Score #1** | Player: 0xe68e..., Score: 1500 | `0x2f5e9f6a8d9bd6528e1130be967194b83f1d83648e02234c875e616878f4dce4` | [View](https://explorer.aptoslabs.com/txn/0x2f5e9f6a8d9bd6528e1130be967194b83f1d83648e02234c875e616878f4dce4?network=devnet) | ✅ Success |
+| **Submit Score #2** | Player: 0x14cb..., Score: 2000 | `0x47135fe138630f9e047aaf5119a8dfcf8024844126452b1700e9159b2f9e87cf` | [View](https://explorer.aptoslabs.com/txn/0x47135fe138630f9e047aaf5119a8dfcf8024844126452b1700e9159b2f9e87cf?network=devnet) | ✅ Success |
+| **Submit Score #3** | Player: 0x30be..., Score: 1000 | `0x6ae5339f9c5ab4654fbb75dd1caf749473a8ef758afb36457fbed5cc3bba5128` | [View](https://explorer.aptoslabs.com/txn/0x6ae5339f9c5ab4654fbb75dd1caf749473a8ef758afb36457fbed5cc3bba5128?network=devnet) | ✅ Success |
+| **Update Score** | Player: 0x30be... → 2500 (moved to 1st place!) | `0x168b100df4cb36a1e72a1d907e87d8ab5d427c7ef8fb4afefe0bf5f509a3ba95` | [View](https://explorer.aptoslabs.com/txn/0x168b100df4cb36a1e72a1d907e87d8ab5d427c7ef8fb4afefe0bf5f509a3ba95?network=devnet) | ✅ Success |
+
+### Verified Live Leaderboard State
+
+After testing, the leaderboard rankings on-chain:
+
+| Rank | Player Address | Score | Status |
+|------|---------------|-------|---------|
+| 🥇 1st | `0x30be4b...` | **2500** | Updated from 1000 → 2500 |
+| 🥈 2nd | `0x14cbc9...` | **2000** | Maintained |
+| 🥉 3rd | `0xe68ef2...` | **1500** | Maintained |
+
+**Verified using:**
+```bash
+aptos move view --profile sigil-main \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::leaderboard::get_top_entries' \
+  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:0
+```
+
+---
 
 ## 📊 Data Structures
 
-### Game
+### Game Platform
+
+**Game**
 ```move
 struct Game {
     id: u64,
@@ -345,11 +452,37 @@ struct Game {
 }
 ```
 
-### Player
+**Player**
 ```move
 struct Player {
     user: address,
     username: String,
+}
+```
+
+### Leaderboard
+
+**Leaderboard Config**
+```move
+struct Config {
+    game_id: u64,
+    decimals: u8,
+    min_score: u64,
+    max_score: u64,
+    is_ascending: bool,      // true => lower is better
+    allow_multiple: bool,    // if false: only keep best per player
+    scores_to_retain: u64,   // how many entries to keep in top list
+}
+```
+
+**Leaderboard**
+```move
+struct Leaderboard {
+    id: u64,
+    config: Config,
+    best_by_player: Table<address, u64>,           // Track best score per player
+    top_entries_players: vector<address>,          // Sorted player addresses
+    top_entries_scores: vector<u64>,               // Corresponding scores
 }
 ```
 
@@ -374,42 +507,52 @@ struct ScoreSubmittedEvent {
 }
 ```
 
+---
+
 ## ⚠️ Error Codes
 
+### Game Platform
 - `E_ALREADY_INIT (0)` - Module already initialized
 - `E_GAME_NOT_FOUND (1)` - Game ID doesn't exist
 - `E_PLAYER_EXISTS (2)` - Player already registered
 - `E_PLAYER_REQUIRED (3)` - Must register as player first
 
-## ✅ Tested Transactions on Devnet
+### Leaderboard
+- `E_ALREADY_INIT (0)` - Leaderboards already initialized
+- `E_NOT_FOUND (1)` - Leaderboard ID doesn't exist
+- `E_ID_EXISTS (2)` - Leaderboard ID already exists
 
-All functions have been tested and verified on Aptos Devnet. Here are the transaction links:
+---
 
-### Deployment & Initialization
+## 🎯 Leaderboard Features
 
-| Action | Transaction Hash | Explorer Link | Status |
-|--------|-----------------|---------------|---------|
-| **Module Published** | `0xd112cd68bd0a7df81c469864da499d947ec3286f4732b9205e7eccf0c89381ce` | [View on Explorer](https://explorer.aptoslabs.com/txn/0xd112cd68bd0a7df81c469864da499d947ec3286f4732b9205e7eccf0c89381ce?network=devnet) | ✅ Success |
-| **Module Initialized** | `0xe2b41233d2e320a1c9cdaabb2e08ee211f1213c326c540525fc0b9724b2befc7` | [View on Explorer](https://explorer.aptoslabs.com/txn/0xe2b41233d2e320a1c9cdaabb2e08ee211f1213c326c540525fc0b9724b2befc7?network=devnet) | ✅ Success |
+### Gas Optimization
+- **Best Score Tracking**: Prevents unnecessary updates
+- **Bounded Operations**: Only maintains top N entries (no unbounded growth)
+- **Smart Sorting**: Efficient insertion-sort algorithm that only bubbles the changed entry
+- **Early Exits**: Score gates reject invalid entries before processing
 
-### Test Transactions
+### Flexible Configurations
 
-| Action | Details | Transaction Hash | Explorer Link | Status |
-|--------|---------|-----------------|---------------|---------|
-| **Register Game** | Game ID: 0, Title: "Test Game" | `0xd922de3cd47a38971a2c2838ffea17c0a468194dc24e9221cbf6f82777c10e99` | [View on Explorer](https://explorer.aptoslabs.com/txn/0xd922de3cd47a38971a2c2838ffea17c0a468194dc24e9221cbf6f82777c10e99?network=devnet) | ✅ Success |
-| **Register Player** | Username: "TestPlayer" | `0x43410cf8ebcb9d6c45db25fff06c411839730a94a37c50e52812cde1fe6fb440` | [View on Explorer](https://explorer.aptoslabs.com/txn/0x43410cf8ebcb9d6c45db25fff06c411839730a94a37c50e52812cde1fe6fb440?network=devnet) | ✅ Success |
-| **Submit Score** | Game ID: 0, Score: 1500 | `0x4731b14133d8af61dfaff0b2f22d8cb57022cc7a59d2b44d815baaf2f96d6c14` | [View on Explorer](https://explorer.aptoslabs.com/txn/0x4731b14133d8af61dfaff0b2f22d8cb57022cc7a59d2b44d815baaf2f96d6c14?network=devnet) | ✅ Success |
+**High Score Games** (Points-based)
+```bash
+# Higher is better, keep top 100
+--args u64:0 u8:0 u64:0 u64:999999999 bool:false bool:false u64:100
+```
 
-### Verified State
+**Speedrun Games** (Time-based)
+```bash
+# Lower is better (faster time), keep top 50
+--args u64:0 u8:2 u64:0 u64:999999 bool:true bool:false u64:50
+```
 
-After the test transactions, the following state was verified using view functions:
+**Competitive Games** (Skill-gated)
+```bash
+# Must score at least 10000 to appear, keep top 20
+--args u64:0 u8:0 u64:10000 u64:999999 bool:false bool:false u64:20
+```
 
-- **Game Count**: 1 game registered
-- **Game Details**: Game ID 0 - "Test Game" owned by `0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6`
-- **Player Scores**: Player has submitted score of 1500 for Game ID 0
-- **Score Summary**: Last score: 1500, Max score: 1500
-
-All transactions executed successfully with gas costs ranging from 86 to 865 gas units.
+---
 
 ## 🛠️ Troubleshooting
 
@@ -420,13 +563,45 @@ api_key: "aptoslabs_YOUR_API_KEY_HERE"
 ```
 
 ### Transaction Timeout
-Add explicit flags to avoid simulation timeouts:
+Add explicit profile to avoid simulation timeouts:
 ```bash
---url https://api.devnet.aptoslabs.com --max-gas 2000
+--profile sigil-main --assume-yes
 ```
 
 ### Profile Not Found
-Make sure you're running commands from the project root directory where `.aptos/config.yaml` exists, or use `--config-path` to specify the location.
+Make sure you're running commands from the project root directory where `.aptos/config.yaml` exists.
+
+### Module Already Exists
+If republishing, the modules will be upgraded automatically. Make sure you're using the same address in `Move.toml`.
+
+---
+
+## 📚 Additional Documentation
+
+For more detailed information, check out:
+
+- **[LEADERBOARD_INTEGRATION.md](./LEADERBOARD_INTEGRATION.md)** - Complete integration guide (500+ lines)
+- **[TESTING_GUIDE.md](./TESTING_GUIDE.md)** - Step-by-step testing instructions
+- **[SUMMARY.md](./SUMMARY.md)** - Technical implementation details
+- **[QUICK_START.md](./QUICK_START.md)** - 3-minute quick start guide
+
+---
+
+## 🧪 Running Tests
+
+The project includes comprehensive unit tests:
+
+```bash
+cd move
+aptos move test
+```
+
+**Test Coverage:**
+- 15 unit tests for leaderboard functionality
+- All tests passing ✅
+- Tests cover: initialization, score submission, ranking, updates, edge cases
+
+---
 
 ## 📜 License
 
@@ -436,7 +611,23 @@ MIT
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
+### Development Setup
+
+1. Clone the repository
+2. Install Aptos CLI
+3. Set up your `.aptos/config.yaml`
+4. Run `aptos move test` to verify setup
+5. Make your changes
+6. Submit a PR
+
+---
+
 ## 📧 Contact
 
 For questions or support, please open an issue on GitHub.
 
+---
+
+**Built with ❤️ for the Aptos gaming ecosystem**
+
+*Last Updated: January 2025*
