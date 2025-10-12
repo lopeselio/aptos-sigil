@@ -4,10 +4,25 @@ A decentralized gaming open source public good on Aptos that allows publishers t
 
 ## 🎮 Features
 
+| Module | Status | Description |
+|--------|--------|-------------|
+| **game_platform** | ✅ Live | Game registration, player profiles, score submission |
+| **leaderboard** | ✅ Live | Dynamic rankings, top-N tracking, configurable sorting |
+| **achievements** | ✅ Live | 6 achievement types, progress tracking, badge/NFT support |
+
+### Core Capabilities
+
 - **Game Management** - Publishers can register games with unique IDs
 - **Player Profiles** - Players create on-chain profiles with usernames
 - **Score Submission** - Submit and track scores for any registered game
 - **Leaderboards** - Dynamic, gas-optimized leaderboards with configurable ranking
+- **Achievements** - Flexible achievement system with progress tracking, badges, and advanced conditions
+  - Basic score thresholds
+  - Consistency achievements (score X, N times)
+  - Dedication achievements (play N times)
+  - Combo achievements (combine conditions)
+  - Game-specific achievements
+  - Badge/NFT URI support
 - **Events** - All actions emit events for easy indexing
 
 ## 📋 Prerequisites
@@ -89,20 +104,29 @@ aptos move publish \
 
 ### 6. Initialize the Modules
 
-**Important:** Initialize both modules after deployment.
+**Important:** Initialize all modules after deployment.
 
 ```bash
 # Initialize Game Platform
 aptos move run \
   --function-id 'YOUR_ACCOUNT_ADDRESS::game_platform::init' \
   --profile sigil-main \
-  --assume-yes
+  --assume-yes \
+  --max-gas 2000
 
 # Initialize Leaderboards
 aptos move run \
   --function-id 'YOUR_ACCOUNT_ADDRESS::leaderboard::init_leaderboards' \
   --profile sigil-main \
-  --assume-yes
+  --assume-yes \
+  --max-gas 2000
+
+# Initialize Achievements
+aptos move run \
+  --function-id 'YOUR_ACCOUNT_ADDRESS::achievements::init_achievements' \
+  --profile sigil-main \
+  --assume-yes \
+  --max-gas 2000
 ```
 
 ---
@@ -350,6 +374,88 @@ aptos move view \
 
 ---
 
+## 🏆 Achievement Functions
+
+> **📖 Full Documentation:** See [ACHIEVEMENTS_GUIDE.md](./ACHIEVEMENTS_GUIDE.md) for comprehensive documentation including:
+> - All 6 achievement types with examples
+> - Complete testing scenarios
+> - Live deployment verification
+> - Gas optimization details
+> - 20 unit tests coverage
+> - Helper tools and troubleshooting
+
+### Quick Start - Achievements
+
+### Create Achievement (Basic Example)
+
+**Example - "High Scorer" (Score 1000+):**
+```bash
+aptos move run \
+  --profile sigil-main \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::create' \
+  --args \
+    hex:"486967682053636f726572" \
+    hex:"53636f72652031303030206f72206d6f7265" \
+    u64:1000 \
+    hex:"" \
+  --assume-yes \
+  --max-gas 2000
+```
+
+**Parameters:**
+- `title` (hex) - Achievement title in UTF-8 hex (`echo -n "Text" | xxd -p`)
+- `description` (hex) - Description in UTF-8 hex
+- `min_score` (u64) - Minimum score to unlock
+- `badge_uri` (hex) - Badge URI (empty `hex:""` for none)
+
+### Create Advanced Achievement
+
+**Example - "Consistent Performer" (Score 1000+ three times):**
+```bash
+aptos move run \
+  --profile sigil-main \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::create_advanced' \
+  --args \
+    hex:"436f6e73697374656e7420506572666f726d6572" \
+    hex:"53636f72652031303030206f72206d6f726520332074696d6573" \
+    u64:1000 \
+    u64:3 \
+    u64:0 \
+    hex:"" \
+  --assume-yes \
+  --max-gas 2000
+```
+
+**Parameters:**
+- `min_score` - Score threshold (0 = any score)
+- `required_count` - Times must hit threshold (0 = ignore)
+- `min_submissions` - Total games played (0 = ignore)
+
+
+### Achievement View Functions
+
+**Get Unlocked Achievements:**
+```bash
+aptos move view --profile sigil-main \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::unlocked_for' \
+  --args address:PUBLISHER address:PLAYER
+# Returns: [["0", "1", "2"]]
+```
+
+**Get Achievement Progress:**
+```bash
+aptos move view --profile sigil-main \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::get_progress' \
+  --args address:PUBLISHER address:PLAYER u64:ACHIEVEMENT_ID \
+  --max-gas 2000
+# Returns: ["2", "5", false]  // 2/3 threshold, 5 total plays, not unlocked
+```
+
+**More view functions:** `achievement_count`, `get_achievement`, `is_unlocked`, `list_catalog`  
+**See:** [ACHIEVEMENTS_GUIDE.md](./ACHIEVEMENTS_GUIDE.md) for complete API reference
+
+---
+
 ## 🎮 Complete Example Workflow
 
 Here's a complete example of deploying and using the platform:
@@ -410,11 +516,13 @@ aptos move view \
 
 **Network:** Aptos Devnet  
 **Module Address:** `0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6`  
-**Modules:** `game_platform`, `leaderboard`  
+**Modules:** `game_platform`, `leaderboard`, `achievements`  
 
 **Explorer Links:**
 - [Account View](https://explorer.aptoslabs.com/account/0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6?network=devnet)
-- [Latest Module Publication](https://explorer.aptoslabs.com/txn/0x3ca4da35dcd2d2f57cd35b8e695ba24d3c6d27767d1873c4d77fc6adb6cc780c?network=devnet)
+- [Initial Modules Publication](https://explorer.aptoslabs.com/txn/0x3ca4da35dcd2d2f57cd35b8e695ba24d3c6d27767d1873c4d77fc6adb6cc780c?network=devnet)
+- [Achievements Module Added](https://explorer.aptoslabs.com/txn/0x20430c13248fce29609091efe21dfe7ba190dff9b61a7a89fe639a3f64402dce?network=devnet)
+- [Latest Module Upgrade](https://explorer.aptoslabs.com/txn/0xc411143c25a9fbf6352993b597846fdd7b8f026248a8ae26b1bd451cf61ade0c?network=devnet)
 
 ---
 
@@ -422,11 +530,14 @@ aptos move view \
 
 ### Latest Deployment (January 2025)
 
-| Action | Transaction Hash | Explorer Link | Status |
-|--------|-----------------|---------------|---------|
-| **Modules Published** (game_platform + leaderboard) | `0x3ca4da35dcd2d2f57cd35b8e695ba24d3c6d27767d1873c4d77fc6adb6cc780c` | [View](https://explorer.aptoslabs.com/txn/0x3ca4da35dcd2d2f57cd35b8e695ba24d3c6d27767d1873c4d77fc6adb6cc780c?network=devnet) | ✅ Success |
-| **Leaderboards Initialized** | `0x273fa651eb3b0e73c2ff54c26ea0ef0a4e3cd8c82a503bb72d14c4b394052a8f` | [View](https://explorer.aptoslabs.com/txn/0x273fa651eb3b0e73c2ff54c26ea0ef0a4e3cd8c82a503bb72d14c4b394052a8f?network=devnet) | ✅ Success |
-| **Leaderboard Created** (Game 0, Top 10) | `0xdd82e156a7a68f3088c3c80a85d89b15376d12885c149db4945896700fa988ea` | [View](https://explorer.aptoslabs.com/txn/0xdd82e156a7a68f3088c3c80a85d89b15376d12885c149db4945896700fa988ea?network=devnet) | ✅ Success |
+| Action | Transaction Hash | Explorer Link | Gas | Status |
+|--------|-----------------|---------------|-----|---------|
+| **Initial Modules** (game_platform + leaderboard) | `0x3ca4da35dcd2d2f57cd35b8e695ba24d3c6d27767d1873c4d77fc6adb6cc780c` | [View](https://explorer.aptoslabs.com/txn/0x3ca4da35dcd2d2f57cd35b8e695ba24d3c6d27767d1873c4d77fc6adb6cc780c?network=devnet) | 2,710 | ✅ Success |
+| **Leaderboards Initialized** | `0x273fa651eb3b0e73c2ff54c26ea0ef0a4e3cd8c82a503bb72d14c4b394052a8f` | [View](https://explorer.aptoslabs.com/txn/0x273fa651eb3b0e73c2ff54c26ea0ef0a4e3cd8c82a503bb72d14c4b394052a8f?network=devnet) | 456 | ✅ Success |
+| **Leaderboard Created** (Game 0, Top 10) | `0xdd82e156a7a68f3088c3c80a85d89b15376d12885c149db4945896700fa988ea` | [View](https://explorer.aptoslabs.com/txn/0xdd82e156a7a68f3088c3c80a85d89b15376d12885c149db4945896700fa988ea?network=devnet) | 452 | ✅ Success |
+| **Achievements Module Added** | `0x20430c13248fce29609091efe21dfe7ba190dff9b61a7a89fe639a3f64402dce` | [View](https://explorer.aptoslabs.com/txn/0x20430c13248fce29609091efe21dfe7ba190dff9b61a7a89fe639a3f64402dce?network=devnet) | 3,851 | ✅ Success |
+| **Achievements Initialized** | `0x70ee2605dc11ba8ad0b8eb7ac62f30bce9bee112ec3337b1143970f8912dbe14` | [View](https://explorer.aptoslabs.com/txn/0x70ee2605dc11ba8ad0b8eb7ac62f30bce9bee112ec3337b1143970f8912dbe14?network=devnet) | 504 | ✅ Success |
+| **Module Upgraded** (CLI wrapper added) | `0xc411143c25a9fbf6352993b597846fdd7b8f026248a8ae26b1bd451cf61ade0c` | [View](https://explorer.aptoslabs.com/txn/0xc411143c25a9fbf6352993b597846fdd7b8f026248a8ae26b1bd451cf61ade0c?network=devnet) | 170 | ✅ Success |
 
 ### Test Transactions - Leaderboard System
 
@@ -452,6 +563,45 @@ After testing, the leaderboard rankings on-chain:
 aptos move view --profile sigil-main \
   --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::leaderboard::get_top_entries' \
   --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:0
+```
+
+---
+
+### Test Transactions - Achievements System
+
+| Action | Details | Transaction Hash | Explorer Link | Gas | Status |
+|--------|---------|-----------------|---------------|-----|---------|
+| **Create Achievement #0** | "High Scorer" (Score 1000+) | `0xe6e6e240af3f3a20a29660dc2920a6277b2450dedc9351419bae7c29d874ff5c` | [View](https://explorer.aptoslabs.com/txn/0xe6e6e240af3f3a20a29660dc2920a6277b2450dedc9351419bae7c29d874ff5c?network=devnet) | 447 | ✅ Success |
+| **Create Achievement #1** | "Consistent Performer" (1000+ 3x) | `0x1836f6b4167a041d417152f10436272b5170a9d4ad744cbf0c62f95da1a5167f` | [View](https://explorer.aptoslabs.com/txn/0x1836f6b4167a041d417152f10436272b5170a9d4ad744cbf0c62f95da1a5167f?network=devnet) | 454 | ✅ Success |
+| **Create Achievement #2** | "Game Master" + Badge URI | `0xca52445dfac500fa4b050bae6c4787be9dade6f563d38584d07c1f0eff2f752f` | [View](https://explorer.aptoslabs.com/txn/0xca52445dfac500fa4b050bae6c4787be9dade6f563d38584d07c1f0eff2f752f?network=devnet) | 465 | ✅ Success |
+| **Submit Score: 1200** | Unlocked Achievement #0, Progress 1/3 | `0xedc31b40c5a0ab56804535a9ccd875184139a0a367dbaea45e46c150d0ad0b1e` | [View](https://explorer.aptoslabs.com/txn/0xedc31b40c5a0ab56804535a9ccd875184139a0a367dbaea45e46c150d0ad0b1e?network=devnet) | 2,572 | ✅ Success |
+| **Submit Score: 1500** | Progress 2/3 | `0x401eeb54d318f1efdba2d498b638b43d60b6c4e5fe33125d37aab2104685eb30` | [View](https://explorer.aptoslabs.com/txn/0x401eeb54d318f1efdba2d498b638b43d60b6c4e5fe33125d37aab2104685eb30?network=devnet) | 13 | ✅ Success |
+| **Submit Score: 1800** | Progress 3/3, Unlocked Achievement #1 | `0x38d63e425b66acf02ed77dedfd24a9e6c79ab86af5f2dd300eec1bda86f12e7a` | [View](https://explorer.aptoslabs.com/txn/0x38d63e425b66acf02ed77dedfd24a9e6c79ab86af5f2dd300eec1bda86f12e7a?network=devnet) | 430 | ✅ Success |
+| **Submit Score: 2500** | Unlocked Achievement #2 (Game Master) | `0x31981b6e476d0ae6b616c36a491695b1ca9b6379852ebe14e87eb05a4b75167e` | [View](https://explorer.aptoslabs.com/txn/0x31981b6e476d0ae6b616c36a491695b1ca9b6379852ebe14e87eb05a4b75167e?network=devnet) | 430 | ✅ Success |
+
+### Verified Live Achievements State
+
+**All 3 achievements unlocked for player:** `0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6`
+
+| ID | Achievement | Type | Condition | Status |
+|----|-------------|------|-----------|---------|
+| **0** | High Scorer | Basic | Score 1000+ | ✅ Unlocked |
+| **1** | Consistent Performer | Advanced | Score 1000+ 3 times | ✅ Unlocked (3/3) |
+| **2** | Game Master | Game-Specific + Badge | Score 2000+ on Game 0 | ✅ Unlocked |
+
+**Verified using:**
+```bash
+# Check unlocked achievements
+aptos move view --profile sigil-main \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::unlocked_for' \
+  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6
+# Result: [["0", "1", "2"]]
+
+# Check progress for achievement #1
+aptos move view --profile sigil-main \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::get_progress' \
+  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:1
+# Result: ["3", "3", true]  ✅ 3/3 threshold met!
 ```
 
 ---
@@ -597,10 +747,10 @@ If republishing, the modules will be upgraded automatically. Make sure you're us
 
 For more detailed information, check out:
 
+- **[ACHIEVEMENTS_GUIDE.md](./ACHIEVEMENTS_GUIDE.md)** - Complete achievements documentation with live testing results
 - **[LEADERBOARD_INTEGRATION.md](./LEADERBOARD_INTEGRATION.md)** - Complete integration guide (500+ lines)
 - **[TESTING_GUIDE.md](./TESTING_GUIDE.md)** - Step-by-step testing instructions
 - **[SUMMARY.md](./SUMMARY.md)** - Technical implementation details
-- **[QUICK_START.md](./QUICK_START.md)** - 3-minute quick start guide
 
 ---
 
@@ -614,9 +764,27 @@ aptos move test
 ```
 
 **Test Coverage:**
-- 15 unit tests for leaderboard functionality
-- All tests passing ✅
-- Tests cover: initialization, score submission, ranking, updates, edge cases
+- **Leaderboard:** 15 unit tests ✅
+- **Achievements:** 20 unit tests ✅
+- **Total:** 35 tests, all passing ✅
+
+**Test by Module:**
+```bash
+# Test leaderboard only
+aptos move test --filter leaderboard
+
+# Test achievements only  
+aptos move test --filter achievements
+```
+
+**Coverage Includes:**
+- Initialization and setup
+- All achievement types (basic, advanced, game-specific)
+- Progress tracking and updates
+- Score submission and unlocking
+- Multiple players and edge cases
+- Badge URI storage
+- Catalog and view functions
 
 ---
 
@@ -647,4 +815,4 @@ For questions or support, please open an issue on GitHub.
 
 **Built with ❤️ for the Aptos gaming ecosystem**
 
-*Last Updated: January 2025*
+*Last Updated: Oct 2025*
