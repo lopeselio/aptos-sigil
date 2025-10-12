@@ -550,6 +550,8 @@ aptos move view \
 ## 🔗 Deployed Contract Info
 
 **Network:** Aptos Devnet  
+
+### **Main Deployment** (sigil-main)
 **Module Address:** `0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6`  
 **Modules:** `game_platform`, `leaderboard`, `achievements`, `rewards`  
 
@@ -559,6 +561,17 @@ aptos move view \
 - [Achievements Module Added](https://explorer.aptoslabs.com/txn/0x20430c13248fce29609091efe21dfe7ba190dff9b61a7a89fe639a3f64402dce?network=devnet)
 - [Achievements Module Upgraded](https://explorer.aptoslabs.com/txn/0xc411143c25a9fbf6352993b597846fdd7b8f026248a8ae26b1bd451cf61ade0c?network=devnet)
 - [Rewards Module Deployed](https://explorer.aptoslabs.com/txn/0x4bc16150bb80e5c28fe9a773ffe4c4963395b40475074212877a564c529b5ff1?network=devnet)
+
+### **Shadow Signers Deployment** (shadow-test)
+**Module Address:** `0xc2e40bb9e047dce8663d6881727c1faf0b24b32195035cf42e07a83b2fdd89af`  
+**Module:** `shadow_signers` (session keys / ephemeral delegation)  
+
+**Explorer Links:**
+- [Account View](https://explorer.aptoslabs.com/account/0xc2e40bb9e047dce8663d6881727c1faf0b24b32195035cf42e07a83b2fdd89af?network=devnet)
+- [Module Deployment](https://explorer.aptoslabs.com/txn/0x94add8b505e25bd48cfd3676d094ddd6ca1503cfb670d0d087ad21e63ba6dccd?network=devnet) (Gas: 15,851 units)
+- [Sessions Initialized](https://explorer.aptoslabs.com/txn/0xc3d1bbd24b6577cc9627482c362b3a35aa5faf1e6ba1d0ae9348be435dadc46a?network=devnet) (Gas: 513 units)
+
+> **Note:** Shadow Signers is deployed at a separate address for independent testing. This module enables gasless gameplay by allowing temporary delegation of transaction signing authority. See [Shadow Signers Guide](#) for integration details.
 
 ---
 
