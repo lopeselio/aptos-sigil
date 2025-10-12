@@ -3,6 +3,7 @@ module sigil::rewards_tests {
     use std::string;
     use std::option;
     use std::vector;
+    use std::signer;
     use aptos_framework::account;
     use aptos_framework::object;
     use aptos_framework::fungible_asset::{Self, Metadata};
@@ -511,6 +512,97 @@ module sigil::rewards_tests {
         
         let (exists, _, _, _, _) = rewards::get_reward(@0x123, 999);
         assert!(!exists, 180);
+    }
+
+    /************
+     * Roles Integration Tests
+     ************/
+
+    #[test]
+    fun test_roles_operator_can_attach_reward() {
+        use sigil::roles;
+        
+        let publisher = account::create_account_for_test(@0x123);
+        let operator = account::create_account_for_test(@0x456);
+        let pub_addr = signer::address_of(&publisher);
+        let op_addr = signer::address_of(&operator);
+        
+        // Setup
+        rewards::init_rewards_for_test(&publisher);
+        roles::init_roles(&publisher);
+        roles::add_operator(&publisher, pub_addr, op_addr);
+        
+        let fa_metadata = create_test_fa(&publisher);
+        
+        // Operator should be able to attach reward
+        rewards::attach_fa_reward(&operator, 0, fa_metadata, 100, 10);
+        
+        // Verify it was attached
+        let ids = rewards::list_rewarded_achievements(pub_addr);
+        assert!(vector::length(&ids) == 1, 0);
+    }
+
+    #[test]
+    #[expected_failure(abort_code = 8, location = sigil::rewards)] // E_NO_PERMISSION
+    fun test_roles_unauthorized_cannot_attach_reward() {
+        use sigil::roles;
+        
+        let publisher = account::create_account_for_test(@0x123);
+        let unauthorized = account::create_account_for_test(@0x999);
+        
+        // Setup
+        rewards::init_rewards_for_test(&publisher);
+        roles::init_roles(&publisher);
+        
+        let fa_metadata = create_test_fa(&publisher);
+        
+        // Unauthorized user tries to attach reward (should fail)
+        rewards::attach_fa_reward(&unauthorized, 0, fa_metadata, 100, 10);
+    }
+
+    #[test]
+    fun test_roles_admin_can_attach_reward() {
+        use sigil::roles;
+        
+        let publisher = account::create_account_for_test(@0x123);
+        let admin = account::create_account_for_test(@0x456);
+        let pub_addr = signer::address_of(&publisher);
+        let admin_addr = signer::address_of(&admin);
+        
+        // Setup
+        rewards::init_rewards_for_test(&publisher);
+        roles::init_roles(&publisher);
+        roles::add_admin(&publisher, pub_addr, admin_addr);
+        
+        let fa_metadata = create_test_fa(&publisher);
+        
+        // Admin should be able to attach reward
+        rewards::attach_fa_reward(&admin, 0, fa_metadata, 100, 10);
+        
+        // Verify it was attached
+        let ids = rewards::list_rewarded_achievements(pub_addr);
+        assert!(vector::length(&ids) == 1, 0);
+    }
+
+    #[test]
+    fun test_roles_owner_always_has_permission_for_rewards() {
+        use sigil::roles;
+        
+        let publisher = account::create_account_for_test(@0x123);
+        let pub_addr = signer::address_of(&publisher);
+        
+        // Setup
+        rewards::init_rewards_for_test(&publisher);
+        roles::init_roles(&publisher);
+        
+        let fa_metadata = create_test_fa(&publisher);
+        
+        // Owner can always attach rewards
+        rewards::attach_fa_reward(&publisher, 0, fa_metadata, 100, 10);
+        
+        // Verify
+        let ids = rewards::list_rewarded_achievements(pub_addr);
+        assert!(vector::length(&ids) == 1, 0);
     }
 }
 

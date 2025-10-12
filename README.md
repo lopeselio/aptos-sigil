@@ -23,8 +23,10 @@ A complete, production-ready gaming platform on Aptos featuring **instant automa
 | **leaderboard** | ✅ Live | Dynamic rankings, top-N tracking, configurable sorting |
 | **achievements** | ✅ Live | 6 achievement types, progress tracking, badge/NFT support |
 | **rewards** | ✅ Live | **Automatic FA/NFT distribution** ⚡ (Phase Final!) |
+| **roles** | ✅ Live | Multi-admin & operator management for teams 🔐 (NEW!) |
 | **shadow_signers** | ✅ Live | Gasless gameplay via session keys (no wallet popups!) |
 | **treasury** | ✅ Live | FA management, deposit/withdrawal tracking |
+| **attest** | ✅ Live | Server-side score verification (anti-cheat) 🛡️ |
 
 ### Core Capabilities
 
@@ -637,6 +639,92 @@ aptos move view ... attest::get_last_nonce ...
 
 ---
 
+## 🔐 Multi-Admin Management with Roles
+
+**Delegate permissions to your team without sharing keys!**
+
+The roles module enables multi-admin and operator management for teams and studios. Perfect for scaling from solo dev to AAA studio.
+
+### **Role Hierarchy**
+
+```
+Owner (Publisher) → Can add/remove Admins + All permissions
+  ├─ Admin → Can add/remove Operators, manage treasury, full control
+  └─ Operator → Can create achievements, attach rewards, manage leaderboards
+```
+
+### **When To Use**
+
+| Scenario | Use Roles? | Setup |
+|----------|-----------|-------|
+| Solo developer | ❌ No | Just use owner account |
+| Small team (2-5) | ✅ Yes | Add operators for content management |
+| Studio (10+) | ✅ Yes | Add admins + operators with hierarchy |
+| DAO-governed | ✅ Yes | Multisig owner, elected admins |
+
+### **Key Features**
+
+- ✅ **Owner is immutable** - No takeover risk
+- ✅ **Granular permissions** - Operators can't touch treasury
+- ✅ **Bitwise roles** - Can be both admin AND operator
+- ✅ **Optional integration** - Modules work without roles
+- ✅ **Gas-efficient** - ~$0.000065 total setup cost
+- ✅ **Per-publisher isolation** - Each publisher has independent roles
+
+### **Functions**
+
+```bash
+# 1. Initialize roles
+aptos move run --function-id '0x1cc...::roles::init_roles' --profile publisher
+
+# 2. Add admin (owner only)
+aptos move run --function-id '0x1cc...::roles::add_admin' \
+  --args address:0x1cc... address:ADMIN_ADDR
+
+# 3. Add operator (owner or admin)
+aptos move run --function-id '0x1cc...::roles::add_operator' \
+  --args address:0x1cc... address:OPERATOR_ADDR
+
+# 4. Check permissions
+aptos move view --function-id '0x1cc...::roles::can_manage_achievements' \
+  --args address:0x1cc... address:USER_ADDR
+```
+
+### **Permission Matrix**
+
+| Function | Owner | Admin | Operator |
+|----------|-------|-------|----------|
+| Add/Remove Admin | ✅ | ❌ | ❌ |
+| Add/Remove Operator | ✅ | ✅ | ❌ |
+| Create Achievements | ✅ | ✅ | ✅ |
+| Attach Rewards | ✅ | ✅ | ✅ |
+| Manage Treasury | ✅ | ✅ | ❌ |
+
+### **Example: AAA Studio Setup**
+
+```bash
+# 1. Owner (studio wallet in cold storage)
+roles::init_roles(publisher)
+
+# 2. Economy lead = Admin
+roles::add_admin(publisher, economy_lead)
+
+# 3. Economy lead adds operators
+roles::add_operator(economy_lead, game_designer_1)
+roles::add_operator(economy_lead, community_manager)
+
+# 4. Operators manage content daily
+# 5. Owner stays secure in cold storage
+```
+
+**Server Required:** ❌ NO (fully on-chain)  
+**Gas Cost:** ~300 gas init + ~150 gas per operator (~$0.000045)  
+**Security:** Owner immutable, operators can't withdraw funds
+
+**See:** [Roles Guide](./docs/modules/ROLES_GUIDE.md) for complete details, use cases, and security model
+
+---
+
 ## 🔗 Deployed Contract Info
 
 **Network:** Aptos Devnet  
@@ -981,6 +1069,7 @@ If republishing, the modules will be upgraded automatically. Make sure you're us
 
 - **[Achievements Guide](./docs/modules/ACHIEVEMENTS_GUIDE.md)** - Complete achievements documentation with 6 types, live testing
 - **[Rewards Guide](./docs/modules/REWARDS_GUIDE.md)** - Complete rewards guide with 10 practical use cases
+- **[Roles Guide](./docs/modules/ROLES_GUIDE.md)** - Multi-admin & operator management for teams (NEW!)
 - **[Attest Guide](./docs/modules/ATTEST_GUIDE.md)** - Anti-cheat server attestation (competitive games)
 - **[Shadow Signers Guide](./docs/modules/SHADOW_SIGNERS_GUIDE.md)** - Gasless gameplay with session keys
 - **[Treasury Guide](./docs/modules/TREASURY_GUIDE.md)** - FA management and tracking

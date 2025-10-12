@@ -3,6 +3,7 @@ module sigil::leaderboard {
     use aptos_std::table::{Self, Table};
     use aptos_framework::signer;
     // use sigil::game_platform;  // Temporarily disabled for independent deployment
+    use sigil::roles;
 
     /*************
      *  Types
@@ -43,6 +44,7 @@ module sigil::leaderboard {
     const E_NOT_FOUND: u64 = 1;
     const E_ID_EXISTS: u64 = 2;
     // const E_GAME_NOT_FOUND: u64 = 3;  // Reserved for future use
+    const E_NO_PERMISSION: u64 = 4;
 
     /*************
      *  Publisher lifecycle
@@ -72,6 +74,14 @@ module sigil::leaderboard {
         scores_to_retain: u64
     ) acquires Leaderboards {
         let owner = signer::address_of(publisher);
+        
+        // Optional role check: if roles is initialized, verify permission
+        if (roles::is_initialized(owner)) {
+            assert!(
+                roles::can_manage_leaderboards(owner, owner),
+                E_NO_PERMISSION
+            );
+        };
         
         // Validate that the game exists in game_platform
         // assert!(game_platform::has_game(owner, game_id), E_GAME_NOT_FOUND);  // Temporarily disabled

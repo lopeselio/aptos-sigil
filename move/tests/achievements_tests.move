@@ -2,6 +2,7 @@
 module sigil::achievements_tests {
     use std::vector;
     use std::option;
+    use std::signer;
     use aptos_framework::account;
     use sigil::achievements;
 
@@ -475,6 +476,127 @@ module sigil::achievements_tests {
         assert!(*vector::borrow(&unlocked_list, 0) == 0, 170);
         assert!(*vector::borrow(&unlocked_list, 1) == 1, 171);
         assert!(*vector::borrow(&unlocked_list, 2) == 2, 172);
+    }
+
+    /************
+     * Roles Integration Tests
+     ************/
+
+    #[test]
+    fun test_roles_operator_can_create_achievement() {
+        use sigil::roles;
+        
+        let publisher = account::create_account_for_test(@0x123);
+        let operator = account::create_account_for_test(@0x456);
+        let pub_addr = signer::address_of(&publisher);
+        let op_addr = signer::address_of(&operator);
+        
+        // Initialize achievements and roles
+        achievements::init_achievements(&publisher);
+        roles::init_roles(&publisher);
+        roles::add_operator(&publisher, pub_addr, op_addr);
+        
+        // Operator should be able to create achievement
+        achievements::create(
+            &operator,  // Operator creates
+            b"Operator Achievement",
+            b"Created by operator",
+            100,
+            b""
+        );
+        
+        // Verify it was created (count should be 1)
+        assert!(achievements::achievement_count(pub_addr) == 1, 0);
+    }
+
+    #[test]
+    #[expected_failure(abort_code = 3, location = sigil::achievements)] // E_NO_PERMISSION
+    fun test_roles_unauthorized_cannot_create_achievement() {
+        use sigil::roles;
+        
+        let publisher = account::create_account_for_test(@0x123);
+        let unauthorized = account::create_account_for_test(@0x999);
+        let pub_addr = signer::address_of(&publisher);
+        
+        // Initialize achievements and roles
+        achievements::init_achievements(&publisher);
+        roles::init_roles(&publisher);
+        
+        // Unauthorized user tries to create achievement (should fail)
+        achievements::create(
+            &unauthorized,
+            b"Unauthorized Achievement",
+            b"Should fail",
+            100,
+            b""
+        );
+    }
+
+    #[test]
+    fun test_roles_admin_can_grant_achievement() {
+        use sigil::roles;
+        
+        let publisher = account::create_account_for_test(@0x123);
+        let admin = account::create_account_for_test(@0x456);
+        let player = account::create_account_for_test(@0x789);
+        let pub_addr = signer::address_of(&publisher);
+        let admin_addr = signer::address_of(&admin);
+        let player_addr = signer::address_of(&player);
+        
+        // Setup
+        achievements::init_achievements(&publisher);
+        roles::init_roles(&publisher);
+        roles::add_admin(&publisher, pub_addr, admin_addr);
+        
+        // Create achievement as owner
+        achievements::create(&publisher, b"Test", b"Test", 100, b"");
+        
+        // Admin can grant achievement
+        achievements::grant(&admin, player_addr, 0);
+        
+        // Verify player has achievement
+        let unlocked = achievements::unlocked_for(pub_addr, player_addr);
+        assert!(vector::length(&unlocked) == 1, 0);
+    }
+
+    #[test]
+    #[expected_failure(abort_code = 3, location = sigil::achievements)] // E_NO_PERMISSION
+    fun test_roles_unauthorized_cannot_grant_achievement() {
+        use sigil::roles;
+        
+        let publisher = account::create_account_for_test(@0x123);
+        let unauthorized = account::create_account_for_test(@0x999);
+        let player = account::create_account_for_test(@0x789);
+        let pub_addr = signer::address_of(&publisher);
+        let player_addr = signer::address_of(&player);
+        
+        // Setup
+        achievements::init_achievements(&publisher);
+        roles::init_roles(&publisher);
+        
+        // Create achievement as owner
+        achievements::create(&publisher, b"Test", b"Test", 100, b"");
+        
+        // Unauthorized user tries to grant achievement (should fail)
+        achievements::grant(&unauthorized, player_addr, 0);
+    }
+
+    #[test]
+    fun test_roles_owner_always_has_permission() {
+        use sigil::roles;
+        
+        let publisher = account::create_account_for_test(@0x123);
+        let pub_addr = signer::address_of(&publisher);
+        
+        // Initialize achievements and roles
+        achievements::init_achievements(&publisher);
+        roles::init_roles(&publisher);
+        
+        // Owner can always create achievements (even without explicit role)
+        achievements::create(&publisher, b"Owner Achievement", b"Test", 100, b"");
+        
+        // Verify
+        assert!(achievements::achievement_count(pub_addr) == 1, 0);
     }
 }
 

@@ -12,6 +12,7 @@ module sigil::rewards {
     use aptos_token_objects::collection;
     use aptos_token_objects::token;
     // use sigil::achievements;  // Temporarily disabled for independent deployment
+    use sigil::roles;
 
     /*************
      *  Types
@@ -89,6 +90,7 @@ module sigil::rewards {
     const E_OUT_OF_STOCK: u64 = 5;
     const E_INVALID_SUPPLY: u64 = 6;
     const E_NOT_INITIALIZED: u64 = 7;
+    const E_NO_PERMISSION: u64 = 8;
 
     /*************
      *  Lifecycle
@@ -149,6 +151,14 @@ module sigil::rewards {
         let addr = signer::address_of(publisher);
         assert!(exists<RewardsConfig>(addr), E_NOT_INITIALIZED);
         
+        // Optional role check: if roles is initialized, verify permission
+        if (roles::is_initialized(addr)) {
+            assert!(
+                roles::can_manage_rewards(addr, addr),
+                E_NO_PERMISSION
+            );
+        };
+        
         // Get publisher signer from capability
         let config = borrow_global<RewardsConfig>(addr);
         let publisher_signer = account::create_signer_with_capability(&config.signer_cap);
@@ -185,6 +195,15 @@ module sigil::rewards {
         supply: u64
     ) acquires Rewards {
         let addr = signer::address_of(publisher);
+        
+        // Optional role check: if roles is initialized, verify permission
+        if (roles::is_initialized(addr)) {
+            assert!(
+                roles::can_manage_rewards(addr, addr),
+                E_NO_PERMISSION
+            );
+        };
+        
         let r = borrow_global_mut<Rewards>(addr);
         
         assert!(!table::contains<u64, Reward>(&r.by_achievement, achievement_id), E_ALREADY_ATTACHED);
@@ -234,6 +253,15 @@ module sigil::rewards {
         supply: u64
     ) acquires Rewards {
         let addr = signer::address_of(publisher);
+        
+        // Optional role check: if roles is initialized, verify permission
+        if (roles::is_initialized(addr)) {
+            assert!(
+                roles::can_manage_rewards(addr, addr),
+                E_NO_PERMISSION
+            );
+        };
+        
         let r = borrow_global_mut<Rewards>(addr);
         
         assert!(!table::contains<u64, Reward>(&r.by_achievement, achievement_id), E_ALREADY_ATTACHED);

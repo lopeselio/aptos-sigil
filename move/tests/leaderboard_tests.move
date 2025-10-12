@@ -2,6 +2,7 @@
 module sigil::leaderboard_tests {
     use std::string;
     use std::vector;
+    use std::signer;
     use aptos_framework::account;
     use sigil::game_platform;
     use sigil::leaderboard;
@@ -399,6 +400,122 @@ module sigil::leaderboard_tests {
         let (players, scores) = leaderboard::get_top_entries(@0x123, 0);
         assert!(vector::length(&players) == 1, 110);
         assert!(*vector::borrow(&scores, 0) == 1000, 111);
+    }
+
+    /************
+     * Roles Integration Tests
+     ************/
+
+    #[test]
+    fun test_roles_operator_can_create_leaderboard() {
+        use sigil::roles;
+        
+        let publisher = account::create_account_for_test(@0x123);
+        let operator = account::create_account_for_test(@0x456);
+        let pub_addr = signer::address_of(&publisher);
+        let op_addr = signer::address_of(&operator);
+        
+        // Setup
+        leaderboard::init_leaderboards(&publisher);
+        roles::init_roles(&publisher);
+        roles::add_operator(&publisher, pub_addr, op_addr);
+        
+        // Operator should be able to create leaderboard
+        leaderboard::create_leaderboard(
+            &operator,
+            0,      // game_id
+            0,      // decimals
+            0,      // min_score
+            10000,  // max_score
+            false,  // is_ascending
+            false,  // allow_multiple
+            10      // scores_to_retain
+        );
+        
+        // Verify it was created
+        assert!(leaderboard::get_leaderboard_count(pub_addr) == 1, 0);
+    }
+
+    #[test]
+    #[expected_failure(abort_code = 4, location = sigil::leaderboard)] // E_NO_PERMISSION
+    fun test_roles_unauthorized_cannot_create_leaderboard() {
+        use sigil::roles;
+        
+        let publisher = account::create_account_for_test(@0x123);
+        let unauthorized = account::create_account_for_test(@0x999);
+        
+        // Setup
+        leaderboard::init_leaderboards(&publisher);
+        roles::init_roles(&publisher);
+        
+        // Unauthorized user tries to create leaderboard (should fail)
+        leaderboard::create_leaderboard(
+            &unauthorized,
+            0,
+            0,
+            0,
+            10000,
+            false,
+            false,
+            10
+        );
+    }
+
+    #[test]
+    fun test_roles_admin_can_create_leaderboard() {
+        use sigil::roles;
+        
+        let publisher = account::create_account_for_test(@0x123);
+        let admin = account::create_account_for_test(@0x456);
+        let pub_addr = signer::address_of(&publisher);
+        let admin_addr = signer::address_of(&admin);
+        
+        // Setup
+        leaderboard::init_leaderboards(&publisher);
+        roles::init_roles(&publisher);
+        roles::add_admin(&publisher, pub_addr, admin_addr);
+        
+        // Admin should be able to create leaderboard
+        leaderboard::create_leaderboard(
+            &admin,
+            0,
+            0,
+            0,
+            10000,
+            false,
+            false,
+            10
+        );
+        
+        // Verify it was created
+        assert!(leaderboard::get_leaderboard_count(pub_addr) == 1, 0);
+    }
+
+    #[test]
+    fun test_roles_owner_always_has_permission_for_leaderboard() {
+        use sigil::roles;
+        
+        let publisher = account::create_account_for_test(@0x123);
+        let pub_addr = signer::address_of(&publisher);
+        
+        // Setup
+        leaderboard::init_leaderboards(&publisher);
+        roles::init_roles(&publisher);
+        
+        // Owner can always create leaderboards
+        leaderboard::create_leaderboard(
+            &publisher,
+            0,
+            0,
+            0,
+            10000,
+            false,
+            false,
+            10
+        );
+        
+        // Verify
+        assert!(leaderboard::get_leaderboard_count(pub_addr) == 1, 0);
     }
 }
 

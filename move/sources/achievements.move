@@ -5,6 +5,7 @@ module sigil::achievements {
     use aptos_framework::signer;
     use aptos_framework::account;
     use aptos_framework::event;
+    use sigil::roles;
 
     /*************
      *  Types
@@ -89,6 +90,7 @@ module sigil::achievements {
     const E_ALREADY_INIT: u64 = 0;
     const E_NOT_FOUND: u64 = 1;
     const E_EXISTS: u64 = 2;
+    const E_NO_PERMISSION: u64 = 3;
 
     /*************
      *  Lifecycle (publisher)
@@ -119,6 +121,15 @@ module sigil::achievements {
         badge_uri: vector<u8>
     ) acquires Achievements {
         let owner = signer::address_of(publisher);
+        
+        // Optional role check: if roles is initialized, verify permission
+        if (roles::is_initialized(owner)) {
+            assert!(
+                roles::can_manage_achievements(owner, owner),
+                E_NO_PERMISSION
+            );
+        };
+        
         let a = borrow_global_mut<Achievements>(owner);
 
         let id = a.next_id;
@@ -150,6 +161,15 @@ module sigil::achievements {
         badge_uri: vector<u8>
     ) acquires Achievements {
         let owner = signer::address_of(publisher);
+        
+        // Optional role check: if roles is initialized, verify permission
+        if (roles::is_initialized(owner)) {
+            assert!(
+                roles::can_manage_achievements(owner, owner),
+                E_NO_PERMISSION
+            );
+        };
+        
         let a = borrow_global_mut<Achievements>(owner);
 
         let id = a.next_id;
@@ -186,6 +206,15 @@ module sigil::achievements {
         badge_uri: vector<u8>
     ) acquires Achievements {
         let owner = signer::address_of(publisher);
+        
+        // Optional role check: if roles is initialized, verify permission
+        if (roles::is_initialized(owner)) {
+            assert!(
+                roles::can_manage_achievements(owner, owner),
+                E_NO_PERMISSION
+            );
+        };
+        
         let a = borrow_global_mut<Achievements>(owner);
 
         let id = a.next_id;
@@ -219,6 +248,15 @@ module sigil::achievements {
         badge_uri: vector<u8>
     ) acquires Achievements {
         let owner = signer::address_of(publisher);
+        
+        // Optional role check: if roles is initialized, verify permission
+        if (roles::is_initialized(owner)) {
+            assert!(
+                roles::can_manage_achievements(owner, owner),
+                E_NO_PERMISSION
+            );
+        };
+        
         let a = borrow_global_mut<Achievements>(owner);
 
         let id = a.next_id;
@@ -251,6 +289,15 @@ module sigil::achievements {
         achievement_id: u64
     ) acquires Achievements {
         let owner = signer::address_of(publisher);
+        
+        // Optional role check: if roles is initialized, verify permission
+        if (roles::is_initialized(owner)) {
+            assert!(
+                roles::can_manage_achievements(owner, owner),
+                E_NO_PERMISSION
+            );
+        };
+        
         do_unlock(owner, player, achievement_id)
     }
 
