@@ -5,6 +5,7 @@ module sigil::game_platform {
     use aptos_framework::event;
     use aptos_framework::signer;
     use aptos_framework::account;
+    use sigil::attest;
 
     /*************
      *  Types
@@ -60,6 +61,7 @@ module sigil::game_platform {
     const E_GAME_NOT_FOUND: u64 = 1;
     const E_PLAYER_EXISTS: u64 = 2;
     const E_PLAYER_REQUIRED: u64 = 3;
+    const E_INVALID_ATTESTATION: u64 = 4;
 
     /*************
      *  Entry funcs
@@ -150,6 +152,48 @@ module sigil::game_platform {
             &mut sigil.events.score_submitted,
             ScoreSubmittedEvent { publisher, player: player_addr, game_id, score }
         );
+    }
+
+    /// Submit a score with server attestation (anti-cheat)
+    /// Requires publisher to have initialized attest module with server pubkey
+    /// 
+    /// # Arguments
+    /// * `player` - Player submitting score
+    /// * `publisher` - Publisher address
+    /// * `game_id` - Game ID
+    /// * `score` - Score value
+    /// * `timestamp_signed` - When server signed this score
+    /// * `nonce` - Monotonically increasing nonce (prevents replay)
+    /// * `signature` - Ed25519 signature from game server
+    /// 
+    /// Server signs: "SIGIL_ATTEST_V1||publisher||player||game_id||score||nonce||timestamp"
+    public entry fun submit_score_attested(
+        player: &signer,
+        publisher: address,
+        game_id: u64,
+        score: u64,
+        timestamp_signed: u64,
+        nonce: u64,
+        signature: vector<u8>
+    ) acquires Sigil {
+        let player_addr = signer::address_of(player);
+        
+        // Verify server attestation
+        assert!(
+            attest::verify_attestation(
+                publisher,
+                player_addr,
+                game_id,
+                score,
+                timestamp_signed,
+                nonce,
+                signature
+            ),
+            E_INVALID_ATTESTATION
+        );
+        
+        // If attestation valid, submit score normally
+        submit_score(player, publisher, game_id, score);
     }
 
     /*************
