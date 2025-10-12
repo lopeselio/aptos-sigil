@@ -74,25 +74,27 @@ module sigil::leaderboard_tests {
     }
 
     #[test]
-    #[expected_failure(abort_code = 3)] // E_GAME_NOT_FOUND
-    fun test_create_leaderboard_without_game_fails() {
+    fun test_create_leaderboard_independent() {
         let publisher = account::create_account_for_test(@0x123);
         
         // Initialize game platform but DON'T create a game
         game_platform::init(&publisher);
         leaderboard::init_leaderboards(&publisher);
         
-        // Try to create leaderboard for non-existent game
+        // Create leaderboard without game (works in independent mode)
         leaderboard::create_leaderboard(
             &publisher,
-            0,      // game_id doesn't exist
+            0,      // game_id (no validation in independent mode)
             0,      // decimals
             0,      // min_score
             1000,   // max_score
             false,  // is_ascending
             false,  // allow_multiple
             5       // scores_to_retain
-        ); // Should fail with E_GAME_NOT_FOUND
+        ); // Works in independent deployment mode
+        
+        let count = leaderboard::get_leaderboard_count(@0x123);
+        assert!(count == 1, 77);
     }
 
     #[test]
