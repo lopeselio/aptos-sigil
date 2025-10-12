@@ -6,7 +6,300 @@ The Sigil Rewards module provides a comprehensive reward distribution system for
 
 **Module Status:** ✅ Production Ready  
 **Test Coverage:** 26 comprehensive tests, all passing  
-**Deployment:** Ready for devnet  
+**Deployment:** Ready for devnet
+
+---
+
+## 🎭 Actors & Access Control
+
+### Who Can Do What?
+
+The Sigil platform uses a **per-publisher architecture**. Anyone can become a publisher and create their own gaming ecosystem!
+
+| Actor | Can Do | Can't Do | Access Control |
+|-------|--------|----------|----------------|
+| **Publisher** (Game Creator) | ✅ Initialize modules<br>✅ Create games<br>✅ Create leaderboards<br>✅ Create achievements<br>✅ Attach rewards<br>✅ Grant achievements manually<br>✅ Increase reward supply<br>✅ Remove rewards | ❌ Access other publishers' data<br>❌ Modify other publishers' rewards<br>❌ Claim on behalf of players | `&signer` requirement on all management functions |
+| **Player** | ✅ Register profile<br>✅ Submit scores<br>✅ Claim rewards<br>✅ View achievements<br>✅ Check leaderboards | ❌ Create achievements<br>❌ Attach rewards<br>❌ Modify supplies<br>❌ Grant to other players | `&signer` requirement on claim functions |
+| **Anyone** | ✅ View all public data<br>✅ Query leaderboards<br>✅ Check achievements<br>✅ See reward configs | ❌ Write operations | Read-only view functions |
+
+---
+
+### Per-Publisher Isolation
+
+Each publisher has **their own independent resources**:
+
+```
+Publisher A (0xaaa...)
+├── Sigil (games & scores)
+├── Leaderboards
+├── Achievements  
+└── Rewards
+
+Publisher B (0xbbb...)
+├── Sigil (games & scores)
+├── Leaderboards
+├── Achievements
+└── Rewards
+```
+
+**This means:**
+- ✅ **Yes!** Anyone can create their own game ecosystem
+- ✅ Publishers are **completely independent**
+- ✅ Players choose which publishers to interact with
+- ✅ No central authority or approval needed
+
+---
+
+### Access Control Implementation
+
+#### Publisher-Only Functions (Require `&signer`)
+
+```move
+// Example from rewards.move
+public entry fun attach_fa_reward(
+    publisher: &signer,  // ← MUST be the publisher
+    achievement_id: u64,
+    ...
+) {
+    let addr = signer::address_of(publisher);
+    let r = borrow_global_mut<Rewards>(addr);  // ← Can only modify OWN resources
+    ...
+}
+```
+
+**Enforced by:**
+1. Aptos blockchain validates signer
+2. Can only access resources at `signer::address_of(publisher)`
+3. Cannot access other addresses' resources
+
+#### Player-Only Functions
+
+```move
+public entry fun claim_reward(
+    player: &signer,  // ← MUST be the player
+    publisher: address,
+    achievement_id: u64
+) {
+    let player_addr = signer::address_of(player);
+    // Player can only claim for themselves
+    ...
+}
+```
+
+---
+
+## 🎮 Complete Setup Guide (Become a Publisher)
+
+### Step-by-Step: Launch Your Own Game
+
+**Any Aptos account can become a publisher!** Here's the complete flow:
+
+#### 1. **Get an Aptos Account**
+
+```bash
+# Create new account
+aptos init --profile my-game
+
+# Or use existing account
+aptos account fund-with-faucet --profile my-game
+```
+
+**Your address** (e.g., `0xabc...`) becomes your **publisher address**.
+
+---
+
+#### 2. **Initialize All Modules** (One-Time Setup)
+
+```bash
+# Initialize game platform
+aptos move run \
+  --profile my-game \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::game_platform::init' \
+  --assume-yes --max-gas 2000
+
+# Initialize leaderboards
+aptos move run \
+  --profile my-game \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::leaderboard::init_leaderboards' \
+  --assume-yes --max-gas 2000
+
+# Initialize achievements
+aptos move run \
+  --profile my-game \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::init_achievements' \
+  --assume-yes --max-gas 2000
+
+# Initialize rewards
+aptos move run \
+  --profile my-game \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::rewards::init_rewards' \
+  --assume-yes --max-gas 2000
+```
+
+**After this:** You have your own complete gaming platform! ✅
+
+---
+
+#### 3. **Register Your Game**
+
+```bash
+aptos move run \
+  --profile my-game \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::game_platform::register_game' \
+  --args string:"My Awesome Game" \
+  --assume-yes --max-gas 2000
+```
+
+**Result:** Game ID 0 created under **your** publisher address.
+
+---
+
+#### 4. **Create Leaderboard**
+
+```bash
+aptos move run \
+  --profile my-game \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::leaderboard::create_leaderboard' \
+  --args u64:0 u8:0 u64:0 u64:999999 bool:false bool:false u64:100 \
+  --assume-yes --max-gas 2000
+```
+
+**Result:** Leaderboard ID 0 for your game.
+
+---
+
+#### 5. **Create Achievements**
+
+```bash
+# Basic: "Score 1000+"
+aptos move run \
+  --profile my-game \
+  --function-id '0xe68ef...::achievements::create' \
+  --args hex:"486967682053636f726572" hex:"53636f72652031303030" u64:1000 hex:"" \
+  --assume-yes --max-gas 2000
+
+# Advanced: "Play 100 times"
+aptos move run \
+  --profile my-game \
+  --function-id '0xe68ef...::achievements::create_advanced' \
+  --args hex:"4d617261746f6e" hex:"506c61792031303020676173656d" u64:0 u64:0 u64:100 hex:"" \
+  --assume-yes --max-gas 2000
+```
+
+**Result:** Achievement IDs 0, 1 created.
+
+---
+
+#### 6. **Attach Rewards**
+
+```bash
+# Attach 100 APT to achievement #0
+aptos move run \
+  --profile my-game \
+  --function-id '0xe68ef...::rewards::attach_fa_reward' \
+  --args u64:0 object:0x...apt_metadata u64:10000000000 u64:50 \
+  --assume-yes --max-gas 2000
+
+# Attach NFT badge to achievement #1
+aptos move run \
+  --profile my-game \
+  --function-id '0xe68ef...::rewards::attach_nft_reward' \
+  --args u64:1 address:0x...collection string:"Marathon Badge" string:"Completed 100 games" string:"ipfs://..." u64:1000 \
+  --assume-yes --max-gas 2000
+```
+
+---
+
+#### 7. **Players Interact**
+
+Now **any player** can interact with **YOUR** games:
+
+```bash
+# Player registers (one-time)
+aptos move run \
+  --profile player-account \
+  --function-id '0xe68ef...::game_platform::register_player' \
+  --args string:"PlayerName" \
+  --assume-yes --max-gas 2000
+
+# Player submits score to YOUR game
+aptos move run \
+  --profile player-account \
+  --function-id '0xe68ef...::game_platform::submit_score' \
+  --args address:YOUR_PUBLISHER_ADDRESS u64:0 u64:1500 \
+  --assume-yes --max-gas 2000
+
+# Achievement unlocks, player claims reward from YOUR rewards
+aptos move run \
+  --profile player-account \
+  --function-id '0xe68ef...::rewards::claim_testing' \
+  --args address:YOUR_PUBLISHER_ADDRESS u64:0 \
+  --assume-yes --max-gas 3000
+```
+
+---
+
+### Security Model
+
+#### ✅ What's Protected:
+
+1. **Publisher Resources** - Only you can modify YOUR games/achievements/rewards
+2. **Player Claims** - Players can only claim for themselves
+3. **Supply Limits** - Automatically enforced on-chain
+4. **Double Claims** - Impossible due to table tracking
+
+#### ✅ What's Validated:
+
+```move
+// Publisher validation (automatic via &signer)
+public entry fun attach_fa_reward(publisher: &signer, ...) {
+    let addr = signer::address_of(publisher);  // Gets YOUR address
+    borrow_global_mut<Rewards>(addr);          // Can ONLY modify YOUR resources
+}
+
+// Player validation
+public entry fun claim_reward(player: &signer, ...) {
+    let player_addr = signer::address_of(player);  // Gets player's address
+    // Can only claim for themselves
+}
+
+// Stock validation
+assert!(reward.claimed_count < reward.total_supply, E_OUT_OF_STOCK);
+
+// Double-claim prevention  
+assert!(!table::contains(claimed_map, achievement_id), E_ALREADY_CLAIMED);
+```
+
+---
+
+### Multi-Publisher Ecosystem
+
+**Example Scenario:**
+
+```
+Studio A (0xaaa...)
+├── Game: "Space Shooter"
+├── Leaderboard: Top 100
+├── Achievement: "Score 10,000+"
+└── Reward: 50 USDC
+
+Studio B (0xbbb...)
+├── Game: "Racing Game"
+├── Leaderboard: Top 50
+├── Achievement: "Win 10 Races"
+└── Reward: Rare NFT Badge
+
+Indie Dev C (0xccc...)
+├── Game: "Puzzle Game"
+├── Achievement: "100 Levels"
+└── Reward: 1000 Platform Tokens
+```
+
+**All independent!** Players can:
+- Play games from all three publishers
+- Earn achievements from each
+- Claim rewards from each
+- All on the same blockchain!  
 
 ---
 
@@ -540,55 +833,492 @@ aptos move run \
 
 ---
 
-## 💡 Real-World Examples
+## 💡 Practical Use Case Scenarios
 
-### Example 1: Tournament Prize Pool
+### Use Case 1: Indie Game Developer
 
-```bash
-# Bronze: Top 100 players get 10 USDC
-attach_fa_reward(achievement_id: 0, usdc_metadata, amount: 10_000000, supply: 100)
+**Who:** Solo developer launching a casual mobile game  
+**Budget:** Limited tokens, wants to reward engagement  
 
-# Silver: Top 50 players get 50 USDC
-attach_fa_reward(achievement_id: 1, usdc_metadata, amount: 50_000000, supply: 50)
+**Setup:**
 
-# Gold: Top 10 players get 200 USDC
-attach_fa_reward(achievement_id: 2, usdc_metadata, amount: 200_000000, supply: 10)
+1. **Create Achievements** (free, just gas)
+   ```bash
+   # "First Win" - Free participation badge
+   achievements::create(title: "First Win", desc: "Win your first game", min_score: 1, badge_uri: "")
+   
+   # "Score 1000+" - Skill achievement
+   achievements::create(title: "High Scorer", desc: "Score 1000+", min_score: 1000, badge_uri: "ipfs://...")
+   
+   # "Play 50 Games" - Engagement achievement
+   achievements::create_advanced(title: "Dedicated", desc: "Play 50 times", min_score: 0, required_count: 0, min_submissions: 50, badge_uri: "")
+   ```
 
-# Champion: #1 player gets 1000 USDC + Unique NFT
-attach_fa_reward(achievement_id: 3, usdc_metadata, amount: 1000_000000, supply: 1)
-attach_nft_reward(achievement_id: 3, collection, "Champion Trophy", ..., supply: 1)
-```
+2. **Attach Affordable Rewards**
+   ```bash
+   # "First Win" - No reward, just badge (0 cost)
+   # (Badge URI in achievement itself)
+   
+   # "High Scorer" - 10 platform tokens (low cost, unlimited)
+   rewards::attach_fa_reward(achievement_id: 1, my_token_metadata, amount: 10, supply: 0)
+   
+   # "Dedicated" - 100 tokens + NFT badge (limited to 1000 players)
+   rewards::attach_fa_reward(achievement_id: 2, my_token_metadata, amount: 100, supply: 1000)
+   rewards::attach_nft_reward(achievement_id: 2, my_collection, "Dedication Badge", "50 games played", "ipfs://...", supply: 1000)
+   ```
+
+3. **Player Flow**
+   - Player plays game (free)
+   - Scores stored on-chain (minimal gas)
+   - Achievements unlock automatically
+   - Player claims rewards when convenient
+   - Dev only pays for initial setup + occasional supply increases
+
+**Cost Analysis:**
+- Setup: ~2,000 gas units (one-time)
+- Per achievement: ~500 gas
+- Per reward attachment: ~600 gas
+- **Total upfront: ~3,000 gas** for complete system
+- Player claims: Player pays gas (not publisher)
 
 ---
 
-### Example 2: Season Pass Rewards
+### Use Case 2: AAA Game Studio with Tournament
 
-```bash
-# Level milestones with increasing rewards
-attach_fa_reward(achievement_id: 10, gem_token, 100, 0)    # Level 10: 100 gems (unlimited)
-attach_fa_reward(achievement_id: 20, gem_token, 250, 0)    # Level 20: 250 gems
-attach_fa_reward(achievement_id: 30, gem_token, 500, 0)    # Level 30: 500 gems
+**Who:** Large studio running monthly tournaments  
+**Budget:** $10,000 USDC prize pool per month  
 
-# Special badges at key levels
-attach_nft_reward(achievement_id: 50, collection, "Halfway Hero", ..., 10000)
-attach_nft_reward(achievement_id: 100, collection, "Century Club", ..., 1000)
-```
+**Setup:**
+
+1. **Tournament Achievements** (Tiered by rank)
+   ```bash
+   # Create achievements for different ranks
+   achievements::create_with_game(title: "Top 100", game_id: 5, min_score: 5000, ...)
+   achievements::create_with_game(title: "Top 50", game_id: 5, min_score: 7500, ...)
+   achievements::create_with_game(title: "Top 10", game_id: 5, min_score: 10000, ...)
+   achievements::create_with_game(title: "Champion", game_id: 5, min_score: 15000, ...)
+   ```
+
+2. **Prize Pool Distribution**
+   ```bash
+   # Top 100: $25 each = $2,500 total
+   rewards::attach_fa_reward(achievement_id: 0, usdc_metadata, amount: 25_000000, supply: 100)
+   
+   # Top 50: $75 each = $3,750 total
+   rewards::attach_fa_reward(achievement_id: 1, usdc_metadata, amount: 75_000000, supply: 50)
+   
+   # Top 10: $250 each = $2,500 total
+   rewards::attach_fa_reward(achievement_id: 2, usdc_metadata, amount: 250_000000, supply: 10)
+   
+   # Champion: $1,250 + Unique Trophy NFT
+   rewards::attach_fa_reward(achievement_id: 3, usdc_metadata, amount: 1250_000000, supply: 1)
+   rewards::attach_nft_reward(achievement_id: 3, tournament_collection, "Tournament Champion", "Monthly winner", "ipfs://gold-trophy.json", supply: 1)
+   ```
+
+3. **End of Tournament**
+   - Scores are final on-chain
+   - Top players unlock achievements automatically
+   - Winners claim prizes (USDC transferred)
+   - Champion gets unique NFT trophy
+   - All verifiable on-chain
+
+**Benefits:**
+- **Transparent:** All scores and rewards on-chain
+- **No disputes:** Smart contract enforces rules
+- **Automated:** Unlock detection automatic (Phase Final)
+- **Auditable:** All claims have transaction receipts
 
 ---
 
-### Example 3: Daily Login Rewards
+### Use Case 3: Play-to-Earn Mobile Game
 
-```bash
-# Day 7: 100 platform tokens
-attach_fa_reward(achievement_id: 7, platform_token, 100, 0)
+**Who:** Mobile game with in-game currency  
+**Budget:** Unlimited custom tokens (controlled inflation)  
 
-# Day 30: 500 tokens + special badge
-attach_fa_reward(achievement_id: 30, platform_token, 500, 0)
-attach_nft_reward(achievement_id: 30, collection, "Loyal Player", ..., 50000)
+**Setup:**
 
-# Day 365: Legendary badge (limited)
-attach_nft_reward(achievement_id: 365, collection, "Year One Legend", ..., 100)
-```
+1. **Create Token Economy**
+   - Deploy custom Fungible Asset (GEMS)
+   - Set up collection for NFT items (skins, weapons)
+
+2. **Daily/Weekly Achievements**
+   ```bash
+   # Daily active (unlimited GEMS)
+   achievements::create_advanced(title: "Daily Player", min_score: 0, required_count: 0, min_submissions: 1, ...)
+   rewards::attach_fa_reward(achievement_id: 0, gems_metadata, amount: 50, supply: 0)  # Unlimited
+   
+   # Weekly warrior (limited)
+   achievements::create_advanced(title: "Weekly Warrior", min_score: 0, required_count: 0, min_submissions: 7, ...)
+   rewards::attach_fa_reward(achievement_id: 1, gems_metadata, amount: 500, supply: 0)
+   rewards::attach_nft_reward(achievement_id: 1, items_collection, "Weekly Loot Box", "Contains rare items", "...", supply: 100000)
+   ```
+
+3. **Skill-Based Rewards**
+   ```bash
+   # High score milestones
+   achievements::create(title: "Score 1000+", min_score: 1000, ...)
+   rewards::attach_fa_reward(achievement_id: 10, gems_metadata, amount: 100, supply: 0)
+   
+   achievements::create(title: "Score 5000+", min_score: 5000, ...)
+   rewards::attach_fa_reward(achievement_id: 11, gems_metadata, amount: 1000, supply: 0)
+   
+   achievements::create(title: "Score 10000+", min_score: 10000, ...)
+   rewards::attach_fa_reward(achievement_id: 12, gems_metadata, amount: 5000, supply: 0)
+   rewards::attach_nft_reward(achievement_id: 12, skins_collection, "Legendary Skin", "Ultra rare", "...", supply: 10000)
+   ```
+
+4. **Retention Mechanics**
+   ```bash
+   # Consistency rewards
+   achievements::create_advanced(title: "Week Streak", min_score: 0, required_count: 0, min_submissions: 7, ...)
+   achievements::create_advanced(title: "Month Streak", min_score: 0, required_count: 0, min_submissions: 30, ...)
+   
+   # Progression
+   rewards::attach_fa_reward(week_streak, gems, 1000, 0)
+   rewards::attach_nft_reward(month_streak, badges, "30-Day Champion", ..., 50000)
+   ```
+
+**Player Experience:**
+- Play daily → Earn GEMS
+- Complete challenges → Earn more GEMS + NFT items
+- Use GEMS in-game (separate marketplace)
+- Collect NFT skins/items
+- All progress on-chain, portable
+
+---
+
+### Use Case 4: Educational Platform (Gamified Learning)
+
+**Who:** EdTech platform teaching programming  
+**Goal:** Reward learning milestones  
+
+**Setup:**
+
+1. **Course Completion Achievements**
+   ```bash
+   # Course 1: Python Basics
+   achievements::create_with_game(title: "Python Graduate", game_id: 1, min_score: 100, ...)  # 100% completion
+   rewards::attach_nft_reward(achievement_id: 0, certificates, "Python Certificate", "Completed Python Basics", "ipfs://cert.json", supply: 0)  # Unlimited
+   
+   # Course 2: Advanced Python
+   achievements::create_with_game(title: "Python Master", game_id: 2, min_score: 100, ...)
+   rewards::attach_nft_reward(achievement_id: 1, certificates, "Python Master Certificate", "...", "...", supply: 0)
+   
+   # All courses
+   achievements::create_advanced(title: "Full Stack Developer", min_score: 100, required_count: 10, min_submissions: 10, ...)
+   rewards::attach_nft_reward(achievement_id: 2, certificates, "Full Stack Certificate", "Completed 10 courses", "...", supply: 10000)
+   ```
+
+2. **Skill Badges**
+   ```bash
+   # Code quality achievements
+   achievements::create(title: "Clean Coder", min_score: 95, ...)  # 95%+ code quality score
+   rewards::attach_nft_reward(achievement_id: 10, badges, "Clean Code Badge", "High quality code", "...", 50000)
+   ```
+
+**Benefits:**
+- **Portable credentials:** NFT certificates are wallet-held
+- **Verifiable:** All completions on-chain
+- **Gamified:** Achievements make learning fun
+- **Shareable:** Students can show NFT badges to employers
+
+---
+
+### Use Case 5: Community-Driven Game (DAO Rewards)
+
+**Who:** Community-owned game with treasury  
+**Budget:** DAO treasury funded by in-game purchases  
+
+**Flow:**
+
+1. **Treasury Funding**
+   - Players buy in-game items (FTs sent to DAO treasury)
+   - DAO votes on reward budgets monthly
+
+2. **Community Achievements**
+   ```bash
+   # Community voted achievements
+   achievements::create(title: "Community Choice #1", min_score: 2000, ...)
+   
+   # DAO approves reward budget
+   rewards::attach_fa_reward(achievement_id: 0, apt_metadata, amount: 50_00000000, supply: 500)  # 50 APT each, 500 winners
+   ```
+
+3. **Seasonal Events**
+   ```bash
+   # Halloween event
+   achievements::create_with_game_advanced(title: "Spooky Season", game_id: 10, min_score: 1000, required_count: 13, min_submissions: 31, ...)
+   rewards::attach_nft_reward(achievement_id: 99, seasonal_collection, "Halloween 2025", "Limited edition", "...", supply: 1000)
+   ```
+
+**DAO Governance:**
+- Vote on which achievements to create
+- Vote on reward amounts and supplies
+- Community decides budget allocation
+- Transparent on-chain execution
+
+---
+
+### Use Case 6: Cross-Game Platform Achievements
+
+**Who:** Gaming platform with multiple games  
+**Goal:** Platform-wide achievements that work across all games  
+
+**Architecture:**
+
+1. **Platform-Wide Achievements** (game_id = None)
+   ```bash
+   # "Completionist" - Beat all 10 platform games
+   achievements::create_advanced(
+     title: "Completionist",
+     min_score: 100,      # 100% completion
+     required_count: 10,  # On 10 different games
+     min_submissions: 10,
+     ...
+   )
+   rewards::attach_fa_reward(achievement_id: 0, platform_token, 10000, supply: 1000)
+   rewards::attach_nft_reward(achievement_id: 0, platform_badges, "Completionist Badge", "...", "...", supply: 1000)
+   ```
+
+2. **Per-Game Achievements**
+   ```bash
+   # Each game has specific achievements
+   achievements::create_with_game(title: "Game 1 Master", game_id: 0, min_score: 5000, ...)
+   achievements::create_with_game(title: "Game 2 Master", game_id: 1, min_score: 5000, ...)
+   # ... etc
+   ```
+
+3. **Meta-Achievements**
+   ```bash
+   # "Master of All" - Master 5 different games
+   achievements::create_advanced(title: "Master of All", min_score: 5000, required_count: 5, min_submissions: 0, ...)
+   rewards::attach_nft_reward(achievement_id: 100, legendary_collection, "Legendary Gamer", "Mastered 5 games", "...", supply: 100)
+   ```
+
+**Player Journey:**
+- Play across different games on platform
+- Earn game-specific and platform-wide achievements
+- Collect achievements trigger meta-achievements
+- Build complete achievement collection
+- Show off cross-game mastery
+
+---
+
+### Use Case 7: Esports League
+
+**Who:** Competitive esports organization  
+**Goal:** Season-long competition with tiered rewards  
+
+**Setup:**
+
+1. **Qualification Round**
+   ```bash
+   # Qualify: Top 1000 players advance
+   achievements::create_with_game(title: "Qualified", game_id: 0, min_score: 3000, ...)
+   rewards::attach_nft_reward(achievement_id: 0, league_badges, "Season 1 Qualifier", "Advanced to playoffs", "...", supply: 1000)
+   ```
+
+2. **Playoff Achievements**
+   ```bash
+   # Top 100: Playoff badge + prize
+   achievements::create_with_game(title: "Playoffs", game_id: 0, min_score: 7000, ...)
+   rewards::attach_fa_reward(achievement_id: 1, usdc, 100_000000, supply: 100)  # $100
+   rewards::attach_nft_reward(achievement_id: 1, league_badges, "Playoff Participant", "...", "...", 100)
+   ```
+
+3. **Finals**
+   ```bash
+   # Top 10: Finals appearance
+   achievements::create_with_game(title: "Finals", game_id: 0, min_score: 9000, ...)
+   rewards::attach_fa_reward(achievement_id: 2, usdc, 500_000000, supply: 10)  # $500
+   
+   # Champion: Grand prize
+   achievements::create_with_game(title: "Champion", game_id: 0, min_score: 10000, ...)
+   rewards::attach_fa_reward(achievement_id: 3, usdc, 5000_000000, supply: 1)  # $5,000
+   rewards::attach_nft_reward(achievement_id: 3, trophies, "Season 1 Champion", "First place winner", "...", supply: 1)
+   ```
+
+**Benefits:**
+- **Transparent ranking:** Leaderboard on-chain
+- **Automatic qualification:** Score threshold triggers advancement
+- **Instant payouts:** Winners claim prizes immediately
+- **Collectible history:** NFT trophies prove participation
+- **Verifiable results:** All tournament data immutable
+
+---
+
+### Use Case 8: Charity Gaming Event
+
+**Who:** Nonprofit organization  
+**Goal:** Fundraiser where donations unlock rewards for participants  
+
+**Model:**
+
+1. **Donation-Triggered Achievements**
+   ```bash
+   # Manually granted by organizer as donations come in
+   achievements::grant(player_address, achievement_id)
+   ```
+
+2. **Tiered Donor Rewards**
+   ```bash
+   # $10 donor
+   achievements::create(title: "Bronze Supporter", min_score: 10, ...)
+   rewards::attach_nft_reward(achievement_id: 0, charity_badges, "Bronze Supporter", "Donated $10", "...", supply: 10000)
+   
+   # $50 donor
+   achievements::create(title: "Silver Supporter", min_score: 50, ...)
+   rewards::attach_nft_reward(achievement_id: 1, charity_badges, "Silver Supporter", "Donated $50", "...", supply: 2000)
+   
+   # $100 donor
+   achievements::create(title: "Gold Supporter", min_score: 100, ...)
+   rewards::attach_nft_reward(achievement_id: 2, charity_badges, "Gold Supporter", "Donated $100", "...", supply: 500)
+   
+   # $1000 donor
+   achievements::create(title: "Platinum Supporter", min_score: 1000, ...)
+   rewards::attach_nft_reward(achievement_id: 3, charity_badges, "Platinum Supporter", "Donated $1000", "...", supply: 50)
+   ```
+
+3. **Participation Rewards**
+   ```bash
+   # Anyone who plays the charity game
+   achievements::create_advanced(title: "Participant", min_score: 0, required_count: 0, min_submissions: 1, ...)
+   rewards::attach_nft_reward(achievement_id: 10, event_badges, "Charity Event 2025", "Participated in charity event", "...", supply: 0)  # Unlimited
+   ```
+
+**Impact:**
+- Donors get on-chain proof of contribution
+- NFT badges are permanent, transferable
+- Transparent fundraising
+- Gamified giving
+- Community building through collectibles
+
+---
+
+### Use Case 9: Web3 MMO with Economy
+
+**Who:** MMO game with complex economy  
+**Goal:** In-game items as NFTs, currency as FT  
+
+**Economic Design:**
+
+1. **Currency Rewards (FT)**
+   ```bash
+   # Quest completions
+   achievements::create_with_game(title: "Main Quest 1", game_id: 0, min_score: 100, ...)
+   rewards::attach_fa_reward(achievement_id: 0, gold_token, 1000, supply: 0)
+   
+   # Daily quests
+   achievements::create_advanced(title: "Daily Quest Streak", min_score: 0, required_count: 0, min_submissions: 7, ...)
+   rewards::attach_fa_reward(achievement_id: 1, gold_token, 5000, supply: 0)
+   ```
+
+2. **Equipment NFTs**
+   ```bash
+   # Rare drops
+   achievements::create(title: "Boss Defeated", min_score: 1, ...)
+   rewards::attach_nft_reward(achievement_id: 10, weapons, "Legendary Sword", "Rare drop from boss", "...", supply: 100)
+   
+   # Crafting
+   achievements::create_advanced(title: "Master Crafter", min_score: 100, required_count: 50, min_submissions: 0, ...)
+   rewards::attach_nft_reward(achievement_id: 11, items, "Master Crafting Kit", "Advanced crafting recipes", "...", supply: 1000)
+   ```
+
+3. **Cosmetic Rewards**
+   ```bash
+   # Prestige levels
+   achievements::create_advanced(title: "Prestige 1", min_score: 1000, required_count: 100, min_submissions: 0, ...)
+   rewards::attach_nft_reward(achievement_id: 20, cosmetics, "Prestige Armor Skin", "Exclusive skin", "...", 5000)
+   ```
+
+**Player Experience:**
+- Kill boss → Achievement unlocks → Claim legendary weapon NFT
+- Craft items → Progress toward Master Crafter → Unlock recipe NFT
+- Level up → Earn GOLD tokens → Buy items in marketplace
+- All items are NFTs (tradeable on secondary markets)
+
+---
+
+### Use Case 10: Speedrun Community Platform
+
+**Who:** Speedrun leaderboard platform  
+**Goal:** Track world records with time-based achievements  
+
+**Setup:**
+
+1. **Time-Based Achievements** (Lower = Better)
+   ```bash
+   # Under 10 minutes
+   achievements::create_with_game(title: "Sub-10", game_id: 3, min_score: 600000, ...)  # 10 min in ms
+   rewards::attach_nft_reward(achievement_id: 0, speedrun_badges, "Sub-10 Badge", "Completed under 10 minutes", "...", supply: 0)
+   
+   # Under 5 minutes (harder)
+   achievements::create_with_game(title: "Sub-5", game_id: 3, min_score: 300000, ...)
+   rewards::attach_fa_reward(achievement_id: 1, platform_token, 500, supply: 0)
+   rewards::attach_nft_reward(achievement_id: 1, speedrun_badges, "Sub-5 Badge", "...", "...", supply: 5000)
+   
+   # World Record (unique)
+   achievements::create_with_game(title: "World Record", game_id: 3, min_score: 180000, ...)  # Current WR
+   rewards::attach_nft_reward(achievement_id: 2, trophies, "World Record Holder", "Current WR", "...", supply: 1)
+   ```
+
+2. **Category Completions**
+   ```bash
+   # Any% category
+   achievements::create_with_game_advanced(title: "Any% Master", game_id: 3, min_score: 0, required_count: 10, min_submissions: 10, ...)
+   
+   # 100% category
+   achievements::create_with_game_advanced(title: "100% Master", game_id: 4, min_score: 0, required_count: 5, min_submissions: 5, ...)
+   ```
+
+**Special Features:**
+- World record NFT is unique (supply: 1)
+- When record breaks, old holder keeps historical NFT
+- New record holder gets updated NFT
+- All times verified on-chain
+- Permanent speedrun history
+
+---
+
+## 🏗️ Architecture: Who Pays For What?
+
+### Publisher Costs (One-Time & Ongoing)
+
+| Action | Who Pays Gas | Typical Cost | When |
+|--------|--------------|--------------|------|
+| **Initialize modules** | Publisher | ~2,000 units | Once ever |
+| **Create game** | Publisher | ~500 units | Per game |
+| **Create leaderboard** | Publisher | ~500 units | Per leaderboard |
+| **Create achievement** | Publisher | ~500-700 units | Per achievement |
+| **Attach FA reward** | Publisher | ~600 units | Per reward |
+| **Attach NFT reward** | Publisher | ~700 units | Per reward |
+| **Increase supply** | Publisher | ~300 units | When needed |
+| **Grant achievement** | Publisher | ~500 units | Manual awards |
+
+### Player Costs
+
+| Action | Who Pays Gas | Typical Cost | When |
+|--------|--------------|--------------|------|
+| **Register profile** | Player | ~400 units | Once ever |
+| **Submit score** | Player | ~500-1,000 units | Per game played |
+| **Claim reward** | Player | ~1,500-3,000 units | When achievement unlocked |
+
+### Cost Distribution Strategy
+
+**Option 1: Publisher Subsidizes (Free-to-Play)**
+- Publisher covers gas via relayer/sponsor transactions
+- Players play for free
+- Publisher pays all operational costs
+
+**Option 2: Players Pay (Play-to-Earn)**
+- Players pay their own gas
+- Rewards > gas costs (profitable for players)
+- Sustainable for publisher
+
+**Option 3: Hybrid**
+- Small actions free (subsidized)
+- Large rewards require player to pay claim gas
+- Balanced approach
 
 ---
 
