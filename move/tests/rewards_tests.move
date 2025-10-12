@@ -55,7 +55,7 @@ module sigil::rewards_tests {
     #[test]
     fun test_attach_fa_reward() {
         let (publisher, _, _) = setup_test_accounts();
-        rewards::init_rewards(&publisher);
+        rewards::init_rewards_for_test(&publisher);
         
         let fa_meta = create_mock_fa_metadata(&publisher);
         
@@ -80,7 +80,7 @@ module sigil::rewards_tests {
     #[test]
     fun test_attach_fa_reward_unlimited() {
         let (publisher, _, _) = setup_test_accounts();
-        rewards::init_rewards(&publisher);
+        rewards::init_rewards_for_test(&publisher);
         
         let fa_meta = create_mock_fa_metadata(&publisher);
         
@@ -98,7 +98,7 @@ module sigil::rewards_tests {
     #[test]
     fun test_attach_nft_reward() {
         let (publisher, _, _) = setup_test_accounts();
-        rewards::init_rewards(&publisher);
+        rewards::init_rewards_for_test(&publisher);
         
         rewards::attach_nft_reward(
             &publisher,
@@ -121,7 +121,7 @@ module sigil::rewards_tests {
     #[expected_failure(abort_code = 6)] // E_INVALID_SUPPLY
     fun test_attach_nft_with_zero_supply_fails() {
         let (publisher, _, _) = setup_test_accounts();
-        rewards::init_rewards(&publisher);
+        rewards::init_rewards_for_test(&publisher);
         
         // NFT rewards must have limited supply
         rewards::attach_nft_reward(
@@ -139,7 +139,7 @@ module sigil::rewards_tests {
     #[expected_failure(abort_code = 2)] // E_ALREADY_ATTACHED
     fun test_attach_reward_twice_fails() {
         let (publisher, _, _) = setup_test_accounts();
-        rewards::init_rewards(&publisher);
+        rewards::init_rewards_for_test(&publisher);
         
         let fa_meta = create_mock_fa_metadata(&publisher);
         
@@ -150,7 +150,7 @@ module sigil::rewards_tests {
     #[test]
     fun test_claim_fa_reward() {
         let (publisher, player1, _) = setup_test_accounts();
-        rewards::init_rewards(&publisher);
+        rewards::init_rewards_for_test(&publisher);
         
         let fa_meta = create_mock_fa_metadata(&publisher);
         rewards::attach_fa_reward(&publisher, 0, fa_meta, 1000, 5);
@@ -173,7 +173,7 @@ module sigil::rewards_tests {
     #[test]
     fun test_claim_nft_reward() {
         let (publisher, player1, _) = setup_test_accounts();
-        rewards::init_rewards(&publisher);
+        rewards::init_rewards_for_test(&publisher);
         
         rewards::attach_nft_reward(
             &publisher, 0, @0xabc,
@@ -193,7 +193,7 @@ module sigil::rewards_tests {
     #[expected_failure(abort_code = 4)] // E_ALREADY_CLAIMED
     fun test_double_claim_fails() {
         let (publisher, player1, _) = setup_test_accounts();
-        rewards::init_rewards(&publisher);
+        rewards::init_rewards_for_test(&publisher);
         
         let fa_meta = create_mock_fa_metadata(&publisher);
         rewards::attach_fa_reward(&publisher, 0, fa_meta, 100, 10);
@@ -211,7 +211,7 @@ module sigil::rewards_tests {
         let (publisher, player1, player2) = setup_test_accounts();
         let player3 = account::create_account_for_test(@0xdef);
         
-        rewards::init_rewards(&publisher);
+        rewards::init_rewards_for_test(&publisher);
         
         let fa_meta = create_mock_fa_metadata(&publisher);
         rewards::attach_fa_reward(&publisher, 0, fa_meta, 100, 2);  // Only 2 available
@@ -230,7 +230,7 @@ module sigil::rewards_tests {
     #[expected_failure(abort_code = 1)] // E_NOT_FOUND
     fun test_claim_non_existent_reward_fails() {
         let (publisher, player1, _) = setup_test_accounts();
-        rewards::init_rewards(&publisher);
+        rewards::init_rewards_for_test(&publisher);
         
         // Try to claim reward that doesn't exist
         rewards::claim_testing(&player1, @0x123, 999);
@@ -239,7 +239,7 @@ module sigil::rewards_tests {
     #[test]
     fun test_multiple_rewards_different_achievements() {
         let (publisher, player1, _) = setup_test_accounts();
-        rewards::init_rewards(&publisher);
+        rewards::init_rewards_for_test(&publisher);
         
         let fa_meta = create_mock_fa_metadata(&publisher);
         
@@ -270,7 +270,7 @@ module sigil::rewards_tests {
     #[test]
     fun test_multiple_players_same_reward() {
         let (publisher, player1, player2) = setup_test_accounts();
-        rewards::init_rewards(&publisher);
+        rewards::init_rewards_for_test(&publisher);
         
         let fa_meta = create_mock_fa_metadata(&publisher);
         rewards::attach_fa_reward(&publisher, 0, fa_meta, 100, 5);
@@ -298,7 +298,7 @@ module sigil::rewards_tests {
         let player3 = account::create_account_for_test(@0xabc);
         let player4 = account::create_account_for_test(@0xdef);
         
-        rewards::init_rewards(&publisher);
+        rewards::init_rewards_for_test(&publisher);
         
         let fa_meta = create_mock_fa_metadata(&publisher);
         rewards::attach_fa_reward(&publisher, 0, fa_meta, 50, 0);  // Unlimited
@@ -317,7 +317,7 @@ module sigil::rewards_tests {
     #[test]
     fun test_increase_supply() {
         let (publisher, player1, _) = setup_test_accounts();
-        rewards::init_rewards(&publisher);
+        rewards::init_rewards_for_test(&publisher);
         
         let fa_meta = create_mock_fa_metadata(&publisher);
         rewards::attach_fa_reward(&publisher, 0, fa_meta, 100, 5);
@@ -338,7 +338,7 @@ module sigil::rewards_tests {
     #[test]
     fun test_remove_reward_no_claims() {
         let (publisher, _, _) = setup_test_accounts();
-        rewards::init_rewards(&publisher);
+        rewards::init_rewards_for_test(&publisher);
         
         let fa_meta = create_mock_fa_metadata(&publisher);
         rewards::attach_fa_reward(&publisher, 0, fa_meta, 100, 5);
@@ -354,7 +354,7 @@ module sigil::rewards_tests {
     #[expected_failure(abort_code = 4)] // E_ALREADY_CLAIMED
     fun test_remove_reward_with_claims_fails() {
         let (publisher, player1, _) = setup_test_accounts();
-        rewards::init_rewards(&publisher);
+        rewards::init_rewards_for_test(&publisher);
         
         let fa_meta = create_mock_fa_metadata(&publisher);
         rewards::attach_fa_reward(&publisher, 0, fa_meta, 100, 5);
@@ -369,7 +369,7 @@ module sigil::rewards_tests {
     #[test]
     fun test_list_rewarded_achievements() {
         let (publisher, _, _) = setup_test_accounts();
-        rewards::init_rewards(&publisher);
+        rewards::init_rewards_for_test(&publisher);
         
         let fa_meta = create_mock_fa_metadata(&publisher);
         
@@ -392,7 +392,7 @@ module sigil::rewards_tests {
     #[test]
     fun test_get_claimed_rewards_list() {
         let (publisher, player1, _) = setup_test_accounts();
-        rewards::init_rewards(&publisher);
+        rewards::init_rewards_for_test(&publisher);
         
         let fa_meta = create_mock_fa_metadata(&publisher);
         
@@ -414,7 +414,7 @@ module sigil::rewards_tests {
     #[test]
     fun test_mixed_ft_and_nft_rewards() {
         let (publisher, player1, _) = setup_test_accounts();
-        rewards::init_rewards(&publisher);
+        rewards::init_rewards_for_test(&publisher);
         
         let fa_meta = create_mock_fa_metadata(&publisher);
         
@@ -444,7 +444,7 @@ module sigil::rewards_tests {
     #[test]
     fun test_reward_details_with_nft_name() {
         let (publisher, _, _) = setup_test_accounts();
-        rewards::init_rewards(&publisher);
+        rewards::init_rewards_for_test(&publisher);
         
         rewards::attach_nft_reward(
             &publisher, 0, @0xabc,
@@ -467,7 +467,7 @@ module sigil::rewards_tests {
     #[test]
     fun test_empty_claimed_list() {
         let (publisher, _, _) = setup_test_accounts();
-        rewards::init_rewards(&publisher);
+        rewards::init_rewards_for_test(&publisher);
         
         // No claims yet
         let claimed_list = rewards::get_claimed_rewards(@0x123, @0x456);
@@ -477,7 +477,7 @@ module sigil::rewards_tests {
     #[test]
     fun test_supply_tracking_edge_case() {
         let (publisher, player1, _) = setup_test_accounts();
-        rewards::init_rewards(&publisher);
+        rewards::init_rewards_for_test(&publisher);
         
         let fa_meta = create_mock_fa_metadata(&publisher);
         rewards::attach_fa_reward(&publisher, 0, fa_meta, 100, 1);  // Only 1 available
@@ -495,7 +495,7 @@ module sigil::rewards_tests {
     #[test]
     fun test_is_claimed_returns_false_for_unclaimed() {
         let (publisher, _, _) = setup_test_accounts();
-        rewards::init_rewards(&publisher);
+        rewards::init_rewards_for_test(&publisher);
         
         let fa_meta = create_mock_fa_metadata(&publisher);
         rewards::attach_fa_reward(&publisher, 0, fa_meta, 100, 5);
@@ -507,7 +507,7 @@ module sigil::rewards_tests {
     #[test]
     fun test_get_reward_non_existent() {
         let (publisher, _, _) = setup_test_accounts();
-        rewards::init_rewards(&publisher);
+        rewards::init_rewards_for_test(&publisher);
         
         let (exists, _, _, _, _) = rewards::get_reward(@0x123, 999);
         assert!(!exists, 180);
