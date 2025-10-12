@@ -551,13 +551,14 @@ aptos move view \
 
 **Network:** Aptos Devnet  
 **Module Address:** `0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6`  
-**Modules:** `game_platform`, `leaderboard`, `achievements`  
+**Modules:** `game_platform`, `leaderboard`, `achievements`, `rewards`  
 
 **Explorer Links:**
 - [Account View](https://explorer.aptoslabs.com/account/0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6?network=devnet)
 - [Initial Modules Publication](https://explorer.aptoslabs.com/txn/0x3ca4da35dcd2d2f57cd35b8e695ba24d3c6d27767d1873c4d77fc6adb6cc780c?network=devnet)
 - [Achievements Module Added](https://explorer.aptoslabs.com/txn/0x20430c13248fce29609091efe21dfe7ba190dff9b61a7a89fe639a3f64402dce?network=devnet)
-- [Latest Module Upgrade](https://explorer.aptoslabs.com/txn/0xc411143c25a9fbf6352993b597846fdd7b8f026248a8ae26b1bd451cf61ade0c?network=devnet)
+- [Achievements Module Upgraded](https://explorer.aptoslabs.com/txn/0xc411143c25a9fbf6352993b597846fdd7b8f026248a8ae26b1bd451cf61ade0c?network=devnet)
+- [Rewards Module Deployed](https://explorer.aptoslabs.com/txn/0x4bc16150bb80e5c28fe9a773ffe4c4963395b40475074212877a564c529b5ff1?network=devnet)
 
 ---
 
@@ -572,7 +573,9 @@ aptos move view \
 | **Leaderboard Created** (Game 0, Top 10) | `0xdd82e156a7a68f3088c3c80a85d89b15376d12885c149db4945896700fa988ea` | [View](https://explorer.aptoslabs.com/txn/0xdd82e156a7a68f3088c3c80a85d89b15376d12885c149db4945896700fa988ea?network=devnet) | 452 | ✅ Success |
 | **Achievements Module Added** | `0x20430c13248fce29609091efe21dfe7ba190dff9b61a7a89fe639a3f64402dce` | [View](https://explorer.aptoslabs.com/txn/0x20430c13248fce29609091efe21dfe7ba190dff9b61a7a89fe639a3f64402dce?network=devnet) | 3,851 | ✅ Success |
 | **Achievements Initialized** | `0x70ee2605dc11ba8ad0b8eb7ac62f30bce9bee112ec3337b1143970f8912dbe14` | [View](https://explorer.aptoslabs.com/txn/0x70ee2605dc11ba8ad0b8eb7ac62f30bce9bee112ec3337b1143970f8912dbe14?network=devnet) | 504 | ✅ Success |
-| **Module Upgraded** (CLI wrapper added) | `0xc411143c25a9fbf6352993b597846fdd7b8f026248a8ae26b1bd451cf61ade0c` | [View](https://explorer.aptoslabs.com/txn/0xc411143c25a9fbf6352993b597846fdd7b8f026248a8ae26b1bd451cf61ade0c?network=devnet) | 170 | ✅ Success |
+| **Achievements Module Upgraded** (CLI wrapper) | `0xc411143c25a9fbf6352993b597846fdd7b8f026248a8ae26b1bd451cf61ade0c` | [View](https://explorer.aptoslabs.com/txn/0xc411143c25a9fbf6352993b597846fdd7b8f026248a8ae26b1bd451cf61ade0c?network=devnet) | 170 | ✅ Success |
+| **Rewards Module Deployed** | `0x4bc16150bb80e5c28fe9a773ffe4c4963395b40475074212877a564c529b5ff1` | [View](https://explorer.aptoslabs.com/txn/0x4bc16150bb80e5c28fe9a773ffe4c4963395b40475074212877a564c529b5ff1?network=devnet) | 3,443 | ✅ Success |
+| **Rewards Initialized** | `0x7440d558e4a1117465491444f9818f00fbb9bae5d94ee564fb1bb960c66a5719` | [View](https://explorer.aptoslabs.com/txn/0x7440d558e4a1117465491444f9818f00fbb9bae5d94ee564fb1bb960c66a5719?network=devnet) | 503 | ✅ Success |
 
 ### Test Transactions - Leaderboard System
 
@@ -637,6 +640,44 @@ aptos move view --profile sigil-main \
   --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::get_progress' \
   --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:1
 # Result: ["3", "3", true]  ✅ 3/3 threshold met!
+```
+
+---
+
+### Test Transactions - Rewards System
+
+| Action | Details | Transaction Hash | Explorer Link | Gas | Status |
+|--------|---------|-----------------|---------------|-----|---------|
+| **Attach FA Reward** | 1 APT per claim, supply: 10 | `0x3d700292cca8b276a46fa4980c8d066cc85669e7f7d0e9504f3641b5aad4f5eb` | [View](https://explorer.aptoslabs.com/txn/0x3d700292cca8b276a46fa4980c8d066cc85669e7f7d0e9504f3641b5aad4f5eb?network=devnet) | 450 | ✅ Success |
+| **Attach NFT Reward** | "Consistent Performer Badge", supply: 100 | `0x5adf027c42ba5d3d13082450500d6f0e3f38ee88d9e598428fea378874a5dd67` | [View](https://explorer.aptoslabs.com/txn/0x5adf027c42ba5d3d13082450500d6f0e3f38ee88d9e598428fea378874a5dd67?network=devnet) | 493 | ✅ Success |
+| **Claim FA Reward** | Player claimed achievement #0 reward | `0xa2f60e1b90709a791d3fa2708a9849243a08fc5912c8e0062dc6491a4ce1f89e` | [View](https://explorer.aptoslabs.com/txn/0xa2f60e1b90709a791d3fa2708a9849243a08fc5912c8e0062dc6491a4ce1f89e?network=devnet) | 862 | ✅ Success |
+| **Claim NFT Reward** | Player claimed achievement #1 reward | `0x7be610e9b2b32947290ae038c9b4f85707e493d87068d20b636aa9cd98c9b362` | [View](https://explorer.aptoslabs.com/txn/0x7be610e9b2b32947290ae038c9b4f85707e493d87068d20b636aa9cd98c9b362?network=devnet) | 424 | ✅ Success |
+| **Double-Claim Test** | Prevented (E_ALREADY_CLAIMED) | `0xdf78bc2600f9a9237c83a7eb6f9e76ee35af0ccbdf29ccee1a3eb7bceec5eecd` | [View](https://explorer.aptoslabs.com/txn/0xdf78bc2600f9a9237c83a7eb6f9e76ee35af0ccbdf29ccee1a3eb7bceec5eecd?network=devnet) | - | ✅ Failed (expected) |
+
+### Verified Live Rewards State
+
+**2 Rewards Configured:**
+
+| Achievement ID | Reward Type | Details | Supply | Claimed | Available |
+|----------------|-------------|---------|--------|---------|-----------|
+| **0** | Fungible Asset | 1 APT (100,000,000 octas) | 10 | 1 | 9 |
+| **1** | NFT | "Consistent Performer Badge" | 100 | 1 | 99 |
+
+**Player Claimed Rewards:** `[0, 1]` ✅
+
+**Verified using:**
+```bash
+# Check claimed rewards
+aptos move view --profile sigil-main \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::rewards::get_claimed_rewards' \
+  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6
+# Result: [["0", "1"]]
+
+# Check available supply
+aptos move view --profile sigil-main \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::rewards::get_available' \
+  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:0
+# Result: [true, "9"]  ✅ 9 remaining (10 - 1)
 ```
 
 ---
