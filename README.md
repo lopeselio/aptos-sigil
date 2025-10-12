@@ -11,7 +11,7 @@ A complete, production-ready gaming platform on Aptos featuring **instant automa
 - ✅ Verified on devnet: [See automatic 0.5 APT transfer](https://explorer.aptoslabs.com/txn/0x44537872b1dc81cb0a586e682a5c33796cd939e8db862ef4e374961f40a7094d?network=devnet)
 - ✅ 89/89 tests passing
 
-**[→ See Automatic Rewards Integration Guide](./AUTOMATIC_REWARDS_INTEGRATION.md)**
+**[→ See Automatic Rewards Integration Guide](./docs/integration/AUTOMATIC_REWARDS_INTEGRATION.md)**
 
 ---
 
@@ -633,7 +633,7 @@ aptos move view ... attest::get_last_nonce ...
 **Gas Cost:** +100 gas per attested submission (~$0.0001)  
 **Security:** Prevents client-side score hacking
 
-**See:** [Attest Guide](./ATTEST_GUIDE.md) for complete details and server integration examples
+**See:** [Attest Guide](./docs/modules/ATTEST_GUIDE.md) for complete details and server integration examples
 
 ---
 
@@ -714,7 +714,7 @@ Requires: Nothing! Fully on-chain automation
 - ✅ Supply management accurate (10→9)
 - ✅ Resource account integration tested
 
-**See:** [Automatic Rewards Integration Guide](./AUTOMATIC_REWARDS_INTEGRATION.md) for complete details
+**See:** [Automatic Rewards Integration Guide](./docs/integration/AUTOMATIC_REWARDS_INTEGRATION.md) for complete details
 
 ---
 
@@ -977,13 +977,28 @@ If republishing, the modules will be upgraded automatically. Make sure you're us
 
 ## 📚 Additional Documentation
 
-For more detailed information, check out:
+### **Module Guides** (Individual modules in depth)
 
-- **[REWARDS_GUIDE.md](./REWARDS_GUIDE.md)** - Complete rewards guide with 10 practical use cases
-- **[ACHIEVEMENTS_GUIDE.md](./ACHIEVEMENTS_GUIDE.md)** - Complete achievements documentation with live testing results
-- **[LEADERBOARD_INTEGRATION.md](./LEADERBOARD_INTEGRATION.md)** - Complete integration guide 
-- **[TESTING_GUIDE.md](./TESTING_GUIDE.md)** - Step-by-step testing instructions
-- **[SUMMARY.md](./SUMMARY.md)** - Technical implementation details
+- **[Achievements Guide](./docs/modules/ACHIEVEMENTS_GUIDE.md)** - Complete achievements documentation with 6 types, live testing
+- **[Rewards Guide](./docs/modules/REWARDS_GUIDE.md)** - Complete rewards guide with 10 practical use cases
+- **[Attest Guide](./docs/modules/ATTEST_GUIDE.md)** - Anti-cheat server attestation (competitive games)
+- **[Shadow Signers Guide](./docs/modules/SHADOW_SIGNERS_GUIDE.md)** - Gasless gameplay with session keys
+- **[Treasury Guide](./docs/modules/TREASURY_GUIDE.md)** - FA management and tracking
+- **[Leaderboard Guide](./docs/modules/LEADERBOARD_GUIDE.md)** - Dynamic rankings integration
+
+### **Integration Guides** (Cross-module workflows)
+
+- **[Automatic Rewards Integration](./docs/integration/AUTOMATIC_REWARDS_INTEGRATION.md)** - Complete Phase Final guide (achievements → rewards → treasury)
+
+### **Testing & Verification**
+
+- **[Testing Guide](./docs/testing/TESTING_GUIDE.md)** - Step-by-step testing instructions
+- **[Explorer Verification](./docs/testing/EXPLORER_VERIFICATION.md)** - How to verify rewards on Aptos Explorer
+
+### **Project Info**
+
+- **[Project Status](./docs/PROJECT_STATUS.md)** - Complete platform statistics and metrics
+- **[Technical Summary](./SUMMARY.md)** - Implementation details and architecture
 
 ---
 
