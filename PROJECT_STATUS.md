@@ -54,6 +54,23 @@ A complete, production-ready gaming platform on Aptos blockchain featuring game 
 | Double-Claim Prevention | rewards | ✅ | Blocked on-chain |
 | Supply Management | rewards | ✅ | 10→9 after claim |
 
+### ⚠️ Important: Current Rewards Implementation
+
+**Rewards module is BOOKKEEPING ONLY** (Phase 1):
+- ✅ **Claim tracking works** - Double-claim prevention, supply management
+- ✅ **Events emit** - Can listen for claims
+- ✅ **All validation works** - Stock checks, access control
+- ❌ **NO actual FA transfers** - Requires treasury module (Phase Final)
+- ❌ **NO actual NFT minting** - Requires `aptos_token_objects` integration (Phase Final)
+
+**Current workflow:**
+1. Player claims reward → Transaction succeeds
+2. Claim is recorded on-chain (supply decrements)
+3. Events emit with claim details
+4. **Publisher must manually distribute** rewards off-chain OR wait for Phase Final
+
+**See:** [REWARDS_GUIDE.md - Implementation Status](./REWARDS_GUIDE.md#%EF%B8%8F-current-implementation-status) for details.
+
 ---
 
 ## 📊 Live System State (Devnet)

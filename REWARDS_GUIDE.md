@@ -1324,36 +1324,294 @@ aptos move run \
 
 ## ⚙️ Current Implementation Status
 
-### ✅ Implemented (Ready Now)
+### ✅ Fully Implemented (Ready Now)
 
 1. **Reward Configuration** - Both FT and NFT metadata storage
 2. **Claim Tracking** - Double-claim prevention, per-player state
 3. **Supply Management** - Limited and unlimited supply
-4. **Stock Tracking** - Real-time availability
+4. **Stock Tracking** - Real-time availability (decrements correctly)
 5. **Events** - Attached and claimed events
-6. **View Functions** - Complete read API
+6. **View Functions** - Complete read API (7 functions)
 7. **Management** - Increase supply, remove rewards
-8. **Validation** - All safety checks
+8. **Validation** - All safety checks (stock, double-claim, access control)
+9. **Dual Type Support** - `RewardKind` struct with `is_ft` discriminator
 
-### 🔄 Phase Final Integration
+### ⚠️ Bookkeeping Only (Requires Phase Final)
 
-1. **Achievement Unlock Check** 
-   ```move
-   // Currently commented out:
-   // assert!(achievements::is_unlocked(publisher, player, achievement_id), E_ACHIEVEMENT_NOT_UNLOCKED);
-   ```
+**Current State:** Claim functions work perfectly for **tracking** but actual asset transfers are placeholders.
 
-2. **FA Transfer** (Requires Treasury Module)
-   ```move
-   // Currently placeholder, needs:
-   // treasury::withdraw_and_transfer(publisher, metadata, player_addr, amount);
-   ```
+#### 1. **FA Transfer** (Lines 273-288)
+```move
+// Currently: Just validation and bookkeeping
+let _metadata = *option::borrow(&reward.kind.fa_metadata);
+let _amount = reward.kind.fa_amount;
+// Actual transfer will be implemented with treasury module
+```
 
-3. **NFT Minting** (Requires Digital Asset Integration)
-   ```move
-   // Currently placeholder, needs:
-   // token::mint(creator, collection, name, desc, uri, player_addr);
-   ```
+**What happens now:**
+- ✅ Claim is recorded
+- ✅ Supply decrements
+- ✅ Events emit
+- ❌ No actual FA transfer (requires treasury module)
+
+**Phase Final implementation:**
+```move
+treasury::withdraw_and_transfer(publisher, metadata, player_addr, amount);
+```
+
+---
+
+#### 2. **NFT Minting** (Lines 289-302)
+```move
+// Currently: Just validation and bookkeeping
+let _collection = *option::borrow(&reward.kind.nft_collection);
+// Actual minting will be implemented with digital asset integration
+```
+
+**What happens now:**
+- ✅ Claim is recorded
+- ✅ Supply decrements (100 → 99)
+- ✅ Metadata stored (collection, name, description, URI)
+- ✅ Events emit
+- ❌ No actual NFT minted (requires `aptos_token_objects` integration)
+
+**Phase Final implementation:**
+```move
+use aptos_token_objects::token;
+
+let collection = *option::borrow(&reward.kind.nft_collection);
+let name = *option::borrow(&reward.kind.nft_name);
+let desc = *option::borrow(&reward.kind.nft_description);
+let uri = *option::borrow(&reward.kind.nft_uri);
+
+token::mint(
+    publisher_signer,  // From resource account
+    collection,
+    name,
+    desc,
+    uri,
+    player_addr
+);
+```
+
+---
+
+#### 3. **Achievement Unlock Check** (Line 223)
+```move
+// Currently commented out:
+// assert!(achievements::is_unlocked(publisher, player, achievement_id), E_ACHIEVEMENT_NOT_UNLOCKED);
+```
+
+**Will be enabled in Phase Final** when all modules are integrated.
+
+---
+
+### 🔍 How to Identify Claims on Explorer (Current)
+
+#### What You CAN See Now:
+
+**1. Claim Transaction:**
+- Transaction hash: `0x7be610e9b2b32947290ae038c9b4f85707e493d87068d20b636aa9cd98c9b362`
+- Status: Success ✅
+- Events: `RewardClaimedEvent` emitted
+
+**2. Via View Functions:**
+```bash
+# Check if claimed
+aptos move view --profile sigil-main \
+  --function-id '0xe68ef...::rewards::is_claimed' \
+  --args address:PUBLISHER address:PLAYER u64:ACHIEVEMENT_ID
+# Returns: [true]
+
+# Check supply decreased
+aptos move view --profile sigil-main \
+  --function-id '0xe68ef...::rewards::get_available' \
+  --args address:PUBLISHER u64:ACHIEVEMENT_ID
+# Returns: [true, "99"]  # Was 100, now 99
+
+# Get NFT metadata
+aptos move view --profile sigil-main \
+  --function-id '0xe68ef...::rewards::get_reward_details' \
+  --args address:PUBLISHER u64:ACHIEVEMENT_ID
+# Returns: [true, false, "0", "0x...name_hex", "100", "1"]
+#          exists  is_ft  amount  nft_name      supply claimed
+```
+
+#### What You CAN'T See Yet:
+
+❌ **Actual NFT in player's wallet** (not minted)  
+❌ **NFT asset ID** (doesn't exist yet)  
+❌ **NFT metadata on chain** (only in rewards struct)  
+❌ **Transferred FA balance** (not transferred)
+
+---
+
+### 📋 Workaround for Now (Off-Chain Distribution)
+
+**Option 1: Listen to Events**
+```typescript
+// Your backend listens to RewardClaimedEvent
+const events = await client.getEventsByEventHandle(...);
+
+events.forEach(event => {
+  if (event.data.is_ft) {
+    // Transfer FA off-chain via API/wallet
+    transferFA(event.data.player, amount);
+  } else {
+    // Mint NFT off-chain or via separate contract
+    mintNFT(event.data.player, collection, metadata);
+  }
+});
+```
+
+**Option 2: Manual Processing**
+```bash
+# Query who claimed what
+aptos move view ... rewards::get_claimed_rewards ...
+
+# For each claim, manually airdrop the NFT
+aptos token mint --to PLAYER_ADDRESS ...
+```
+
+**Option 3: Wait for Phase Final**
+- Build treasury module
+- Integrate aptos_token_objects
+- Enable automatic on-chain transfers/minting
+
+---
+
+## 💻 Code Deep Dive: Dual FT/NFT Support
+
+### Where the Magic Happens
+
+The rewards module supports both FT and NFT through a **discriminated union** pattern (since Move 1 doesn't have enums):
+
+#### 1. **RewardKind Struct** (`rewards.move` lines 18-33)
+
+```move
+struct RewardKind has store, drop {
+    // 🔑 Discriminator - this bool determines the type!
+    is_ft: bool,  // true = Fungible Asset, false = NFT
+    
+    // 💰 FT fields (only used when is_ft = true)
+    fa_metadata: Option<Object<Metadata>>,  // FA metadata object
+    fa_amount: u64,                          // Amount per claim
+    
+    // 🎨 NFT fields (only used when is_ft = false)
+    nft_collection: Option<address>,         // Collection address
+    nft_name: Option<String>,                // Token name
+    nft_description: Option<String>,         // Token description
+    nft_uri: Option<String>,                 // Metadata/image URI
+}
+```
+
+**Key Insight:** This single struct can represent **both types** using optional fields!
+
+---
+
+#### 2. **Attach Functions** Create Different Kinds
+
+**For FT (lines 134-167):**
+```move
+public entry fun attach_fa_reward(..., fa_metadata, amount, ...) {
+    let reward = Reward {
+        kind: RewardKind {
+            is_ft: true,           // ✅ FT mode
+            fa_metadata: option::some(fa_metadata),  // ✅ Set
+            fa_amount: amount,                        // ✅ Set
+            nft_collection: option::none(),          // ❌ Not used
+            nft_name: option::none(),                // ❌ Not used
+            nft_description: option::none(),         // ❌ Not used
+            nft_uri: option::none(),                 // ❌ Not used
+        },
+        ...
+    };
+}
+```
+
+**For NFT (lines 192-221):**
+```move
+public entry fun attach_nft_reward(..., collection, name, desc, uri, ...) {
+    let reward = Reward {
+        kind: RewardKind {
+            is_ft: false,                            // ✅ NFT mode
+            fa_metadata: option::none(),             // ❌ Not used
+            fa_amount: 0,                            // ❌ Not used
+            nft_collection: option::some(collection), // ✅ Set
+            nft_name: option::some(name),            // ✅ Set
+            nft_description: option::some(desc),     // ✅ Set
+            nft_uri: option::some(uri),              // ✅ Set
+        },
+        ...
+    };
+}
+```
+
+---
+
+#### 3. **Claim Logic Switches** on Type (lines 271-303)
+
+```move
+fun do_claim(...) {
+    // ... validation ...
+    
+    // 🔀 Branch based on reward type
+    if (reward.kind.is_ft) {
+        // 💰 FT PATH
+        let _metadata = *option::borrow(&reward.kind.fa_metadata);
+        let _amount = reward.kind.fa_amount;
+        // (Placeholder: actual transfer in Phase Final)
+    } else {
+        // 🎨 NFT PATH
+        let _collection = *option::borrow(&reward.kind.nft_collection);
+        let _name = *option::borrow(&reward.kind.nft_name);
+        // (Placeholder: actual minting in Phase Final)
+    };
+    
+    // ✅ Common bookkeeping (works for both types)
+    table::add(claimed_map, achievement_id, true);
+    reward.claimed_count = reward.claimed_count + 1;
+    emit_event(..., is_ft: reward.kind.is_ft);  // Event knows the type!
+}
+```
+
+**The `is_ft` boolean controls the entire claim flow!**
+
+---
+
+#### 4. **View Functions** Handle Both (lines 319-367)
+
+```move
+public fun get_reward(...) {
+    let reward = table::borrow(...);
+    
+    // Return different data based on type
+    let amount = if (reward.kind.is_ft) {
+        reward.kind.fa_amount        // For FT: return amount
+    } else {
+        reward.claimed_count         // For NFT: return claimed count
+    };
+    
+    (exists, reward.kind.is_ft, amount, ...)
+}
+```
+
+**Views automatically adapt to the reward type!**
+
+---
+
+### 🎯 Why This Design?
+
+**Pros:**
+- ✅ Single `Reward` struct handles both types
+- ✅ Type-safe (can't mix FT and NFT data)
+- ✅ Easy to extend (add more reward types later)
+- ✅ Efficient storage (only relevant fields have data)
+
+**Move 1 Limitation:**
+- No native enums, so we use `is_ft: bool` + `Option<T>` fields
+- More verbose than Move 2's enum syntax
+- But works perfectly on Aptos!
 
 ---
 
