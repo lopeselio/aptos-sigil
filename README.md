@@ -16,6 +16,23 @@ A decentralized gaming open source public good on Aptos that allows publishers t
 - Aptos account with devnet tokens
 - API Key from [Aptos Labs](https://geomi.dev/docs/start)
 
+## Directory structure
+
+
+```
+sigil-aptos/
+├── move/
+│   ├── sources/
+│   │   ├── sigil_core.move         ✅ Untouched (as requested)
+│   │   └── leaderboard.move        ✅ Enhanced & Production Ready
+│   └── tests/
+│       └── leaderboard_tests.move  ✅ 15 passing tests
+│
+├── LEADERBOARD_INTEGRATION.md      📚 500+ lines of integration docs
+├── TESTING_GUIDE.md                📚 Complete CLI testing guide
+├── SUMMARY.md                      📚 Technical implementation summary
+```
+
 ## 🚀 Deployment Steps
 
 ### 1. Configure Your Environment
