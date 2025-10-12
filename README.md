@@ -9,6 +9,7 @@ A decentralized gaming open source public good on Aptos that allows publishers t
 | **game_platform** | ✅ Live | Game registration, player profiles, score submission |
 | **leaderboard** | ✅ Live | Dynamic rankings, top-N tracking, configurable sorting |
 | **achievements** | ✅ Live | 6 achievement types, progress tracking, badge/NFT support |
+| **rewards** | ✅ Ready | FT & NFT rewards, claim system, supply management |
 
 ### Core Capabilities
 
@@ -25,11 +26,27 @@ A decentralized gaming open source public good on Aptos that allows publishers t
   - Badge/NFT URI support
 - **Events** - All actions emit events for easy indexing
 
+## 🎭 Who Can Use Sigil?
+
+**Anyone can become a publisher!** The Sigil platform uses **per-publisher architecture** - each game creator has their own independent gaming ecosystem.
+
+| Role | What You Can Do | Access Control |
+|------|----------------|----------------|
+| **Publisher** (You!) | ✅ Create your own games<br>✅ Set up leaderboards<br>✅ Design achievements<br>✅ Attach rewards<br>✅ Manage your ecosystem | Your `&signer` controls YOUR resources only |
+| **Players** | ✅ Play any publisher's games<br>✅ Submit scores<br>✅ Earn achievements<br>✅ Claim rewards | Their `&signer` for claims |
+| **Anyone** | ✅ View all games/leaderboards<br>✅ Check achievements<br>✅ See rewards | Public view functions (free) |
+
+**Key Point:** ✅ **No approval needed!** Just initialize the modules at your address and you're a publisher.
+
+**See:** [REWARDS_GUIDE.md - Actors & Access Control](./REWARDS_GUIDE.md#-actors--access-control) for complete details.
+
+---
+
 ## 📋 Prerequisites
 
 - [Aptos CLI](https://aptos.dev/tools/install-cli/) installed (v7.8.1+)
-- Aptos account with devnet tokens
-- API Key from [Aptos Labs](https://geomi.dev/docs/start)
+- Aptos account with devnet tokens (your publisher address)
+- API Key from [Aptos Labs](https://geomi.dev/docs/start) (optional, for higher rate limits)
 
 ## 📁 Project Structure
 
@@ -39,18 +56,21 @@ sigil-aptos/
 │   ├── sources/
 │   │   ├── sigil_core.move         ✅ Game platform (9 functions)
 │   │   ├── leaderboard.move        ✅ Dynamic rankings (7 functions)
-│   │   └── achievements.move       ✅ Achievement system (13 functions)
+│   │   ├── achievements.move       ✅ Achievement system (13 functions)
+│   │   └── rewards.move            ✅ Reward distribution (12 functions)
 │   │
 │   ├── tests/
 │   │   ├── leaderboard_tests.move  ✅ 15 tests passing
-│   │   └── achievements_tests.move ✅ 20 tests passing
+│   │   ├── achievements_tests.move ✅ 20 tests passing
+│   │   └── rewards_tests.move      ✅ 26 tests passing
 │   │
 │   └── Move.toml                   📦 Package configuration
 │
 ├── .aptos/
-│   └── config.yaml                 🔧 Aptos CLI profiles (inlcuded in .gitignore)
+│   └── config.yaml                 🔧 Aptos CLI profiles (included in .gitignore)
 │
 ├── README.md                        📚 Main documentation 
+├── REWARDS_GUIDE.md                 📚 Complete rewards guide with use cases
 ├── ACHIEVEMENTS_GUIDE.md            📚 Complete achievements guide 
 ├── LEADERBOARD_INTEGRATION.md       📚 Leaderboard integration details 
 ├── TESTING_GUIDE.md                 📚 Testing scenarios and commands 
@@ -58,9 +78,10 @@ sigil-aptos/
 ```
 
 **Total Stats:**
-- **3 Modules** - All deployed & tested on devnet
-- **35 Unit Tests** - 100% passing
-- **13 Public Functions** - Achievements API
+- **4 Modules** - 3 deployed on devnet, 1 ready to deploy
+- **61 Unit Tests** - 100% passing
+- **41 Public Functions** - Complete gaming API
+- **6 Comprehensive Guides** - 5,500+ lines of documentation
 
 ## 🚀 Deployment Steps
 
@@ -761,6 +782,7 @@ If republishing, the modules will be upgraded automatically. Make sure you're us
 
 For more detailed information, check out:
 
+- **[REWARDS_GUIDE.md](./REWARDS_GUIDE.md)** - Complete rewards guide with 10 practical use cases
 - **[ACHIEVEMENTS_GUIDE.md](./ACHIEVEMENTS_GUIDE.md)** - Complete achievements documentation with live testing results
 - **[LEADERBOARD_INTEGRATION.md](./LEADERBOARD_INTEGRATION.md)** - Complete integration guide 
 - **[TESTING_GUIDE.md](./TESTING_GUIDE.md)** - Step-by-step testing instructions
@@ -780,25 +802,30 @@ aptos move test
 **Test Coverage:**
 - **Leaderboard:** 15 unit tests ✅
 - **Achievements:** 20 unit tests ✅
-- **Total:** 35 tests, all passing ✅
+- **Rewards:** 26 unit tests ✅
+- **Total:** 61 tests, all passing ✅
 
 **Test by Module:**
 ```bash
-# Test leaderboard only
-aptos move test --filter leaderboard
+# Test all modules
+aptos move test
 
-# Test achievements only  
+# Test specific modules
+aptos move test --filter leaderboard
 aptos move test --filter achievements
+aptos move test --filter rewards
 ```
 
 **Coverage Includes:**
-- Initialization and setup
+- Initialization and setup for all modules
 - All achievement types (basic, advanced, game-specific)
 - Progress tracking and updates
-- Score submission and unlocking
+- FT and NFT reward attachment
+- Claim flow with double-claim prevention
+- Supply management and stock tracking
 - Multiple players and edge cases
-- Badge URI storage
-- Catalog and view functions
+- Badge URI storage and retrieval
+- Complete view function coverage
 
 ---
 
