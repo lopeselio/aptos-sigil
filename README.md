@@ -1,5 +1,5 @@
 # Sigil Game Platform - Aptos Smart Contract
-
+SIGIL - Signatures for In-Game Incentives & Leaderboards
 A decentralized gaming open source public good on Aptos that allows publishers to register games, players to create profiles, submit scores on-chain, and compete on dynamic leaderboards.
 
 ## 🎮 Features
@@ -31,22 +31,36 @@ A decentralized gaming open source public good on Aptos that allows publishers t
 - Aptos account with devnet tokens
 - API Key from [Aptos Labs](https://geomi.dev/docs/start)
 
-## Directory structure
-
+## 📁 Project Structure
 
 ```
 sigil-aptos/
 ├── move/
 │   ├── sources/
-│   │   ├── sigil_core.move         ✅ Untouched (as requested)
-│   │   └── leaderboard.move        ✅ Enhanced & Production Ready
-│   └── tests/
-│       └── leaderboard_tests.move  ✅ 15 passing tests
+│   │   ├── sigil_core.move         ✅ Game platform (9 functions)
+│   │   ├── leaderboard.move        ✅ Dynamic rankings (7 functions)
+│   │   └── achievements.move       ✅ Achievement system (13 functions)
+│   │
+│   ├── tests/
+│   │   ├── leaderboard_tests.move  ✅ 15 tests passing
+│   │   └── achievements_tests.move ✅ 20 tests passing
+│   │
+│   └── Move.toml                   📦 Package configuration
 │
-├── LEADERBOARD_INTEGRATION.md      📚 500+ lines of integration docs
-├── TESTING_GUIDE.md                📚 Complete CLI testing guide
-├── SUMMARY.md                      📚 Technical implementation summary
+├── .aptos/
+│   └── config.yaml                 🔧 Aptos CLI profiles (inlcuded in .gitignore)
+│
+├── README.md                        📚 Main documentation 
+├── ACHIEVEMENTS_GUIDE.md            📚 Complete achievements guide 
+├── LEADERBOARD_INTEGRATION.md       📚 Leaderboard integration details 
+├── TESTING_GUIDE.md                 📚 Testing scenarios and commands 
+└── SUMMARY.md                       📚 Technical implementation notes 
 ```
+
+**Total Stats:**
+- **3 Modules** - All deployed & tested on devnet
+- **35 Unit Tests** - 100% passing
+- **13 Public Functions** - Achievements API
 
 ## 🚀 Deployment Steps
 
@@ -748,7 +762,7 @@ If republishing, the modules will be upgraded automatically. Make sure you're us
 For more detailed information, check out:
 
 - **[ACHIEVEMENTS_GUIDE.md](./ACHIEVEMENTS_GUIDE.md)** - Complete achievements documentation with live testing results
-- **[LEADERBOARD_INTEGRATION.md](./LEADERBOARD_INTEGRATION.md)** - Complete integration guide (500+ lines)
+- **[LEADERBOARD_INTEGRATION.md](./LEADERBOARD_INTEGRATION.md)** - Complete integration guide 
 - **[TESTING_GUIDE.md](./TESTING_GUIDE.md)** - Step-by-step testing instructions
 - **[SUMMARY.md](./SUMMARY.md)** - Technical implementation details
 
