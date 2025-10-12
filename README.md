@@ -577,6 +577,66 @@ aptos move view \
 
 ---
 
+## 🛡️ Anti-Cheat with Attest
+
+**Optional server-side score verification for competitive games.**
+
+The attest module prevents score manipulation by requiring server signatures on all score submissions.
+
+### **When To Use**
+
+| Game Type | Use Attest? | Why |
+|-----------|-------------|-----|
+| Casual games | ❌ No | `submit_score` (simple, direct) |
+| Competitive/Esports | ✅ Yes | `submit_score_attested` (verified) |
+| Games with prizes | ✅ Yes | Prevent fraud |
+| Leaderboards with rewards | ✅ Yes | Fair competition |
+
+### **How It Works**
+
+```
+Without Attest (Easy but hackable):
+Player → submit_score(any_score) → Blockchain accepts
+
+With Attest (Secure):
+Player → Game Server validates → Signs score → submit_score_attested(score + signature)
+         └─ Blockchain verifies: "Did server really sign this?" → Accept/Reject
+```
+
+### **Key Features**
+
+- ✅ Ed25519 signature verification
+- ✅ Nonce-based replay protection
+- ✅ Timestamp validation (max 60s age)
+- ✅ Server key rotation support
+- ✅ Backward compatible (original submit_score still works)
+
+### **Functions**
+
+```bash
+# Initialize (register server pubkey)
+aptos move run ... attest::init_attest \
+  --args hex:SERVER_PUBKEY u64:60
+
+# Update server key (rotate)
+aptos move run ... attest::update_server_key \
+  --args hex:NEW_SERVER_PUBKEY
+
+# Check configuration
+aptos move view ... attest::is_initialized ...
+aptos move view ... attest::get_server_pubkey ...
+aptos move view ... attest::get_max_age ...
+aptos move view ... attest::get_last_nonce ...
+```
+
+**Server Required:** ✅ YES (for validated submissions)  
+**Gas Cost:** +100 gas per attested submission (~$0.0001)  
+**Security:** Prevents client-side score hacking
+
+**See:** [Attest Guide](./ATTEST_GUIDE.md) for complete details and server integration examples
+
+---
+
 ## 🔗 Deployed Contract Info
 
 **Network:** Aptos Devnet  
@@ -595,7 +655,7 @@ aptos move view \
 ### **🎊 Phase Final Deployment** (phase-final-test) ⚡ **AUTOMATIC REWARDS!**
 **Module Address:** `0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19`  
 **Resource Account:** `0x7352fcfd4658a3181264d1ac50ccdde5c56dc73d4fbc07887e4fb24c8e109835`  
-**Modules:** ALL 6 modules with **automatic FA/NFT distribution!**
+**Modules:** ALL 7 modules with **automatic FA/NFT distribution + anti-cheat!**
 
 **Explorer Links:**
 - [Account View](https://explorer.aptoslabs.com/account/0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19?network=devnet)
