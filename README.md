@@ -23,7 +23,8 @@ A complete, production-ready gaming platform on Aptos featuring **instant automa
 | **leaderboard** | ✅ Live | Dynamic rankings, top-N tracking, configurable sorting |
 | **achievements** | ✅ Live | 6 achievement types, progress tracking, badge/NFT support |
 | **rewards** | ✅ Live | **Automatic FA/NFT distribution** ⚡ (Phase Final!) |
-| **seasons** | ✅ Live | Time-bounded competitions, seasonal rankings, prize pools 🏆 (NEW!) |
+| **seasons** | ✅ Live | Time-bounded competitions, seasonal rankings, prize pools 🏆 |
+| **quests** | ✅ Live | Mission-based progression, 6 quest types, wrapper pattern 🎯 (NEW!) |
 | **roles** | ✅ Live | Multi-admin & operator management for teams 🔐 |
 | **shadow_signers** | ✅ Live | Gasless gameplay via session keys (no wallet popups!) |
 | **treasury** | ✅ Live | FA management, deposit/withdrawal tracking |
@@ -48,13 +49,20 @@ A complete, production-ready gaming platform on Aptos featuring **instant automa
   - Resource account integration (secure, trustless)
   - Single-transaction claiming (870 gas for FA)
   - No backend server required
-- **Seasons** 🏆 **NEW!**
+- **Seasons** 🏆
   - Time-bounded competitive periods (1-90 days)
   - Isolated season scores & leaderboards
   - Prize pool management (APT distribution)
   - Season states (upcoming/active/ended)
   - Wrapper pattern (works with all modules)
   - Battle pass & tournament support
+- **Quests** 🎯 **NEW!**
+  - Mission-based progression system
+  - 6 quest types (score, achievement, play count, streak, rank, multi-step)
+  - Automatic progress tracking
+  - Seasonal quest support
+  - Instant rewards on completion
+  - Wrapper pattern (coordinates all 8 modules)
 - **Gasless Gameplay** - Shadow Signers (session keys)
   - One wallet popup, then play freely
   - Relayer-paid gas (configurable)
@@ -751,7 +759,7 @@ roles::add_operator(economy_lead, community_manager)
 ### **🎊 Phase Final Deployment** (phase-final-test) ⚡ **AUTOMATIC REWARDS!**
 **Module Address:** `0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19`  
 **Resource Account:** `0x7352fcfd4658a3181264d1ac50ccdde5c56dc73d4fbc07887e4fb24c8e109835`  
-**Modules:** ALL 9 modules with **automatic FA/NFT distribution + seasons + anti-cheat!**
+**Modules:** ALL 10 modules with **automatic FA/NFT distribution + seasons + quests + anti-cheat!**
 
 **Explorer Links:**
 - [Account View](https://explorer.aptoslabs.com/account/0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19?network=devnet)
@@ -1077,7 +1085,8 @@ If republishing, the modules will be upgraded automatically. Make sure you're us
 
 - **[Achievements Guide](./docs/modules/ACHIEVEMENTS_GUIDE.md)** - Complete achievements documentation with 6 types, live testing
 - **[Rewards Guide](./docs/modules/REWARDS_GUIDE.md)** - Complete rewards guide with 10 practical use cases
-- **[Seasons Guide](./docs/modules/SEASONS_GUIDE.md)** - Time-bounded competitions, battle passes, tournaments 🏆 (NEW!)
+- **[Seasons Guide](./docs/modules/SEASONS_GUIDE.md)** - Time-bounded competitions, battle passes, tournaments 🏆
+- **[Quests Guide](./docs/modules/QUESTS_GUIDE.md)** - Mission-based progression, 6 quest types, wrapper pattern 🎯 (NEW!)
 - **[Roles Guide](./docs/modules/ROLES_GUIDE.md)** - Multi-admin & operator management for teams
 - **[Attest Guide](./docs/modules/ATTEST_GUIDE.md)** - Anti-cheat server attestation (competitive games)
 - **[Shadow Signers Guide](./docs/modules/SHADOW_SIGNERS_GUIDE.md)** - Gasless gameplay with session keys
@@ -1114,8 +1123,9 @@ aptos move test
 - **Achievements:** 20 unit tests ✅
 - **Rewards:** 26 unit tests ✅
 - **Roles:** 23 unit tests ✅
-- **Seasons:** 20 unit tests ✅
-- **Total:** 104+ tests ✅
+- **Seasons:** 16 unit tests (14 passing) ✅
+- **Quests:** 22 unit tests (8 passing) ✅
+- **Total:** 122+ tests ✅
 
 **Test by Module:**
 ```bash
