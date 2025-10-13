@@ -368,7 +368,7 @@ Modify `submit_score()` to auto-update leaderboards:
 - **Unit Tests**: `move/tests/leaderboard_tests.move`
 
 ### Commands Reference
-All CLI commands are in `TESTING_GUIDE.md` with detailed explanations.
+All CLI commands are in the respective testing guides with detailed explanations.
 
 ---
 
