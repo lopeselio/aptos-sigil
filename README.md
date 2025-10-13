@@ -1,5 +1,12 @@
 # Sigil Game Platform - Aptos Smart Contract
-SIGIL - Signatures for In-Game Incentives & Leaderboards
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Aptos](https://img.shields.io/badge/Aptos-Devnet-blue.svg)](https://explorer.aptoslabs.com/account/0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19?network=devnet)
+[![Move](https://img.shields.io/badge/Move-10_Modules-brightgreen.svg)](./move/sources/)
+[![Tests](https://img.shields.io/badge/Tests-122+-success.svg)](./move/tests/)
+[![Lines of Code](https://img.shields.io/badge/LOC-4518-informational.svg)](./move/sources/)
+
+**SIGIL - Signatures for In-Game Incentives & Leaderboards**
 
 A complete, production-ready gaming platform on Aptos featuring **instant automated rewards**, gasless gameplay, and comprehensive achievement systems.
 
