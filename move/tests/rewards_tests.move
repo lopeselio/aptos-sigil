@@ -532,7 +532,7 @@ module sigil::rewards_tests {
         roles::init_roles(&publisher);
         roles::add_operator(&publisher, pub_addr, op_addr);
         
-        let fa_metadata = create_test_fa(&publisher);
+        let fa_metadata = create_mock_fa_metadata(&publisher);
         
         // Operator should be able to attach reward
         rewards::attach_fa_reward(&operator, 0, fa_metadata, 100, 10);
@@ -554,7 +554,7 @@ module sigil::rewards_tests {
         rewards::init_rewards_for_test(&publisher);
         roles::init_roles(&publisher);
         
-        let fa_metadata = create_test_fa(&publisher);
+        let fa_metadata = create_mock_fa_metadata(&publisher);
         
         // Unauthorized user tries to attach reward (should fail)
         rewards::attach_fa_reward(&unauthorized, 0, fa_metadata, 100, 10);
@@ -574,7 +574,7 @@ module sigil::rewards_tests {
         roles::init_roles(&publisher);
         roles::add_admin(&publisher, pub_addr, admin_addr);
         
-        let fa_metadata = create_test_fa(&publisher);
+        let fa_metadata = create_mock_fa_metadata(&publisher);
         
         // Admin should be able to attach reward
         rewards::attach_fa_reward(&admin, 0, fa_metadata, 100, 10);
@@ -595,7 +595,7 @@ module sigil::rewards_tests {
         rewards::init_rewards_for_test(&publisher);
         roles::init_roles(&publisher);
         
-        let fa_metadata = create_test_fa(&publisher);
+        let fa_metadata = create_mock_fa_metadata(&publisher);
         
         // Owner can always attach rewards
         rewards::attach_fa_reward(&publisher, 0, fa_metadata, 100, 10);
