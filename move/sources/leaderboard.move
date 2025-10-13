@@ -9,7 +9,7 @@ module sigil::leaderboard {
      *  Types
      *************/
 
-    /// Configuration for a leaderboard (mirrors the SOAR ideas in a compact form)
+    /// Configuration for a leaderboard 
     struct Config has store, drop {
         game_id: u64,
         decimals: u8,
