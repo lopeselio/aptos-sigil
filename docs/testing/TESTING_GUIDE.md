@@ -90,6 +90,7 @@ aptos move run \
   --profile devnet \
   --function-id 'default::leaderboard::create_leaderboard' \
   --args \
+    address:PUBLISHER_ADDRESS \
     u64:0 \
     u8:0 \
     u64:0 \

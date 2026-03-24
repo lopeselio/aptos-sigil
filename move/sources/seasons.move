@@ -72,7 +72,8 @@ module sigil::seasons {
     /// Registry of all seasons for a publisher
     struct Seasons has key {
         publisher: address,
-        current_season_id: u64,  // 0 means no active season
+        current_season_id: u64, // active season id (may be 0 when season 0 is current)
+        has_active_season: bool, // disambiguates "no current season" vs "current is id 0"
         next_id: u64,
         seasons: Table<u64, Season>,
         // Season data isolation
@@ -126,6 +127,7 @@ module sigil::seasons {
         move_to(publisher, Seasons {
             publisher: addr,
             current_season_id: 0,
+            has_active_season: false,
             next_id: 0,
             seasons: table::new(),
             season_scores: table::new(),
@@ -145,22 +147,24 @@ module sigil::seasons {
     /// Create a new season (upcoming)
     /// Times are in Unix seconds (use Date.now() / 1000 in JS)
     public entry fun create_season(
-        publisher: &signer,
+        actor: &signer,
+        publisher: address,
         name: String,
         start_time: u64,
         end_time: u64,
         leaderboard_id: u64,
         prize_pool: u64
     ) acquires Seasons {
-        let addr = signer::address_of(publisher);
-        assert!(exists<Seasons>(addr), E_NOT_INITIALIZED);
+        let caller = signer::address_of(actor);
+        assert!(exists<Seasons>(publisher), E_NOT_INITIALIZED);
 
-        // Optional role check
-        if (roles::is_initialized(addr)) {
-            assert!(roles::can_manage_leaderboards(addr, addr), E_NO_PERMISSION);
+        if (roles::is_initialized(publisher)) {
+            assert!(roles::can_manage_leaderboards(publisher, caller), E_NO_PERMISSION);
+        } else {
+            assert!(caller == publisher, E_NO_PERMISSION);
         };
 
-        let seasons = borrow_global_mut<Seasons>(addr);
+        let seasons = borrow_global_mut<Seasons>(publisher);
         let now = timestamp::now_seconds();
 
         // Validate times
@@ -191,25 +195,27 @@ module sigil::seasons {
 
         event::emit_event(
             &mut seasons.events.created,
-            SeasonCreatedEvent { publisher: addr, season_id: id, name, start_time, end_time }
+            SeasonCreatedEvent { publisher, season_id: id, name, start_time, end_time }
         );
     }
 
     /// Start a season manually (or it auto-starts at start_time)
     /// Sets it as the current active season
     public entry fun start_season(
-        publisher: &signer,
+        actor: &signer,
+        publisher: address,
         season_id: u64
     ) acquires Seasons {
-        let addr = signer::address_of(publisher);
-        assert!(exists<Seasons>(addr), E_NOT_INITIALIZED);
+        let caller = signer::address_of(actor);
+        assert!(exists<Seasons>(publisher), E_NOT_INITIALIZED);
 
-        // Optional role check
-        if (roles::is_initialized(addr)) {
-            assert!(roles::can_manage_leaderboards(addr, addr), E_NO_PERMISSION);
+        if (roles::is_initialized(publisher)) {
+            assert!(roles::can_manage_leaderboards(publisher, caller), E_NO_PERMISSION);
+        } else {
+            assert!(caller == publisher, E_NO_PERMISSION);
         };
 
-        let seasons = borrow_global_mut<Seasons>(addr);
+        let seasons = borrow_global_mut<Seasons>(publisher);
         assert!(table::contains(&seasons.seasons, season_id), E_SEASON_NOT_FOUND);
 
         let season = table::borrow(&seasons.seasons, season_id);
@@ -217,37 +223,41 @@ module sigil::seasons {
         assert!(now >= season.start_time, E_SEASON_NOT_STARTED);
         assert!(now < season.end_time, E_SEASON_ENDED);
 
+        seasons.has_active_season = true;
         seasons.current_season_id = season_id;
 
         event::emit_event(
             &mut seasons.events.started,
-            SeasonStartedEvent { publisher: addr, season_id }
+            SeasonStartedEvent { publisher, season_id }
         );
     }
 
     /// End a season manually (or it auto-ends at end_time)
     public entry fun end_season(
-        publisher: &signer,
+        actor: &signer,
+        publisher: address,
         season_id: u64
     ) acquires Seasons {
-        let addr = signer::address_of(publisher);
-        assert!(exists<Seasons>(addr), E_NOT_INITIALIZED);
+        let caller = signer::address_of(actor);
+        assert!(exists<Seasons>(publisher), E_NOT_INITIALIZED);
 
-        // Optional role check
-        if (roles::is_initialized(addr)) {
-            assert!(roles::can_manage_leaderboards(addr, addr), E_NO_PERMISSION);
+        if (roles::is_initialized(publisher)) {
+            assert!(roles::can_manage_leaderboards(publisher, caller), E_NO_PERMISSION);
+        } else {
+            assert!(caller == publisher, E_NO_PERMISSION);
         };
 
-        let seasons = borrow_global_mut<Seasons>(addr);
+        let seasons = borrow_global_mut<Seasons>(publisher);
         assert!(table::contains(&seasons.seasons, season_id), E_SEASON_NOT_FOUND);
 
         if (seasons.current_season_id == season_id) {
+            seasons.has_active_season = false;
             seasons.current_season_id = 0;
         };
 
         event::emit_event(
             &mut seasons.events.ended,
-            SeasonEndedEvent { publisher: addr, season_id }
+            SeasonEndedEvent { publisher, season_id }
         );
     }
 
@@ -268,11 +278,12 @@ module sigil::seasons {
         };
 
         let seasons = borrow_global_mut<Seasons>(publisher);
-        let season_id = seasons.current_season_id;
 
-        if (season_id == 0) {
-            return // No active season
+        if (!seasons.has_active_season) {
+            return
         };
+
+        let season_id = seasons.current_season_id;
 
         if (!table::contains(&seasons.seasons, season_id)) {
             return // Season doesn't exist
@@ -336,9 +347,8 @@ module sigil::seasons {
         // 4. Update season leaderboard (if season exists)
         if (exists<Seasons>(publisher)) {
             let seasons = borrow_global<Seasons>(publisher);
-            let season_id = seasons.current_season_id;
-            
-            if (season_id != 0 && table::contains(&seasons.seasons, season_id)) {
+            if (seasons.has_active_season && table::contains(&seasons.seasons, seasons.current_season_id)) {
+                let season_id = seasons.current_season_id;
                 let season = table::borrow(&seasons.seasons, season_id);
                 leaderboard::on_score(publisher, season.leaderboard_id, player_addr, score);
             };
@@ -348,19 +358,21 @@ module sigil::seasons {
     /// Attach an achievement to a season
     /// Makes the achievement "seasonal" (shows in season context)
     public entry fun add_season_achievement(
-        publisher: &signer,
+        actor: &signer,
+        publisher: address,
         season_id: u64,
         achievement_id: u64
     ) acquires Seasons {
-        let addr = signer::address_of(publisher);
-        assert!(exists<Seasons>(addr), E_NOT_INITIALIZED);
+        let caller = signer::address_of(actor);
+        assert!(exists<Seasons>(publisher), E_NOT_INITIALIZED);
 
-        // Optional role check
-        if (roles::is_initialized(addr)) {
-            assert!(roles::can_manage_achievements(addr, addr), E_NO_PERMISSION);
+        if (roles::is_initialized(publisher)) {
+            assert!(roles::can_manage_achievements(publisher, caller), E_NO_PERMISSION);
+        } else {
+            assert!(caller == publisher, E_NO_PERMISSION);
         };
 
-        let seasons = borrow_global_mut<Seasons>(addr);
+        let seasons = borrow_global_mut<Seasons>(publisher);
         assert!(table::contains(&seasons.seasons, season_id), E_SEASON_NOT_FOUND);
 
         let season = table::borrow_mut(&mut seasons.seasons, season_id);
@@ -380,7 +392,7 @@ module sigil::seasons {
     public fun get_current_season(publisher: address): (bool, u64) acquires Seasons {
         if (!exists<Seasons>(publisher)) return (false, 0);
         let seasons = borrow_global<Seasons>(publisher);
-        (seasons.current_season_id != 0, seasons.current_season_id)
+        (seasons.has_active_season, seasons.current_season_id)
     }
 
     #[view]

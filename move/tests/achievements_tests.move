@@ -41,6 +41,7 @@ module sigil::achievements_tests {
         // Create achievement: "Score 1000+"
         achievements::create(
             &publisher,
+            @0x123,
             b"High Scorer",
             b"Score 1000 or more",
             1000,
@@ -69,6 +70,7 @@ module sigil::achievements_tests {
         
         achievements::create(
             &publisher,
+            @0x123,
             b"Gold Medal",
             b"Top performer",
             5000,
@@ -87,6 +89,7 @@ module sigil::achievements_tests {
         
         achievements::create_with_game(
             &publisher,
+            @0x123,
             b"Game Master",
             b"Master of Game 0",
             0,      // game_id
@@ -106,6 +109,7 @@ module sigil::achievements_tests {
         
         achievements::create(
             &publisher,
+            @0x123,
             b"Special Award",
             b"Manually granted",
             0,
@@ -113,7 +117,7 @@ module sigil::achievements_tests {
         );
         
         // Publisher grants achievement to player
-        achievements::grant(&publisher, @0x456, 0);
+        achievements::grant(&publisher, @0x123, @0x456, 0);
         
         // Verify unlocked
         let unlocked = achievements::is_unlocked(@0x123, @0x456, 0);
@@ -132,6 +136,7 @@ module sigil::achievements_tests {
         // Create achievement: "Score 1000+"
         achievements::create(
             &publisher,
+            @0x123,
             b"High Scorer",
             b"Score 1000+",
             1000,
@@ -155,6 +160,7 @@ module sigil::achievements_tests {
         // Achievement only for game 1
         achievements::create_with_game(
             &publisher,
+            @0x123,
             b"Game 1 Master",
             b"High score on Game 1",
             1,      // game_id
@@ -179,6 +185,7 @@ module sigil::achievements_tests {
         // "Score 1000+ three times"
         achievements::create_advanced(
             &publisher,
+            @0x123,
             b"Consistent Performer",
             b"Score 1000+ three times",
             1000,   // min_score
@@ -217,6 +224,7 @@ module sigil::achievements_tests {
         // "Play 5 times" (regardless of score)
         achievements::create_advanced(
             &publisher,
+            @0x123,
             b"Dedicated Player",
             b"Play 5 times",
             0,      // min_score (0 = any score counts)
@@ -250,6 +258,7 @@ module sigil::achievements_tests {
         // "Score 500+ in 3 out of 5 games"
         achievements::create_advanced(
             &publisher,
+            @0x123,
             b"Combo Master",
             b"Score 500+ three times in five attempts",
             500,    // min_score
@@ -290,9 +299,9 @@ module sigil::achievements_tests {
         achievements::init_achievements(&publisher);
         
         // Create 3 achievements
-        achievements::create(&publisher, b"Novice", b"Score 100+", 100, vector::empty<u8>());
-        achievements::create(&publisher, b"Expert", b"Score 1000+", 1000, vector::empty<u8>());
-        achievements::create(&publisher, b"Master", b"Score 5000+", 5000, vector::empty<u8>());
+        achievements::create(&publisher, @0x123, b"Novice", b"Score 100+", 100, vector::empty<u8>());
+        achievements::create(&publisher, @0x123, b"Expert", b"Score 1000+", 1000, vector::empty<u8>());
+        achievements::create(&publisher, @0x123, b"Master", b"Score 5000+", 5000, vector::empty<u8>());
         
         // Submit score that unlocks first two
         achievements::on_score(@0x123, @0x456, 0, 1500);
@@ -313,7 +322,7 @@ module sigil::achievements_tests {
         let (publisher, _, _, _) = setup_test_accounts();
         achievements::init_achievements(&publisher);
         
-        achievements::create(&publisher, b"Test", b"Test", 100, vector::empty<u8>());
+        achievements::create(&publisher, @0x123, b"Test", b"Test", 100, vector::empty<u8>());
         
         // Unlock once
         achievements::on_score(@0x123, @0x456, 0, 200);
@@ -333,6 +342,7 @@ module sigil::achievements_tests {
         
         achievements::create_advanced(
             &publisher,
+            @0x123,
             b"Grinder",
             b"Score 500+ five times",
             500,
@@ -357,9 +367,9 @@ module sigil::achievements_tests {
         let (publisher, _, _, _) = setup_test_accounts();
         achievements::init_achievements(&publisher);
         
-        achievements::create(&publisher, b"Ach1", b"Desc1", 100, vector::empty<u8>());
-        achievements::create(&publisher, b"Ach2", b"Desc2", 200, vector::empty<u8>());
-        achievements::create_with_game(&publisher, b"Ach3", b"Desc3", 5, 300, vector::empty<u8>());
+        achievements::create(&publisher, @0x123, b"Ach1", b"Desc1", 100, vector::empty<u8>());
+        achievements::create(&publisher, @0x123, b"Ach2", b"Desc2", 200, vector::empty<u8>());
+        achievements::create_with_game(&publisher, @0x123, b"Ach3", b"Desc3", 5, 300, vector::empty<u8>());
         
         let (ids, titles, descs, mins, game_ids) = achievements::list_catalog(@0x123);
         
@@ -375,7 +385,7 @@ module sigil::achievements_tests {
         let (publisher, _, _, _) = setup_test_accounts();
         achievements::init_achievements(&publisher);
         
-        achievements::create(&publisher, b"Champion", b"Score 1000+", 1000, vector::empty<u8>());
+        achievements::create(&publisher, @0x123, b"Champion", b"Score 1000+", 1000, vector::empty<u8>());
         
         // Two players unlock same achievement
         achievements::on_score(@0x123, @0x456, 0, 1200);
@@ -396,6 +406,7 @@ module sigil::achievements_tests {
         
         achievements::create_advanced(
             &publisher,
+            @0x123,
             b"Marathon",
             b"Play 10 times",
             0,
@@ -426,6 +437,7 @@ module sigil::achievements_tests {
         // min_score = 0 means any score counts
         achievements::create_advanced(
             &publisher,
+            @0x123,
             b"Participant",
             b"Play 3 times (any score)",
             0,      // min_score = 0
@@ -448,7 +460,7 @@ module sigil::achievements_tests {
         let (publisher, _, _, _) = setup_test_accounts();
         achievements::init_achievements(&publisher);
         
-        achievements::create(&publisher, b"Test", b"Test", 100, vector::empty<u8>());
+        achievements::create(&publisher, @0x123, b"Test", b"Test", 100, vector::empty<u8>());
         
         // Check progress before any submissions
         let (thresh, subs, unlocked) = achievements::get_progress(@0x123, @0x456, 0);
@@ -463,9 +475,9 @@ module sigil::achievements_tests {
         achievements::init_achievements(&publisher);
         
         // Create multiple achievements
-        achievements::create(&publisher, b"Ach0", b"D", 100, vector::empty<u8>());
-        achievements::create(&publisher, b"Ach1", b"D", 200, vector::empty<u8>());
-        achievements::create(&publisher, b"Ach2", b"D", 300, vector::empty<u8>());
+        achievements::create(&publisher, @0x123, b"Ach0", b"D", 100, vector::empty<u8>());
+        achievements::create(&publisher, @0x123, b"Ach1", b"D", 200, vector::empty<u8>());
+        achievements::create(&publisher, @0x123, b"Ach2", b"D", 300, vector::empty<u8>());
         
         // Unlock in random order
         achievements::on_score(@0x123, @0x456, 0, 500);  // Unlocks all 3
@@ -499,6 +511,7 @@ module sigil::achievements_tests {
         // Operator should be able to create achievement
         achievements::create(
             &operator,  // Operator creates
+            @0x123,
             b"Operator Achievement",
             b"Created by operator",
             100,
@@ -525,6 +538,7 @@ module sigil::achievements_tests {
         // Unauthorized user tries to create achievement (should fail)
         achievements::create(
             &unauthorized,
+            @0x123,
             b"Unauthorized Achievement",
             b"Should fail",
             100,
@@ -549,10 +563,10 @@ module sigil::achievements_tests {
         roles::add_admin(&publisher, pub_addr, admin_addr);
         
         // Create achievement as owner
-        achievements::create(&publisher, b"Test", b"Test", 100, b"");
+        achievements::create(&publisher, @0x123, b"Test", b"Test", 100, b"");
         
         // Admin can grant achievement
-        achievements::grant(&admin, player_addr, 0);
+        achievements::grant(&admin, @0x123, player_addr, 0);
         
         // Verify player has achievement
         let unlocked = achievements::unlocked_for(pub_addr, player_addr);
@@ -575,10 +589,10 @@ module sigil::achievements_tests {
         roles::init_roles(&publisher);
         
         // Create achievement as owner
-        achievements::create(&publisher, b"Test", b"Test", 100, b"");
+        achievements::create(&publisher, @0x123, b"Test", b"Test", 100, b"");
         
         // Unauthorized user tries to grant achievement (should fail)
-        achievements::grant(&unauthorized, player_addr, 0);
+        achievements::grant(&unauthorized, @0x123, player_addr, 0);
     }
 
     #[test]
@@ -593,7 +607,7 @@ module sigil::achievements_tests {
         roles::init_roles(&publisher);
         
         // Owner can always create achievements (even without explicit role)
-        achievements::create(&publisher, b"Owner Achievement", b"Test", 100, b"");
+        achievements::create(&publisher, @0x123, b"Owner Achievement", b"Test", 100, b"");
         
         // Verify
         assert!(achievements::achievement_count(pub_addr) == 1, 0);

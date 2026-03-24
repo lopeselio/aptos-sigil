@@ -48,6 +48,7 @@ module sigil::leaderboard_tests {
         // Create leaderboard for game 0
         leaderboard::create_leaderboard(
             &publisher,
+            @0x123,
             0,      // game_id
             0,      // decimals
             0,      // min_score
@@ -85,6 +86,7 @@ module sigil::leaderboard_tests {
         // Create leaderboard without game (works in independent mode)
         leaderboard::create_leaderboard(
             &publisher,
+            @0x123,
             0,      // game_id (no validation in independent mode)
             0,      // decimals
             0,      // min_score
@@ -106,7 +108,7 @@ module sigil::leaderboard_tests {
         game_platform::init(&publisher);
         game_platform::register_game(&publisher, string::utf8(b"Test Game"));
         leaderboard::init_leaderboards(&publisher);
-        leaderboard::create_leaderboard(&publisher, 0, 0, 0, 10000, false, false, 5);
+        leaderboard::create_leaderboard(&publisher, @0x123, 0, 0, 0, 10000, false, false, 5);
         
         // Submit scores
         leaderboard::on_score(@0x123, 0, @0x456, 1000); // player1: 1000
@@ -139,7 +141,7 @@ module sigil::leaderboard_tests {
         game_platform::init(&publisher);
         game_platform::register_game(&publisher, string::utf8(b"Test Game"));
         leaderboard::init_leaderboards(&publisher);
-        leaderboard::create_leaderboard(&publisher, 0, 0, 0, 10000, false, false, 5);
+        leaderboard::create_leaderboard(&publisher, @0x123, 0, 0, 0, 10000, false, false, 5);
         
         // Submit initial score
         leaderboard::on_score(@0x123, 0, @0x456, 1000);
@@ -164,7 +166,7 @@ module sigil::leaderboard_tests {
         game_platform::init(&publisher);
         game_platform::register_game(&publisher, string::utf8(b"Test Game"));
         leaderboard::init_leaderboards(&publisher);
-        leaderboard::create_leaderboard(&publisher, 0, 0, 0, 10000, false, false, 5);
+        leaderboard::create_leaderboard(&publisher, @0x123, 0, 0, 0, 10000, false, false, 5);
         
         // Submit initial score
         leaderboard::on_score(@0x123, 0, @0x456, 1500);
@@ -185,7 +187,8 @@ module sigil::leaderboard_tests {
         game_platform::register_game(&publisher, string::utf8(b"Speedrun"));
         leaderboard::init_leaderboards(&publisher);
         leaderboard::create_leaderboard(
-            &publisher, 
+            &publisher,
+            @0x123,
             0,      // game_id
             0,      // decimals
             0,      // min_score
@@ -218,7 +221,8 @@ module sigil::leaderboard_tests {
         game_platform::register_game(&publisher, string::utf8(b"Test Game"));
         leaderboard::init_leaderboards(&publisher);
         leaderboard::create_leaderboard(
-            &publisher, 
+            &publisher,
+            @0x123,
             0,      // game_id
             0,      // decimals
             100,    // min_score
@@ -251,7 +255,8 @@ module sigil::leaderboard_tests {
         game_platform::register_game(&publisher, string::utf8(b"Test Game"));
         leaderboard::init_leaderboards(&publisher);
         leaderboard::create_leaderboard(
-            &publisher, 
+            &publisher,
+            @0x123,
             0,      // game_id
             0,      // decimals
             0,      // min_score
@@ -284,7 +289,8 @@ module sigil::leaderboard_tests {
         game_platform::register_game(&publisher, string::utf8(b"Test Game"));
         leaderboard::init_leaderboards(&publisher);
         leaderboard::create_leaderboard(
-            &publisher, 
+            &publisher,
+            @0x123,
             0,      // game_id
             0,      // decimals
             0,      // min_score
@@ -320,8 +326,8 @@ module sigil::leaderboard_tests {
         leaderboard::init_leaderboards(&publisher);
         
         // Create two leaderboards for the same game
-        leaderboard::create_leaderboard(&publisher, 0, 0, 0, 10000, false, false, 5);
-        leaderboard::create_leaderboard(&publisher, 0, 0, 0, 10000, true, false, 3);
+        leaderboard::create_leaderboard(&publisher, @0x123, 0, 0, 0, 10000, false, false, 5);
+        leaderboard::create_leaderboard(&publisher, @0x123, 0, 0, 0, 10000, true, false, 3);
         
         let count = leaderboard::get_leaderboard_count(@0x123);
         assert!(count == 2, 80);
@@ -345,7 +351,7 @@ module sigil::leaderboard_tests {
         game_platform::init(&publisher);
         game_platform::register_game(&publisher, string::utf8(b"Test Game"));
         leaderboard::init_leaderboards(&publisher);
-        leaderboard::create_leaderboard(&publisher, 0, 0, 0, 10000, false, false, 5);
+        leaderboard::create_leaderboard(&publisher, @0x123, 0, 0, 0, 10000, false, false, 5);
         
         // Initial rankings
         leaderboard::on_score(@0x123, 0, @0x111, 1000);
@@ -375,7 +381,7 @@ module sigil::leaderboard_tests {
         game_platform::init(&publisher);
         game_platform::register_game(&publisher, string::utf8(b"Test Game"));
         leaderboard::init_leaderboards(&publisher);
-        leaderboard::create_leaderboard(&publisher, 0, 0, 0, 10000, false, false, 5);
+        leaderboard::create_leaderboard(&publisher, @0x123, 0, 0, 0, 10000, false, false, 5);
         
         // Query empty leaderboard
         let (players, scores) = leaderboard::get_top_entries(@0x123, 0);
@@ -392,7 +398,7 @@ module sigil::leaderboard_tests {
         game_platform::init(&publisher);
         game_platform::register_game(&publisher, string::utf8(b"Test Game"));
         leaderboard::init_leaderboards(&publisher);
-        leaderboard::create_leaderboard(&publisher, 0, 0, 0, 10000, false, false, 5);
+        leaderboard::create_leaderboard(&publisher, @0x123, 0, 0, 0, 10000, false, false, 5);
         
         // Use the CLI wrapper function
         leaderboard::submit_score_direct(&player1, @0x123, 0, @0x456, 1000);
@@ -423,6 +429,7 @@ module sigil::leaderboard_tests {
         // Operator should be able to create leaderboard
         leaderboard::create_leaderboard(
             &operator,
+            @0x123,
             0,      // game_id
             0,      // decimals
             0,      // min_score
@@ -451,6 +458,7 @@ module sigil::leaderboard_tests {
         // Unauthorized user tries to create leaderboard (should fail)
         leaderboard::create_leaderboard(
             &unauthorized,
+            @0x123,
             0,
             0,
             0,
@@ -478,6 +486,7 @@ module sigil::leaderboard_tests {
         // Admin should be able to create leaderboard
         leaderboard::create_leaderboard(
             &admin,
+            @0x123,
             0,
             0,
             0,
@@ -505,6 +514,7 @@ module sigil::leaderboard_tests {
         // Owner can always create leaderboards
         leaderboard::create_leaderboard(
             &publisher,
+            @0x123,
             0,
             0,
             0,

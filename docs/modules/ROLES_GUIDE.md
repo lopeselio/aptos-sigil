@@ -389,7 +389,7 @@ aptos move view \
 # Unauthorized user tries to create achievement (with roles enabled)
 aptos move run \
   --function-id '0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19::achievements::create' \
-  --args hex:"556e617574686f72697a6564" hex:"546573" u64:100 hex:"" \
+  --args address:0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19 hex:"556e617574686f72697a6564" hex:"546573" u64:100 hex:"" \
   --profile unauthorized-profile \
   --assume-yes
 

@@ -235,7 +235,8 @@ sigil::game_platform::register_game(
 
 ```move
 sigil::leaderboard::create_leaderboard(
-    publisher,
+    admin_signer,            // actor: transaction sender
+    @your_publisher_address, // publisher: Leaderboards resource owner
     0,      // game_id
     0,      // decimals
     0,      // min_score
@@ -396,7 +397,8 @@ public entry fun init_leaderboards(publisher: &signer)
 
 // Create a new leaderboard
 public entry fun create_leaderboard(
-    publisher: &signer,
+    actor: &signer,
+    publisher: address,
     game_id: u64,
     decimals: u8,
     min_score: u64,

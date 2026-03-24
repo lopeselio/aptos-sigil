@@ -97,8 +97,10 @@ A complete, production-ready gaming platform on Aptos featuring **instant automa
 
 ## 📋 Prerequisites
 
-- [Aptos CLI](https://aptos.dev/tools/install-cli/) installed (v7.8.1+)
+- [Aptos CLI](https://aptos.dev/tools/install-cli/) installed (v9.0.0+ recommended; required for current `aptos-framework` `mainnet` rev / Move 2.2)
 - Aptos account with devnet tokens (your publisher address)
+
+**Entry functions (actor + publisher address):** Several modules use `actor: &signer` (the transaction sender) plus an explicit `publisher: address` for the account that owns the on-chain resource. When you act as the owner, pass **your publisher address** as the first `--args` address (then the rest of the arguments). This is what enables operator/admin delegation. Affected entrypoints include `achievements::{create,create_with_game,create_advanced,create_with_game_advanced,grant}`, `leaderboard::create_leaderboard`, `rewards::{attach_fa_reward,attach_nft_reward,create_nft_collection}`, and `seasons::{create_season,start_season,end_season,add_season_achievement}`.
 - API Key from [Aptos Labs](https://geomi.dev/docs/start) (optional, for higher rate limits)
 
 ## 📁 Project Structure
@@ -346,11 +348,12 @@ Publishers can create customizable leaderboards for their games.
 aptos move run \
   --profile sigil-main \
   --function-id 'YOUR_ACCOUNT_ADDRESS::leaderboard::create_leaderboard' \
-  --args u64:GAME_ID u8:DECIMALS u64:MIN_SCORE u64:MAX_SCORE bool:IS_ASCENDING bool:ALLOW_MULTIPLE u64:TOP_N \
+  --args address:PUBLISHER_RESOURCE_ACCOUNT u64:GAME_ID u8:DECIMALS u64:MIN_SCORE u64:MAX_SCORE bool:IS_ASCENDING bool:ALLOW_MULTIPLE u64:TOP_N \
   --assume-yes
 ```
 
 **Parameters:**
+- `publisher` (address) - Account that owns the `Leaderboards` resource (use your publisher address when acting as owner)
 - `game_id` (u64) - The game ID to create leaderboard for
 - `decimals` (u8) - Number of decimal places for display (0 for integers)
 - `min_score` (u64) - Minimum valid score (scores below are rejected)
@@ -364,7 +367,7 @@ aptos move run \
 aptos move run \
   --profile sigil-main \
   --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::leaderboard::create_leaderboard' \
-  --args u64:0 u8:0 u64:0 u64:999999999 bool:false bool:false u64:10 \
+  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:0 u8:0 u64:0 u64:999999999 bool:false bool:false u64:10 \
   --assume-yes
 ```
 
@@ -373,7 +376,7 @@ aptos move run \
 aptos move run \
   --profile sigil-main \
   --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::leaderboard::create_leaderboard' \
-  --args u64:0 u8:2 u64:0 u64:999999 bool:true bool:false u64:50 \
+  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:0 u8:2 u64:0 u64:999999 bool:true bool:false u64:50 \
   --assume-yes
 ```
 
@@ -482,6 +485,7 @@ aptos move run \
   --profile sigil-main \
   --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::create' \
   --args \
+    address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 \
     hex:"486967682053636f726572" \
     hex:"53636f72652031303030206f72206d6f7265" \
     u64:1000 \
@@ -491,6 +495,7 @@ aptos move run \
 ```
 
 **Parameters:**
+- `publisher` (address) - Account that owns the `Achievements` resource (use your publisher address when the transaction sender is the owner)
 - `title` (hex) - Achievement title in UTF-8 hex (`echo -n "Text" | xxd -p`)
 - `description` (hex) - Description in UTF-8 hex
 - `min_score` (u64) - Minimum score to unlock
@@ -504,6 +509,7 @@ aptos move run \
   --profile sigil-main \
   --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::create_advanced' \
   --args \
+    address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 \
     hex:"436f6e73697374656e7420506572666f726d6572" \
     hex:"53636f72652031303030206f72206d6f726520332074696d6573" \
     u64:1000 \
@@ -515,6 +521,7 @@ aptos move run \
 ```
 
 **Parameters:**
+- `publisher` (address) - Account that owns the `Achievements` resource (same pattern as `create`)
 - `min_score` - Score threshold (0 = any score)
 - `required_count` - Times must hit threshold (0 = ignore)
 - `min_submissions` - Total games played (0 = ignore)
@@ -539,8 +546,132 @@ aptos move view --profile sigil-main \
 # Returns: ["2", "5", false]  // 2/3 threshold, 5 total plays, not unlocked
 ```
 
+**Grant achievement manually (admin / owner):**
+```bash
+aptos move run \
+  --profile sigil-main \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::grant' \
+  --args \
+    address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 \
+    address:PLAYER_ADDRESS \
+    u64:ACHIEVEMENT_ID \
+  --assume-yes \
+  --max-gas 2000
+```
+
 **More view functions:** `achievement_count`, `get_achievement`, `is_unlocked`, `list_catalog`  
 **See:** [ACHIEVEMENTS_GUIDE.md](./ACHIEVEMENTS_GUIDE.md) for complete API reference
+
+### Rewards (publisher entry functions)
+
+`attach_fa_reward` / `attach_nft_reward` / `create_nft_collection` take the **transaction sender** as actor and an explicit **`publisher` address** for the account that owns `Rewards` / `RewardsConfig`. When you are the owner, pass **your publisher address** as the first `--args` address.
+
+**Attach FA reward** (you need an on-chain `Metadata` object for your FA; replace `FA_METADATA_OBJECT`):
+
+```bash
+aptos move run \
+  --profile sigil-main \
+  --function-id 'YOUR_ACCOUNT_ADDRESS::rewards::attach_fa_reward' \
+  --args \
+    address:YOUR_ACCOUNT_ADDRESS \
+    u64:ACHIEVEMENT_ID \
+    address:FA_METADATA_OBJECT \
+    u64:AMOUNT_PER_CLAIM_OCTAS \
+    u64:SUPPLY \
+  --assume-yes \
+  --max-gas 3000
+```
+
+**Attach NFT reward** (`name`, `description`, `uri` are Move `String`; use `string:"..."` in the CLI):
+
+```bash
+aptos move run \
+  --profile sigil-main \
+  --function-id 'YOUR_ACCOUNT_ADDRESS::rewards::attach_nft_reward' \
+  --args \
+    address:YOUR_ACCOUNT_ADDRESS \
+    u64:ACHIEVEMENT_ID \
+    address:NFT_COLLECTION_ADDRESS \
+    string:"Reward Name" \
+    string:"Reward description" \
+    string:"https://example.com/metadata.json" \
+    u64:SUPPLY \
+  --assume-yes \
+  --max-gas 3000
+```
+
+**Create NFT collection** (vectors are UTF-8 bytes; use `hex:` from `xxd -p` or match your CLI convention):
+
+```bash
+aptos move run \
+  --profile sigil-main \
+  --function-id 'YOUR_ACCOUNT_ADDRESS::rewards::create_nft_collection' \
+  --args \
+    address:YOUR_ACCOUNT_ADDRESS \
+    hex:NAME_UTF8_HEX \
+    hex:DESCRIPTION_UTF8_HEX \
+    hex:URI_UTF8_HEX \
+  --assume-yes \
+  --max-gas 3000
+```
+
+### Seasons (publisher entry functions)
+
+`create_season`, `start_season`, `end_season`, and `add_season_achievement` use the same **actor + `publisher` address** pattern. `init_seasons` still takes only the publisher signer (no extra address arg).
+
+**Initialize seasons (once per publisher):**
+```bash
+aptos move run \
+  --function-id 'YOUR_ACCOUNT_ADDRESS::seasons::init_seasons' \
+  --profile sigil-main \
+  --assume-yes \
+  --max-gas 2000
+```
+
+**Create a season** (`start_time` / `end_time` are Unix **seconds**):
+
+```bash
+aptos move run \
+  --profile sigil-main \
+  --function-id 'YOUR_ACCOUNT_ADDRESS::seasons::create_season' \
+  --args \
+    address:YOUR_ACCOUNT_ADDRESS \
+    string:"Season 1" \
+    u64:START_UNIX_SECONDS \
+    u64:END_UNIX_SECONDS \
+    u64:LEADERBOARD_ID \
+    u64:PRIZE_POOL_OCTAS \
+  --assume-yes \
+  --max-gas 3000
+```
+
+**Start / end a season** (after wall clock is past `start_time` for `start_season`):
+
+```bash
+aptos move run \
+  --profile sigil-main \
+  --function-id 'YOUR_ACCOUNT_ADDRESS::seasons::start_season' \
+  --args address:YOUR_ACCOUNT_ADDRESS u64:SEASON_ID \
+  --assume-yes \
+  --max-gas 2000
+
+aptos move run \
+  --profile sigil-main \
+  --function-id 'YOUR_ACCOUNT_ADDRESS::seasons::end_season' \
+  --args address:YOUR_ACCOUNT_ADDRESS u64:SEASON_ID \
+  --assume-yes \
+  --max-gas 2000
+```
+
+**Attach an achievement id to a season:**
+```bash
+aptos move run \
+  --profile sigil-main \
+  --function-id 'YOUR_ACCOUNT_ADDRESS::seasons::add_season_achievement' \
+  --args address:YOUR_ACCOUNT_ADDRESS u64:SEASON_ID u64:ACHIEVEMENT_ID \
+  --assume-yes \
+  --max-gas 2000
+```
 
 ---
 
@@ -575,7 +706,7 @@ aptos move run \
 aptos move run \
   --profile sigil-main \
   --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::leaderboard::create_leaderboard' \
-  --args u64:0 u8:0 u64:0 u64:999999999 bool:false bool:false u64:10 \
+  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:0 u8:0 u64:0 u64:999999999 bool:false bool:false u64:10 \
   --assume-yes
 
 # 7. Register as a player
@@ -596,6 +727,28 @@ aptos move view \
   --profile sigil-main \
   --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::leaderboard::get_top_entries' \
   --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:0
+
+# 10. Initialize achievements (if not already initialized on this account)
+aptos move run \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::init_achievements' \
+  --profile sigil-main --assume-yes
+
+# 11. Create a basic achievement (first arg = publisher resource address)
+aptos move run \
+  --profile sigil-main \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::create' \
+  --args \
+    address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 \
+    hex:"486967682053636f726572" \
+    hex:"53636f72652031303030206f72206d6f7265" \
+    u64:1000 \
+    hex:"" \
+  --assume-yes \
+  --max-gas 2000
+
+# 12. (Optional) Seasons — init once, then create_season (see “Seasons” section above for full arg order and timing)
+# aptos move run --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::seasons::init_seasons' --profile sigil-main --assume-yes
+# aptos move run --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::seasons::create_season' --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 string:"S1" u64:START_UNIX u64:END_UNIX u64:0 u64:0 --profile sigil-main --assume-yes
 ```
 
 ---

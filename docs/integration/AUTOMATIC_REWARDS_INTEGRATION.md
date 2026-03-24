@@ -203,8 +203,9 @@ aptos account transfer \
 aptos move run --profile YOUR_PROFILE \
   --function-id "$MODULE::rewards::create_nft_collection" \
   --args \
-    hex:4163686965766d656e7420526577617264730a \  # "Achievement Rewards"
-    hex:4e465473206"66f722067616d65206163686965766d656e7473 \  # "NFTs for game achievements"
+    address:PUBLISHER_ADDRESS \
+    hex:4163686965766d656e7420526577617264730a \
+    hex:4e46547320666f722067616d65206163686965766d656e7473 \
     string:"https://your-game.com/collection.png" \
   --assume-yes --max-gas 3000
 ```
@@ -216,8 +217,9 @@ aptos move run --profile YOUR_PROFILE \
 aptos move run --profile YOUR_PROFILE \
   --function-id "$MODULE::achievements::create" \
   --args \
-    hex:486967682053636f726572 \  # "High Scorer"
-    hex:5363"6f"7265203130303"0"2b \  # "Score 1000+"
+    address:PUBLISHER_ADDRESS \
+    hex:486967682053636f726572 \
+    hex:53636f726520313030302b \
     u64:1000 \
     hex: \
   --assume-yes --max-gas 2000
@@ -226,6 +228,7 @@ aptos move run --profile YOUR_PROFILE \
 aptos move run --profile YOUR_PROFILE \
   --function-id "$MODULE::rewards::attach_fa_reward" \
   --args \
+    address:PUBLISHER_ADDRESS \
     u64:0 \
     address:0xa \
     u64:50000000 \
@@ -239,7 +242,7 @@ aptos move run --profile YOUR_PROFILE \
 # Player submits score (unlocks achievement)
 aptos move run --profile YOUR_PROFILE \
   --function-id "$MODULE::achievements::grant" \
-  --args address:PLAYER_ADDRESS u64:0 \
+  --args address:PUBLISHER_ADDRESS address:PLAYER_ADDRESS u64:0 \
   --assume-yes --max-gas 2000
 
 # Player claims reward
@@ -694,9 +697,9 @@ Benefits:
 | Action | Who | Access Control | Purpose |
 |--------|-----|----------------|---------|
 | **init_rewards** | Anyone | Creates at their address | Setup |
-| **create_nft_collection** | Publisher | Requires `&signer` | NFT setup |
-| **attach_fa_reward** | Publisher | Requires `&signer` | Configure rewards |
-| **attach_nft_reward** | Publisher | Requires `&signer` | Configure rewards |
+| **create_nft_collection** | Publisher / delegated role | `actor` + `publisher` address; `can_manage_rewards` | NFT setup |
+| **attach_fa_reward** | Publisher / delegated role | `actor` + `publisher` address; `can_manage_rewards` | Configure rewards |
+| **attach_nft_reward** | Publisher / delegated role | `actor` + `publisher` address; `can_manage_rewards` | Configure rewards |
 | **claim_reward** | Player with unlocked achievement | Requires `&signer` | Get rewards |
 | **Fund resource account** | Anyone | Public | Community can sponsor |
 
@@ -771,15 +774,15 @@ aptos account transfer --account $RESOURCE --amount 100000000
 
 # 4. Create achievement
 aptos move run ... achievements::create \
-  --args hex:486967682053636f726572 hex:... u64:1000 hex:
+  --args address:$MODULE hex:486967682053636f726572 hex:... u64:1000 hex:
 
 # 5. Grant to player (testing)
 aptos move run ... achievements::grant \
-  --args address:$MODULE u64:0
+  --args address:$MODULE address:PLAYER u64:0
 
 # 6. Attach reward
 aptos move run ... rewards::attach_fa_reward \
-  --args u64:0 address:0xa u64:50000000 u64:10
+  --args address:$MODULE u64:0 address:0xa u64:50000000 u64:10
 
 # 7. Claim (AUTOMATIC TRANSFER!)
 aptos move run ... rewards::claim_testing \
@@ -837,7 +840,7 @@ Error: E_ALREADY_CLAIMED(0x4)
 ```bash
 # Create collection first
 aptos move run ... rewards::create_nft_collection \
-  --args hex:NAME hex:DESC string:URI
+  --args address:PUBLISHER_ADDRESS hex:NAME hex:DESC string:URI
 ```
 
 ---

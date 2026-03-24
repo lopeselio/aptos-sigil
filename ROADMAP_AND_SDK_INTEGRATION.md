@@ -197,7 +197,7 @@ Traditional Approach:                    SIGIL Approach:
 - ⏳ TypeScript SDK with all module wrappers
 - ⏳ Unity SDK integration examples
 
-**Target:** Q4 2025 (Oct - Dec)
+**Target:** Q2 2026 (revised from the original 2025 target)
 
 ---
 
@@ -361,7 +361,7 @@ Integrate SIGIL modules with the existing [Aptos Unity SDK](https://github.com/a
 
 ## 🗓️ Timeline & Milestones
 
-### Q3 2025 (September) ✅ **COMPLETE**
+### Phase 1 - Core Platform Delivery (2025) ✅ **COMPLETE**
 
 **✅ Completed:**
 - [x] Core Move modules (game_platform, leaderboard, achievements, rewards)
@@ -377,7 +377,7 @@ Integrate SIGIL modules with the existing [Aptos Unity SDK](https://github.com/a
 - 8 comprehensive guides
 - Live devnet testing complete
 
-### Q2 2025 (Apr-Jun) ⏳ **IN PROGRESS**
+### Phase 2 - SDK & MVP Packaging (2026) ⏳ **IN PROGRESS**
 
 **Goals:**
 - [ ] Complete merge module (asset crafting)
@@ -401,7 +401,7 @@ Integrate SIGIL modules with the existing [Aptos Unity SDK](https://github.com/a
 - Demo game (open source)
 - Video tutorials (3-5 videos)
 
-### Q4 2025 (Oct-Dec) 📝 **PLANNED**
+### Phase 3 - Post-MVP Expansion (Late 2026) 📝 **PLANNED**
 
 **Goals:**
 - [ ] Mainnet deployment (production-ready)
@@ -411,10 +411,6 @@ Integrate SIGIL modules with the existing [Aptos Unity SDK](https://github.com/a
 - [ ] Enhanced UI components
 - [ ] Mobile optimization (iOS/Android)
 - [ ] Community examples and templates
-
-
-
-### Q4 2025 (Oct-Dec) 📝 **PLANNED**
 ---
 
 ## 🛠️ Remaining Work for MVP
@@ -466,11 +462,11 @@ public fun get_player_rank(
 
 ## 📊 MVP Completion Estimate
 
-### Current Progress: **80% Complete**
+### Current Progress: **83% Complete**
 
 | Category | Status | Completion |
 |----------|--------|------------|
-| Move Modules | ✅ 10/11 | 91% |
+| Move Modules | ✅ 10/12 | 83% |
 | Documentation | ✅ 8/8 | 100% |
 | Devnet Testing | ✅ Complete | 100% |
 | TypeScript SDK | ⏳ Not Started | 0% |
@@ -487,7 +483,7 @@ public fun get_player_rank(
 4. Example game: 4-5 weeks (after SDK)
 5. Documentation/tutorials: 3 weeks (parallel)
 
-**MVP Launch Target:** **Dec 2025**
+**MVP Launch Target:** **Q2 2026**
 
 ---
 
@@ -572,19 +568,19 @@ public fun get_player_rank(
 
 ## 🏆 Conclusion
 
-SIGIL is **80% complete** for the open source MVP. The Move modules are production-ready and deployed on devnet. The remaining 20% focuses on SDK development and example implementations to make SIGIL accessible to all game developers.
+SIGIL is **83% complete** for the open source MVP. The Move modules are production-ready and deployed on devnet. The remaining work focuses on SDK development and example implementations to make SIGIL accessible to all game developers.
 
 **Next Steps:**
 1. ✅ Complete quests module (Done!)
 2. ⏳ Implement merge module (optional)
-3. 🚀 Build TypeScript SDK (Q4 2025)
-4. 🎮 Build Unity SDK (Q4 2025)
-5. 🎨 Create example game (Q4 2025)
-6. 📢 Launch MVP (Jan 2026)
+3. 🚀 Build TypeScript SDK (in progress window: 2026)
+4. 🎮 Build Unity SDK integration (in progress window: 2026)
+5. 🎨 Create example game (after SDK baseline)
+6. 📢 Launch open source MVP (target: Q2 2026)
 
 ---
 
-**Last Updated:** October 13, 2025  
+**Last Updated:** March 24, 2026  
 **Project Status:** Active Development  
 **License:** MIT  
 **Maintainer:** lopeselio

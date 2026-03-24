@@ -21,8 +21,6 @@ module sigil::quests {
     use sigil::game_platform;
     use sigil::achievements;
     use sigil::seasons;
-    use sigil::rewards;
-    use sigil::leaderboard;
 
     /************
      * Constants

@@ -55,22 +55,25 @@ Publisher B (0xbbb...)
 #### Publisher-Only Functions (Require `&signer`)
 
 ```move
-// Example from rewards.move
+// Example from rewards.move (actor = transaction sender; publisher = resource owner)
 public entry fun attach_fa_reward(
-    publisher: &signer,  // ← MUST be the publisher
+    actor: &signer,
+    publisher: address,
     achievement_id: u64,
-    ...
+    fa_metadata: Object<Metadata>,
+    amount: u64,
+    supply: u64
 ) {
-    let addr = signer::address_of(publisher);
-    let r = borrow_global_mut<Rewards>(addr);  // ← Can only modify OWN resources
+    assert_can_manage_rewards(signer::address_of(actor), publisher);
+    let r = borrow_global_mut<Rewards>(publisher);
     ...
 }
 ```
 
 **Enforced by:**
-1. Aptos blockchain validates signer
-2. Can only access resources at `signer::address_of(publisher)`
-3. Cannot access other addresses' resources
+1. Aptos validates the transaction sender (`actor`)
+2. `assert_can_manage_rewards(actor, publisher)` (or owner match when roles are unset)
+3. Mutations use `borrow_global_mut<Rewards>(publisher)` only for that resource owner
 
 #### Player-Only Functions
 
@@ -160,7 +163,7 @@ aptos move run \
 aptos move run \
   --profile my-game \
   --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::leaderboard::create_leaderboard' \
-  --args u64:0 u8:0 u64:0 u64:999999 bool:false bool:false u64:100 \
+  --args address:PUBLISHER_ADDRESS u64:0 u8:0 u64:0 u64:999999 bool:false bool:false u64:100 \
   --assume-yes --max-gas 2000
 ```
 
@@ -175,14 +178,14 @@ aptos move run \
 aptos move run \
   --profile my-game \
   --function-id '0xe68ef...::achievements::create' \
-  --args hex:"486967682053636f726572" hex:"53636f72652031303030" u64:1000 hex:"" \
+  --args address:PUBLISHER_ADDRESS hex:"486967682053636f726572" hex:"53636f72652031303030" u64:1000 hex:"" \
   --assume-yes --max-gas 2000
 
 # Advanced: "Play 100 times"
 aptos move run \
   --profile my-game \
   --function-id '0xe68ef...::achievements::create_advanced' \
-  --args hex:"4d617261746f6e" hex:"506c61792031303020676173656d" u64:0 u64:0 u64:100 hex:"" \
+  --args address:PUBLISHER_ADDRESS hex:"4d617261746f6e" hex:"506c61792031303020676173656d" u64:0 u64:0 u64:100 hex:"" \
   --assume-yes --max-gas 2000
 ```
 
@@ -197,14 +200,14 @@ aptos move run \
 aptos move run \
   --profile my-game \
   --function-id '0xe68ef...::rewards::attach_fa_reward' \
-  --args u64:0 object:0x...apt_metadata u64:10000000000 u64:50 \
+  --args address:PUBLISHER_ADDRESS u64:0 object:0x...apt_metadata u64:10000000000 u64:50 \
   --assume-yes --max-gas 2000
 
 # Attach NFT badge to achievement #1
 aptos move run \
   --profile my-game \
   --function-id '0xe68ef...::rewards::attach_nft_reward' \
-  --args u64:1 address:0x...collection string:"Marathon Badge" string:"Completed 100 games" string:"ipfs://..." u64:1000 \
+  --args address:PUBLISHER_ADDRESS u64:1 address:0x...collection string:"Marathon Badge" string:"Completed 100 games" string:"ipfs://..." u64:1000 \
   --assume-yes --max-gas 2000
 ```
 
@@ -251,10 +254,10 @@ aptos move run \
 #### ✅ What's Validated:
 
 ```move
-// Publisher validation (automatic via &signer)
-public entry fun attach_fa_reward(publisher: &signer, ...) {
-    let addr = signer::address_of(publisher);  // Gets YOUR address
-    borrow_global_mut<Rewards>(addr);          // Can ONLY modify YOUR resources
+// Publisher validation: actor must be allowed to manage `publisher`'s rewards
+public entry fun attach_fa_reward(actor: &signer, publisher: address, ...) {
+    assert_can_manage_rewards(signer::address_of(actor), publisher);
+    borrow_global_mut<Rewards>(publisher);
 }
 
 // Player validation
@@ -393,6 +396,7 @@ aptos move run \
   --profile sigil-main \
   --function-id 'YOUR_ADDRESS::rewards::attach_fa_reward' \
   --args \
+    address:PUBLISHER_ADDRESS \
     u64:ACHIEVEMENT_ID \
     object:FA_METADATA_ADDRESS \
     u64:AMOUNT_PER_CLAIM \
@@ -413,6 +417,7 @@ aptos move run \
   --profile sigil-main \
   --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::rewards::attach_fa_reward' \
   --args \
+    address:PUBLISHER_ADDRESS \
     u64:0 \
     object:0x...fa_metadata_address \
     u64:10000000000 \
@@ -430,6 +435,7 @@ aptos move run \
   --profile sigil-main \
   --function-id 'YOUR_ADDRESS::rewards::attach_nft_reward' \
   --args \
+    address:PUBLISHER_ADDRESS \
     u64:ACHIEVEMENT_ID \
     address:COLLECTION_ADDRESS \
     string:TOKEN_NAME \
@@ -446,6 +452,7 @@ aptos move run \
   --profile sigil-main \
   --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::rewards::attach_nft_reward' \
   --args \
+    address:PUBLISHER_ADDRESS \
     u64:2 \
     address:0xabc... \
     string:"Gold Medal" \
@@ -645,7 +652,7 @@ aptos move run --profile sigil-main \
 # 3. Attach 1000 tokens, 10 claims available
 aptos move run --profile sigil-main \
   --function-id '0xe68ef...::rewards::attach_fa_reward' \
-  --args u64:0 object:0x...fa_metadata u64:1000 u64:10 \
+  --args address:PUBLISHER_ADDRESS u64:0 object:0x...fa_metadata u64:1000 u64:10 \
   --assume-yes --max-gas 2000
 
 # 4. Check reward details
@@ -682,6 +689,7 @@ aptos move view --profile sigil-main \
 aptos move run --profile sigil-main \
   --function-id '0xe68ef...::rewards::attach_nft_reward' \
   --args \
+    address:PUBLISHER_ADDRESS \
     u64:1 \
     address:0xabc... \
     string:"Champion Badge" \
@@ -716,7 +724,7 @@ aptos move view --profile sigil-main \
 # 1. Attach limited reward (only 2 available)
 aptos move run --profile sigil-main \
   --function-id '0xe68ef...::rewards::attach_fa_reward' \
-  --args u64:5 object:0x...fa u64:500 u64:2 \
+  --args address:PUBLISHER_ADDRESS u64:5 object:0x...fa u64:500 u64:2 \
   --assume-yes --max-gas 2000
 
 # 2. First claim
@@ -1793,9 +1801,9 @@ Play game → Submit score → Unlock achievement → Claim reward → Get token
 // Setup
 ✅ init_rewards(publisher: &signer)
 
-// Attach rewards
-✅ attach_fa_reward(publisher, achievement_id, fa_metadata, amount, supply)
-✅ attach_nft_reward(publisher, achievement_id, collection, name, desc, uri, supply)
+// Attach rewards (actor = sender, publisher = resource owner)
+✅ attach_fa_reward(actor, publisher, achievement_id, fa_metadata, amount, supply)
+✅ attach_nft_reward(actor, publisher, achievement_id, collection, name, desc, uri, supply)
 
 // Claims  
 ✅ claim_reward(player, publisher, achievement_id)           // With unlock check (Phase Final)
@@ -1998,9 +2006,10 @@ if (reward.total_supply > 0) {
 
 ### 3. Publisher-Only Actions
 
-All attach/management functions require publisher signer:
+Attach/management entry functions take **`actor: &signer`** (sender) and **`publisher: address`** (resource owner); the actor must pass `can_manage_rewards` (or be the publisher when roles are not initialized).
+
 ```move
-public entry fun attach_fa_reward(publisher: &signer, ...)
+public entry fun attach_fa_reward(actor: &signer, publisher: address, ...)
 ```
 
 ---

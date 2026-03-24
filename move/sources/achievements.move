@@ -92,6 +92,17 @@ module sigil::achievements {
     const E_EXISTS: u64 = 2;
     const E_NO_PERMISSION: u64 = 3;
 
+    fun assert_can_manage_achievements(actor: address, resource_owner: address) {
+        if (roles::is_initialized(resource_owner)) {
+            assert!(
+                roles::can_manage_achievements(resource_owner, actor),
+                E_NO_PERMISSION
+            );
+        } else {
+            assert!(actor == resource_owner, E_NO_PERMISSION);
+        };
+    }
+
     /*************
      *  Lifecycle (publisher)
      *************/
@@ -113,24 +124,17 @@ module sigil::achievements {
     /// Create a basic achievement (simple score threshold, applies to any game)
     /// For advanced conditions, use create_advanced() or create_with_game_advanced()
     public entry fun create(
-        publisher: &signer,
+        actor: &signer,
+        publisher: address,
         title: vector<u8>,
         description: vector<u8>,
         min_score: u64,
         // pass badge_uri as empty vector for None; non-empty for Some
         badge_uri: vector<u8>
     ) acquires Achievements {
-        let owner = signer::address_of(publisher);
-        
-        // Optional role check: if roles is initialized, verify permission
-        if (roles::is_initialized(owner)) {
-            assert!(
-                roles::can_manage_achievements(owner, owner),
-                E_NO_PERMISSION
-            );
-        };
-        
-        let a = borrow_global_mut<Achievements>(owner);
+        let caller = signer::address_of(actor);
+        assert_can_manage_achievements(caller, publisher);
+        let a = borrow_global_mut<Achievements>(publisher);
 
         let id = a.next_id;
         a.next_id = id + 1;
@@ -153,24 +157,17 @@ module sigil::achievements {
 
     /// Create a basic achievement for a specific game (simple score threshold)
     public entry fun create_with_game(
-        publisher: &signer,
+        actor: &signer,
+        publisher: address,
         title: vector<u8>,
         description: vector<u8>,
         game_id: u64,
         min_score: u64,
         badge_uri: vector<u8>
     ) acquires Achievements {
-        let owner = signer::address_of(publisher);
-        
-        // Optional role check: if roles is initialized, verify permission
-        if (roles::is_initialized(owner)) {
-            assert!(
-                roles::can_manage_achievements(owner, owner),
-                E_NO_PERMISSION
-            );
-        };
-        
-        let a = borrow_global_mut<Achievements>(owner);
+        let caller = signer::address_of(actor);
+        assert_can_manage_achievements(caller, publisher);
+        let a = borrow_global_mut<Achievements>(publisher);
 
         let id = a.next_id;
         a.next_id = id + 1;
@@ -197,7 +194,8 @@ module sigil::achievements {
     /// - "Play 100 times": min_score=0, required_count=0, min_submissions=100
     /// - "Score 500+ in 50 games": min_score=500, required_count=50, min_submissions=50
     public entry fun create_advanced(
-        publisher: &signer,
+        actor: &signer,
+        publisher: address,
         title: vector<u8>,
         description: vector<u8>,
         min_score: u64,
@@ -205,17 +203,9 @@ module sigil::achievements {
         min_submissions: u64,
         badge_uri: vector<u8>
     ) acquires Achievements {
-        let owner = signer::address_of(publisher);
-        
-        // Optional role check: if roles is initialized, verify permission
-        if (roles::is_initialized(owner)) {
-            assert!(
-                roles::can_manage_achievements(owner, owner),
-                E_NO_PERMISSION
-            );
-        };
-        
-        let a = borrow_global_mut<Achievements>(owner);
+        let caller = signer::address_of(actor);
+        assert_can_manage_achievements(caller, publisher);
+        let a = borrow_global_mut<Achievements>(publisher);
 
         let id = a.next_id;
         a.next_id = id + 1;
@@ -238,7 +228,8 @@ module sigil::achievements {
 
     /// Create an advanced achievement for a specific game
     public entry fun create_with_game_advanced(
-        publisher: &signer,
+        actor: &signer,
+        publisher: address,
         title: vector<u8>,
         description: vector<u8>,
         game_id: u64,
@@ -247,17 +238,9 @@ module sigil::achievements {
         min_submissions: u64,
         badge_uri: vector<u8>
     ) acquires Achievements {
-        let owner = signer::address_of(publisher);
-        
-        // Optional role check: if roles is initialized, verify permission
-        if (roles::is_initialized(owner)) {
-            assert!(
-                roles::can_manage_achievements(owner, owner),
-                E_NO_PERMISSION
-            );
-        };
-        
-        let a = borrow_global_mut<Achievements>(owner);
+        let caller = signer::address_of(actor);
+        assert_can_manage_achievements(caller, publisher);
+        let a = borrow_global_mut<Achievements>(publisher);
 
         let id = a.next_id;
         a.next_id = id + 1;
@@ -284,21 +267,14 @@ module sigil::achievements {
 
     /// Admin/publisher can grant an achievement directly.
     public entry fun grant(
-        publisher: &signer,
+        actor: &signer,
+        publisher: address,
         player: address,
         achievement_id: u64
     ) acquires Achievements {
-        let owner = signer::address_of(publisher);
-        
-        // Optional role check: if roles is initialized, verify permission
-        if (roles::is_initialized(owner)) {
-            assert!(
-                roles::can_manage_achievements(owner, owner),
-                E_NO_PERMISSION
-            );
-        };
-        
-        do_unlock(owner, player, achievement_id)
+        let caller = signer::address_of(actor);
+        assert_can_manage_achievements(caller, publisher);
+        do_unlock(publisher, player, achievement_id)
     }
 
     /// Entry wrapper for CLI testing - allows direct score submission to trigger achievements
@@ -330,6 +306,9 @@ module sigil::achievements {
         game_id: u64,
         score: u64
     ) acquires Achievements {
+        if (!exists<Achievements>(publisher)) {
+            return
+        };
         let a = borrow_global_mut<Achievements>(publisher);
         // Iterate catalog to check which achievements this score affects
         let ids = get_achievement_ids(a);

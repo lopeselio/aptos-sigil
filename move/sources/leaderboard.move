@@ -46,6 +46,17 @@ module sigil::leaderboard {
     // const E_GAME_NOT_FOUND: u64 = 3;  // Reserved for future use
     const E_NO_PERMISSION: u64 = 4;
 
+    fun assert_can_manage_leaderboards(actor: address, resource_owner: address) {
+        if (roles::is_initialized(resource_owner)) {
+            assert!(
+                roles::can_manage_leaderboards(resource_owner, actor),
+                E_NO_PERMISSION
+            );
+        } else {
+            assert!(actor == resource_owner, E_NO_PERMISSION);
+        };
+    }
+
     /*************
      *  Publisher lifecycle
      *************/
@@ -64,7 +75,8 @@ module sigil::leaderboard {
     /// Create a new leaderboard. Assigns sequential id and stores config.
     /// Keep it simple: no return (query via `get_leaderboard_count` or `get_leaderboard_config`).
     public entry fun create_leaderboard(
-        publisher: &signer,
+        actor: &signer,
+        publisher: address,
         game_id: u64,
         decimals: u8,
         min_score: u64,
@@ -73,20 +85,13 @@ module sigil::leaderboard {
         allow_multiple: bool,
         scores_to_retain: u64
     ) acquires Leaderboards {
-        let owner = signer::address_of(publisher);
-        
-        // Optional role check: if roles is initialized, verify permission
-        if (roles::is_initialized(owner)) {
-            assert!(
-                roles::can_manage_leaderboards(owner, owner),
-                E_NO_PERMISSION
-            );
-        };
+        let caller = signer::address_of(actor);
+        assert_can_manage_leaderboards(caller, publisher);
         
         // Validate that the game exists in game_platform
         // assert!(game_platform::has_game(owner, game_id), E_GAME_NOT_FOUND);  // Temporarily disabled
         
-        let regs = borrow_global_mut<Leaderboards>(owner);
+        let regs = borrow_global_mut<Leaderboards>(publisher);
 
         let id = regs.next_id;
         regs.next_id = id + 1;

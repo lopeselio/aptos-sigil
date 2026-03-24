@@ -60,6 +60,7 @@ module sigil::seasons_tests {
         
         seasons::create_season(
             &publisher,
+            @0x123,
             string::utf8(b"Season 1"),
             start_time,
             end_time,
@@ -94,6 +95,7 @@ module sigil::seasons_tests {
         
         seasons::create_season(
             &publisher,
+            @0x123,
             string::utf8(b"Invalid Season"),
             start_time,
             end_time,
@@ -116,6 +118,7 @@ module sigil::seasons_tests {
         
         seasons::create_season(
             &publisher,
+            @0x123,
             string::utf8(b"Too Long Season"),
             start_time,
             end_time,
@@ -142,6 +145,7 @@ module sigil::seasons_tests {
         
         seasons::create_season(
             &publisher,
+            @0x123,
             string::utf8(b"Upcoming"),
             start_time,
             end_time,
@@ -171,6 +175,7 @@ module sigil::seasons_tests {
         
         seasons::create_season(
             &publisher,
+            @0x123,
             string::utf8(b"Active"),
             start_time,
             end_time,
@@ -204,6 +209,7 @@ module sigil::seasons_tests {
         
         seasons::create_season(
             &publisher,
+            @0x123,
             string::utf8(b"Ended"),
             start_time,
             end_time,
@@ -242,6 +248,7 @@ module sigil::seasons_tests {
         
         seasons::create_season(
             &publisher,
+            @0x123,
             string::utf8(b"Test"),
             start_time,
             end_time,
@@ -252,7 +259,7 @@ module sigil::seasons_tests {
         // Fast-forward to after start time
         timestamp::update_global_time_for_test(base_time + 20000000); // +20 seconds
         
-        seasons::start_season(&publisher, 0);
+        seasons::start_season(&publisher, @0x123, 0);
         
         let (has_current, current_id) = seasons::get_current_season(pub_addr);
         assert!(has_current, 0);
@@ -270,13 +277,13 @@ module sigil::seasons_tests {
         timestamp::update_global_time_for_test(1700000000000000); // Set to a high value (microseconds)
         
         let now = timestamp::now_seconds();
-        seasons::create_season(&publisher, string::utf8(b"Test"), now + 10, now + 86400, 0, 0);
+        seasons::create_season(&publisher, @0x123, string::utf8(b"Test"), now + 10, now + 86400, 0, 0);
         
         // Fast-forward to start time
         timestamp::update_global_time_for_test((now + 20) * 1000000);
-        seasons::start_season(&publisher, 0);
+        seasons::start_season(&publisher, @0x123, 0);
         
-        seasons::end_season(&publisher, 0);
+        seasons::end_season(&publisher, @0x123, 0);
         
         let (has_current, _) = seasons::get_current_season(pub_addr);
         assert!(!has_current, 0); // No current season after ending
@@ -304,11 +311,11 @@ module sigil::seasons_tests {
         timestamp::update_global_time_for_test(base_time);
         
         let now = timestamp::now_seconds();
-        seasons::create_season(&publisher, string::utf8(b"Test"), now + 10, now + 86400, 0, 0);
+        seasons::create_season(&publisher, @0x123, string::utf8(b"Test"), now + 10, now + 86400, 0, 0);
         
         // Fast-forward to after start time
         timestamp::update_global_time_for_test(base_time + 20000000); // +20 seconds
-        seasons::start_season(&publisher, 0);
+        seasons::start_season(&publisher, @0x123, 0);
         
         // Record scores via internal function
         seasons::record_season_score(pub_addr, player1_addr, 0, 1000);
@@ -343,14 +350,14 @@ module sigil::seasons_tests {
         let now = timestamp::now_seconds();
         
         // Create two seasons (both in future initially)
-        seasons::create_season(&publisher, string::utf8(b"Season 1"), now + 100, now + 200, 0, 0);
-        seasons::create_season(&publisher, string::utf8(b"Season 2"), now + 300, now + 86700, 1, 0);
+        seasons::create_season(&publisher, @0x123, string::utf8(b"Season 1"), now + 100, now + 200, 0, 0);
+        seasons::create_season(&publisher, @0x123, string::utf8(b"Season 2"), now + 300, now + 86700, 1, 0);
         
         // Fast-forward to season 0 start time
         timestamp::update_global_time_for_test((now + 150) * 1000000);
         
         // Record score in season 0 (will end soon)
-        seasons::start_season(&publisher, 0);
+        seasons::start_season(&publisher, @0x123, 0);
         seasons::record_season_score(pub_addr, player1_addr, 0, 1000);
         
         // Check season 1 (future) has no scores
@@ -374,10 +381,10 @@ module sigil::seasons_tests {
         timestamp::set_time_has_started_for_testing(&account::create_signer_for_test(@0x1));
         
         let now = timestamp::now_seconds();
-        seasons::create_season(&publisher, string::utf8(b"Test"), now + 10, now + 86400, 0, 0);
+        seasons::create_season(&publisher, @0x123, string::utf8(b"Test"), now + 10, now + 86400, 0, 0);
         
         // Add achievement to season
-        seasons::add_season_achievement(&publisher, 0, 42);
+        seasons::add_season_achievement(&publisher, @0x123, 0, 42);
         
         // Would need a view function to verify, but this tests it doesn't crash
         assert!(seasons::get_season_count(pub_addr) == 1, 0);

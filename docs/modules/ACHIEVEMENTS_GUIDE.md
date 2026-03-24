@@ -8,6 +8,8 @@ The Sigil Achievements module provides a flexible, gas-optimized achievement sys
 **Module Address:** `0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6`  
 **Module Name:** `achievements`
 
+> **CLI convention:** Publisher `entry` functions take the **transaction sender** (`actor`) and an explicit **`publisher: address`** for the account that owns the on-chain resource. When you act as the owner, pass **your publisher address** as the **first `--args` value** (before title/description hex, game ids, etc.). The same pattern applies to `leaderboard::create_leaderboard`, `rewards::{attach_fa_reward,attach_nft_reward,create_nft_collection}`, and `seasons::{create_season,start_season,end_season,add_season_achievement}`.
+
 ---
 
 ## 📊 Key Features
@@ -43,6 +45,7 @@ aptos move run \
   --profile sigil-main \
   --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::create' \
   --args \
+    address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 \
     hex:"486967682053636f726572" \
     hex:"53636f72652031303030206f72206d6f7265" \
     u64:1000 \
@@ -68,6 +71,7 @@ aptos move run \
   --profile sigil-main \
   --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::create_advanced' \
   --args \
+    address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 \
     hex:"436f6e73697374656e7420506572666f726d6572" \
     hex:"53636f72652031303030206f72206d6f726520332074696d6573" \
     u64:1000 \
@@ -95,6 +99,7 @@ aptos move run \
   --profile sigil-main \
   --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::create_advanced' \
   --args \
+    address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 \
     hex:"4d617261746f6e20506c61796572" \
     hex:"506c61792031303020676176696573" \
     u64:0 \
@@ -122,6 +127,7 @@ aptos move run \
   --profile sigil-main \
   --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::create_advanced' \
   --args \
+    address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 \
     hex:"456c69746520506c61796572" \
     hex:"53636f7265203530302b20696e2031302f323020676176696573" \
     u64:500 \
@@ -149,6 +155,7 @@ aptos move run \
   --profile sigil-main \
   --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::create_with_game' \
   --args \
+    address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 \
     hex:"47616d65204d6173746572" \
     hex:"4d6173746572206f662047616d65203020776974682032303030" \
     u64:0 \
@@ -172,6 +179,7 @@ aptos move run \
   --profile sigil-main \
   --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::create_with_game_advanced' \
   --args \
+    address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 \
     hex:"53706565647275 6e204368616d70696f6e" \
     hex:"436f6d706c6574652047616d6520352075e280…" \
     u64:5 \
@@ -215,6 +223,7 @@ aptos move run \
   --profile sigil-main \
   --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::create' \
   --args \
+    address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 \
     hex:"YOUR_TITLE_HEX" \
     hex:"YOUR_DESC_HEX" \
     u64:MIN_SCORE \
@@ -230,6 +239,7 @@ aptos move run \
   --profile sigil-main \
   --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::create_with_game' \
   --args \
+    address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 \
     hex:"TITLE" \
     hex:"DESC" \
     u64:GAME_ID \
@@ -246,6 +256,7 @@ aptos move run \
   --profile sigil-main \
   --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::create_advanced' \
   --args \
+    address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 \
     hex:"TITLE" \
     hex:"DESC" \
     u64:MIN_SCORE \
@@ -263,6 +274,7 @@ aptos move run \
   --profile sigil-main \
   --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::create_with_game_advanced' \
   --args \
+    address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 \
     hex:"TITLE" \
     hex:"DESC" \
     u64:GAME_ID \
@@ -284,7 +296,7 @@ aptos move run \
 aptos move run \
   --profile sigil-main \
   --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::grant' \
-  --args address:PLAYER_ADDRESS u64:ACHIEVEMENT_ID \
+  --args address:PUBLISHER_ADDRESS address:PLAYER_ADDRESS u64:ACHIEVEMENT_ID \
   --assume-yes \
   --max-gas 2000
 ```
@@ -478,7 +490,7 @@ aptos move run --profile sigil-main \
 # 2. Create achievement "Score 1000+"
 aptos move run --profile sigil-main \
   --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::create' \
-  --args hex:"486967682053636f726572" hex:"53636f72652031303030206f72206d6f7265" u64:1000 hex:"" \
+  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 hex:"486967682053636f726572" hex:"53636f72652031303030206f72206d6f7265" u64:1000 hex:"" \
   --assume-yes --max-gas 2000
 ```
 
@@ -524,7 +536,7 @@ aptos move view --profile sigil-main \
 # Create "Score 1000+ three times"
 aptos move run --profile sigil-main \
   --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::create_advanced' \
-  --args hex:"436f6e73697374656e7420506572666f726d6572" hex:"53636f72652031303030206f72206d6f726520332074696d6573" u64:1000 u64:3 u64:0 hex:"" \
+  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 hex:"436f6e73697374656e7420506572666f726d6572" hex:"53636f72652031303030206f72206d6f726520332074696d6573" u64:1000 u64:3 u64:0 hex:"" \
   --assume-yes --max-gas 2000
 ```
 
@@ -578,17 +590,17 @@ Test unlocking multiple achievements with a single score submission.
 # Create 3 tiered achievements
 aptos move run --profile sigil-main \
   --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::create' \
-  --args hex:"4e6f76696365" hex:"53636f72652031303072" u64:100 hex:"" \
+  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 hex:"4e6f76696365" hex:"53636f72652031303072" u64:100 hex:"" \
   --assume-yes --max-gas 2000
 
 aptos move run --profile sigil-main \
   --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::create' \
-  --args hex:"4578706572742" hex:"53636f72652031303030" u64:1000 hex:"" \
+  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 hex:"4578706572742" hex:"53636f72652031303030" u64:1000 hex:"" \
   --assume-yes --max-gas 2000
 
 aptos move run --profile sigil-main \
   --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::create' \
-  --args hex:"4d6173746572" hex:"53636f72652035303030" u64:5000 hex:"" \
+  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 hex:"4d6173746572" hex:"53636f72652035303030" u64:5000 hex:"" \
   --assume-yes --max-gas 2000
 ```
 
@@ -815,6 +827,7 @@ badge_uri: Option<vector<u8>>
 aptos move run --profile sigil-main \
   --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::create' \
   --args \
+    address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 \
     hex:"476f6c64204d6564616c" \
     hex:"546f7020706572666f726d6572" \
     u64:10000 \

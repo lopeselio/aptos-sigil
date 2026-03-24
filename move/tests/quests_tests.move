@@ -18,10 +18,17 @@ module sigil::quests_tests {
         (publisher, player1, player2)
     }
 
+    /// Aptos `timestamp` global must exist for quest creation (uses `now_seconds`).
+    fun init_test_chain_clock() {
+        let framework = account::create_signer_for_test(@0x1);
+        timestamp::set_time_has_started_for_testing(&framework);
+        timestamp::update_global_time_for_test(1700000000000000);
+    }
+
     // Setup full game environment
     fun setup_game_environment(publisher: &signer, player: &signer) {
-        let player_addr = signer::address_of(player);
-        
+        init_test_chain_clock();
+
         // Initialize core modules
         game_platform::init(publisher);
         game_platform::register_player(player, string::utf8(b"Player1"));
@@ -63,7 +70,8 @@ module sigil::quests_tests {
     fun test_create_score_quest() {
         let (publisher, _, _) = setup_accounts();
         let pub_addr = signer::address_of(&publisher);
-        
+
+        init_test_chain_clock();
         quests::init_quests(&publisher);
         
         quests::create_score_quest(
@@ -191,7 +199,8 @@ module sigil::quests_tests {
     fun test_create_achievement_quest() {
         let (publisher, _, _) = setup_accounts();
         let pub_addr = signer::address_of(&publisher);
-        
+
+        init_test_chain_clock();
         quests::init_quests(&publisher);
         
         quests::create_achievement_quest(
@@ -220,7 +229,8 @@ module sigil::quests_tests {
     fun test_create_play_count_quest() {
         let (publisher, _, _) = setup_accounts();
         let pub_addr = signer::address_of(&publisher);
-        
+
+        init_test_chain_clock();
         quests::init_quests(&publisher);
         
         quests::create_play_count_quest(
@@ -285,8 +295,8 @@ module sigil::quests_tests {
         let (publisher, _, _) = setup_accounts();
         let pub_addr = signer::address_of(&publisher);
         
-        timestamp::set_time_has_started_for_testing(&account::create_signer_for_test(@0x1));
-        
+        init_test_chain_clock();
+
         quests::init_quests(&publisher);
         
         quests::create_streak_quest(
@@ -315,7 +325,8 @@ module sigil::quests_tests {
     fun test_create_rank_quest() {
         let (publisher, _, _) = setup_accounts();
         let pub_addr = signer::address_of(&publisher);
-        
+
+        init_test_chain_clock();
         quests::init_quests(&publisher);
         
         quests::create_rank_quest(
@@ -399,14 +410,18 @@ module sigil::quests_tests {
         let (publisher, _, _) = setup_accounts();
         let pub_addr = signer::address_of(&publisher);
         
-        timestamp::set_time_has_started_for_testing(&account::create_signer_for_test(@0x1));
-        timestamp::update_global_time_for_test(1700000000000000);
+        let framework_signer = account::create_signer_for_test(@0x1);
+        timestamp::set_time_has_started_for_testing(&framework_signer);
+        let base_micros = 1700000000000000;
+        timestamp::update_global_time_for_test(base_micros);
         
         // Initialize seasons
         seasons::init_seasons(&publisher);
         let now = timestamp::now_seconds();
-        seasons::create_season(&publisher, string::utf8(b"Season 1"), now + 100, now + 86500, 0, 0);
-        seasons::start_season(&publisher, 0);
+        seasons::create_season(&publisher, @0x123, string::utf8(b"Season 1"), now + 10, now + 86500, 0, 0);
+        // Advance past season start so start_season succeeds
+        timestamp::update_global_time_for_test(base_micros + 20000000);
+        seasons::start_season(&publisher, @0x123, 0);
         
         // Initialize quests
         quests::init_quests(&publisher);
@@ -523,7 +538,8 @@ module sigil::quests_tests {
     fun test_is_quest_available_without_seasons() {
         let (publisher, _, _) = setup_accounts();
         let pub_addr = signer::address_of(&publisher);
-        
+
+        init_test_chain_clock();
         quests::init_quests(&publisher);
         
         // Create non-seasonal quest

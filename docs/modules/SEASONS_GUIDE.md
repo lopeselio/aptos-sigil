@@ -154,6 +154,7 @@ aptos move run \
 aptos move run \
   --function-id '<PUBLISHER_ADDR>::seasons::create_season' \
   --args \
+    address:PUBLISHER_ADDRESS \
     string:"Season 1: Winter Championship" \
     u64:1735689600 \    # Jan 1, 2025 00:00 UTC (start_time)
     u64:1738368000 \    # Feb 1, 2025 00:00 UTC (end_time)
@@ -175,7 +176,7 @@ aptos move run \
 ```bash
 aptos move run \
   --function-id '<PUBLISHER_ADDR>::seasons::start_season' \
-  --args u64:0  # season_id
+  --args address:PUBLISHER_ADDRESS u64:0  # season_id
 ```
 
 **Option B: Auto-Start**
@@ -214,7 +215,7 @@ await client.transaction.build.simple({
 ```bash
 aptos move run \
   --function-id '<PUBLISHER_ADDR>::seasons::end_season' \
-  --args u64:0  # season_id
+  --args address:PUBLISHER_ADDRESS u64:0  # season_id
 ```
 
 **Auto-End:**
@@ -380,7 +381,8 @@ await submitScoreSeasonal(publisherAddr, 0, 1500);
 
 ```move
 public entry fun add_season_achievement(
-    publisher: &signer,
+    actor: &signer,
+    publisher: address,
     season_id: u64,
     achievement_id: u64
 )
@@ -400,7 +402,7 @@ public entry fun add_season_achievement(
 # Link achievement #5 to season 0
 aptos move run \
   --function-id '0x123::seasons::add_season_achievement' \
-  --args u64:0 u64:5
+  --args address:PUBLISHER_ADDRESS u64:0 u64:5
 ```
 
 ---

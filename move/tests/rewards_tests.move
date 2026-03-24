@@ -63,6 +63,7 @@ module sigil::rewards_tests {
         // Attach reward: 1000 tokens, supply of 10
         rewards::attach_fa_reward(
             &publisher,
+            @0x123,
             0,       // achievement_id
             fa_meta,
             1000,    // amount
@@ -86,7 +87,7 @@ module sigil::rewards_tests {
         let fa_meta = create_mock_fa_metadata(&publisher);
         
         // Attach unlimited supply
-        rewards::attach_fa_reward(&publisher, 0, fa_meta, 500, 0);
+        rewards::attach_fa_reward(&publisher, @0x123, 0, fa_meta, 500, 0);
         
         let (_, _, _, _, supply) = rewards::get_reward(@0x123, 0);
         assert!(supply == 0, 20);  // 0 = unlimited
@@ -103,6 +104,7 @@ module sigil::rewards_tests {
         
         rewards::attach_nft_reward(
             &publisher,
+            @0x123,
             1,  // achievement_id
             @0xabc,  // collection address
             string::utf8(b"Gold Medal"),
@@ -127,6 +129,7 @@ module sigil::rewards_tests {
         // NFT rewards must have limited supply
         rewards::attach_nft_reward(
             &publisher,
+            @0x123,
             0,
             @0xabc,
             string::utf8(b"Test"),
@@ -144,8 +147,8 @@ module sigil::rewards_tests {
         
         let fa_meta = create_mock_fa_metadata(&publisher);
         
-        rewards::attach_fa_reward(&publisher, 0, fa_meta, 100, 10);
-        rewards::attach_fa_reward(&publisher, 0, fa_meta, 200, 20); // Should fail
+        rewards::attach_fa_reward(&publisher, @0x123, 0, fa_meta, 100, 10);
+        rewards::attach_fa_reward(&publisher, @0x123, 0, fa_meta, 200, 20); // Should fail
     }
 
     #[test]
@@ -154,7 +157,7 @@ module sigil::rewards_tests {
         rewards::init_rewards_for_test(&publisher);
         
         let fa_meta = create_mock_fa_metadata(&publisher);
-        rewards::attach_fa_reward(&publisher, 0, fa_meta, 1000, 5);
+        rewards::attach_fa_reward(&publisher, @0x123, 0, fa_meta, 1000, 5);
         
         // Claim reward (using testing function that skips achievement check)
         rewards::claim_testing(&player1, @0x123, 0);
@@ -177,7 +180,10 @@ module sigil::rewards_tests {
         rewards::init_rewards_for_test(&publisher);
         
         rewards::attach_nft_reward(
-            &publisher, 0, @0xabc,
+            &publisher,
+            @0x123,
+            0,
+            @0xabc,
             string::utf8(b"Badge"), string::utf8(b"Desc"),
             string::utf8(b"uri"), 10
         );
@@ -197,7 +203,7 @@ module sigil::rewards_tests {
         rewards::init_rewards_for_test(&publisher);
         
         let fa_meta = create_mock_fa_metadata(&publisher);
-        rewards::attach_fa_reward(&publisher, 0, fa_meta, 100, 10);
+        rewards::attach_fa_reward(&publisher, @0x123, 0, fa_meta, 100, 10);
         
         // First claim
         rewards::claim_testing(&player1, @0x123, 0);
@@ -215,7 +221,7 @@ module sigil::rewards_tests {
         rewards::init_rewards_for_test(&publisher);
         
         let fa_meta = create_mock_fa_metadata(&publisher);
-        rewards::attach_fa_reward(&publisher, 0, fa_meta, 100, 2);  // Only 2 available
+        rewards::attach_fa_reward(&publisher, @0x123, 0, fa_meta, 100, 2);  // Only 2 available
         
         // Claim 1
         rewards::claim_testing(&player1, @0x123, 0);
@@ -245,10 +251,13 @@ module sigil::rewards_tests {
         let fa_meta = create_mock_fa_metadata(&publisher);
         
         // Attach rewards to multiple achievements
-        rewards::attach_fa_reward(&publisher, 0, fa_meta, 100, 5);
-        rewards::attach_fa_reward(&publisher, 1, fa_meta, 200, 10);
+        rewards::attach_fa_reward(&publisher, @0x123, 0, fa_meta, 100, 5);
+        rewards::attach_fa_reward(&publisher, @0x123, 1, fa_meta, 200, 10);
         rewards::attach_nft_reward(
-            &publisher, 2, @0xabc,
+            &publisher,
+            @0x123,
+            2,
+            @0xabc,
             string::utf8(b"NFT"), string::utf8(b"Desc"),
             string::utf8(b"uri"), 3
         );
@@ -274,7 +283,7 @@ module sigil::rewards_tests {
         rewards::init_rewards_for_test(&publisher);
         
         let fa_meta = create_mock_fa_metadata(&publisher);
-        rewards::attach_fa_reward(&publisher, 0, fa_meta, 100, 5);
+        rewards::attach_fa_reward(&publisher, @0x123, 0, fa_meta, 100, 5);
         
         // Both players claim
         rewards::claim_testing(&player1, @0x123, 0);
@@ -302,7 +311,7 @@ module sigil::rewards_tests {
         rewards::init_rewards_for_test(&publisher);
         
         let fa_meta = create_mock_fa_metadata(&publisher);
-        rewards::attach_fa_reward(&publisher, 0, fa_meta, 50, 0);  // Unlimited
+        rewards::attach_fa_reward(&publisher, @0x123, 0, fa_meta, 50, 0);  // Unlimited
         
         // Multiple claims should all work
         rewards::claim_testing(&player1, @0x123, 0);
@@ -321,7 +330,7 @@ module sigil::rewards_tests {
         rewards::init_rewards_for_test(&publisher);
         
         let fa_meta = create_mock_fa_metadata(&publisher);
-        rewards::attach_fa_reward(&publisher, 0, fa_meta, 100, 5);
+        rewards::attach_fa_reward(&publisher, @0x123, 0, fa_meta, 100, 5);
         
         // Claim 3
         rewards::claim_testing(&player1, @0x123, 0);
@@ -342,7 +351,7 @@ module sigil::rewards_tests {
         rewards::init_rewards_for_test(&publisher);
         
         let fa_meta = create_mock_fa_metadata(&publisher);
-        rewards::attach_fa_reward(&publisher, 0, fa_meta, 100, 5);
+        rewards::attach_fa_reward(&publisher, @0x123, 0, fa_meta, 100, 5);
         
         // Remove before any claims
         rewards::remove_reward(&publisher, 0);
@@ -358,7 +367,7 @@ module sigil::rewards_tests {
         rewards::init_rewards_for_test(&publisher);
         
         let fa_meta = create_mock_fa_metadata(&publisher);
-        rewards::attach_fa_reward(&publisher, 0, fa_meta, 100, 5);
+        rewards::attach_fa_reward(&publisher, @0x123, 0, fa_meta, 100, 5);
         
         // Claim once
         rewards::claim_testing(&player1, @0x123, 0);
@@ -375,10 +384,13 @@ module sigil::rewards_tests {
         let fa_meta = create_mock_fa_metadata(&publisher);
         
         // Attach to multiple achievements
-        rewards::attach_fa_reward(&publisher, 0, fa_meta, 100, 5);
-        rewards::attach_fa_reward(&publisher, 2, fa_meta, 200, 10);
+        rewards::attach_fa_reward(&publisher, @0x123, 0, fa_meta, 100, 5);
+        rewards::attach_fa_reward(&publisher, @0x123, 2, fa_meta, 200, 10);
         rewards::attach_nft_reward(
-            &publisher, 5, @0xabc,
+            &publisher,
+            @0x123,
+            5,
+            @0xabc,
             string::utf8(b"NFT"), string::utf8(b"Desc"),
             string::utf8(b"uri"), 3
         );
@@ -398,9 +410,9 @@ module sigil::rewards_tests {
         let fa_meta = create_mock_fa_metadata(&publisher);
         
         // Attach 3 rewards
-        rewards::attach_fa_reward(&publisher, 0, fa_meta, 100, 10);
-        rewards::attach_fa_reward(&publisher, 1, fa_meta, 200, 10);
-        rewards::attach_fa_reward(&publisher, 2, fa_meta, 300, 10);
+        rewards::attach_fa_reward(&publisher, @0x123, 0, fa_meta, 100, 10);
+        rewards::attach_fa_reward(&publisher, @0x123, 1, fa_meta, 200, 10);
+        rewards::attach_fa_reward(&publisher, @0x123, 2, fa_meta, 300, 10);
         
         // Player claims 2 of them
         rewards::claim_testing(&player1, @0x123, 0);
@@ -420,9 +432,12 @@ module sigil::rewards_tests {
         let fa_meta = create_mock_fa_metadata(&publisher);
         
         // Attach both types
-        rewards::attach_fa_reward(&publisher, 0, fa_meta, 500, 10);
+        rewards::attach_fa_reward(&publisher, @0x123, 0, fa_meta, 500, 10);
         rewards::attach_nft_reward(
-            &publisher, 1, @0xabc,
+            &publisher,
+            @0x123,
+            1,
+            @0xabc,
             string::utf8(b"Badge"), string::utf8(b"Desc"),
             string::utf8(b"uri"), 5
         );
@@ -448,7 +463,10 @@ module sigil::rewards_tests {
         rewards::init_rewards_for_test(&publisher);
         
         rewards::attach_nft_reward(
-            &publisher, 0, @0xabc,
+            &publisher,
+            @0x123,
+            0,
+            @0xabc,
             string::utf8(b"Gold Medal"),
             string::utf8(b"Top achievement"),
             string::utf8(b"https://nft.com/gold.png"),
@@ -481,7 +499,7 @@ module sigil::rewards_tests {
         rewards::init_rewards_for_test(&publisher);
         
         let fa_meta = create_mock_fa_metadata(&publisher);
-        rewards::attach_fa_reward(&publisher, 0, fa_meta, 100, 1);  // Only 1 available
+        rewards::attach_fa_reward(&publisher, @0x123, 0, fa_meta, 100, 1);  // Only 1 available
         
         let (_, available1) = rewards::get_available(@0x123, 0);
         assert!(available1 == 1, 160);
@@ -499,7 +517,7 @@ module sigil::rewards_tests {
         rewards::init_rewards_for_test(&publisher);
         
         let fa_meta = create_mock_fa_metadata(&publisher);
-        rewards::attach_fa_reward(&publisher, 0, fa_meta, 100, 5);
+        rewards::attach_fa_reward(&publisher, @0x123, 0, fa_meta, 100, 5);
         
         // No claims yet
         assert!(!rewards::is_claimed(@0x123, @0x456, 0), 170);
@@ -535,7 +553,7 @@ module sigil::rewards_tests {
         let fa_metadata = create_mock_fa_metadata(&publisher);
         
         // Operator should be able to attach reward
-        rewards::attach_fa_reward(&operator, 0, fa_metadata, 100, 10);
+        rewards::attach_fa_reward(&operator, @0x123, 0, fa_metadata, 100, 10);
         
         // Verify it was attached
         let ids = rewards::list_rewarded_achievements(pub_addr);
@@ -557,7 +575,7 @@ module sigil::rewards_tests {
         let fa_metadata = create_mock_fa_metadata(&publisher);
         
         // Unauthorized user tries to attach reward (should fail)
-        rewards::attach_fa_reward(&unauthorized, 0, fa_metadata, 100, 10);
+        rewards::attach_fa_reward(&unauthorized, @0x123, 0, fa_metadata, 100, 10);
     }
 
     #[test]
@@ -577,7 +595,7 @@ module sigil::rewards_tests {
         let fa_metadata = create_mock_fa_metadata(&publisher);
         
         // Admin should be able to attach reward
-        rewards::attach_fa_reward(&admin, 0, fa_metadata, 100, 10);
+        rewards::attach_fa_reward(&admin, @0x123, 0, fa_metadata, 100, 10);
         
         // Verify it was attached
         let ids = rewards::list_rewarded_achievements(pub_addr);
@@ -598,7 +616,7 @@ module sigil::rewards_tests {
         let fa_metadata = create_mock_fa_metadata(&publisher);
         
         // Owner can always attach rewards
-        rewards::attach_fa_reward(&publisher, 0, fa_metadata, 100, 10);
+        rewards::attach_fa_reward(&publisher, @0x123, 0, fa_metadata, 100, 10);
         
         // Verify
         let ids = rewards::list_rewarded_achievements(pub_addr);

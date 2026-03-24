@@ -92,6 +92,17 @@ module sigil::rewards {
     const E_NOT_INITIALIZED: u64 = 7;
     const E_NO_PERMISSION: u64 = 8;
 
+    fun assert_can_manage_rewards(actor: address, resource_owner: address) {
+        if (roles::is_initialized(resource_owner)) {
+            assert!(
+                roles::can_manage_rewards(resource_owner, actor),
+                E_NO_PERMISSION
+            );
+        } else {
+            assert!(actor == resource_owner, E_NO_PERMISSION);
+        };
+    }
+
     /*************
      *  Lifecycle
      *************/
@@ -125,7 +136,6 @@ module sigil::rewards {
     #[test_only]
     /// Test-only init that skips resource account creation (for backward compat with tests)
     public fun init_rewards_for_test(publisher: &signer) {
-        let addr = signer::address_of(publisher);
         move_to<Rewards>(publisher, Rewards {
             by_achievement: table::new<u64, Reward>(),
             claimed: table::new<address, Table<u64, bool>>(),
@@ -143,24 +153,18 @@ module sigil::rewards {
     /// Create an NFT collection for achievement rewards
     /// Must be called before attaching NFT rewards
     public entry fun create_nft_collection(
-        publisher: &signer,
+        actor: &signer,
+        publisher: address,
         name: vector<u8>,
         description: vector<u8>,
         uri: vector<u8>
     ) acquires RewardsConfig {
-        let addr = signer::address_of(publisher);
-        assert!(exists<RewardsConfig>(addr), E_NOT_INITIALIZED);
-        
-        // Optional role check: if roles is initialized, verify permission
-        if (roles::is_initialized(addr)) {
-            assert!(
-                roles::can_manage_rewards(addr, addr),
-                E_NO_PERMISSION
-            );
-        };
+        let caller = signer::address_of(actor);
+        assert!(exists<RewardsConfig>(publisher), E_NOT_INITIALIZED);
+        assert_can_manage_rewards(caller, publisher);
         
         // Get publisher signer from capability
-        let config = borrow_global<RewardsConfig>(addr);
+        let config = borrow_global<RewardsConfig>(publisher);
         let publisher_signer = account::create_signer_with_capability(&config.signer_cap);
         
         // Create unlimited collection
@@ -188,23 +192,16 @@ module sigil::rewards {
     /// 
     /// Example: Attach 100 APT to achievement #0, with 50 claims available
     public entry fun attach_fa_reward(
-        publisher: &signer,
+        actor: &signer,
+        publisher: address,
         achievement_id: u64,
         fa_metadata: Object<Metadata>,
         amount: u64,
         supply: u64
     ) acquires Rewards {
-        let addr = signer::address_of(publisher);
-        
-        // Optional role check: if roles is initialized, verify permission
-        if (roles::is_initialized(addr)) {
-            assert!(
-                roles::can_manage_rewards(addr, addr),
-                E_NO_PERMISSION
-            );
-        };
-        
-        let r = borrow_global_mut<Rewards>(addr);
+        let caller = signer::address_of(actor);
+        assert_can_manage_rewards(caller, publisher);
+        let r = borrow_global_mut<Rewards>(publisher);
         
         assert!(!table::contains<u64, Reward>(&r.by_achievement, achievement_id), E_ALREADY_ATTACHED);
         
@@ -227,7 +224,7 @@ module sigil::rewards {
         
         event::emit_event<RewardAttachedEvent>(
             &mut r.events.attached,
-            RewardAttachedEvent { publisher: addr, achievement_id, is_ft: true, supply }
+            RewardAttachedEvent { publisher, achievement_id, is_ft: true, supply }
         );
     }
 
@@ -244,7 +241,8 @@ module sigil::rewards {
     /// 
     /// Note: This stores metadata for minting. Actual minting happens during claim.
     public entry fun attach_nft_reward(
-        publisher: &signer,
+        actor: &signer,
+        publisher: address,
         achievement_id: u64,
         collection: address,
         name: String,
@@ -252,17 +250,9 @@ module sigil::rewards {
         uri: String,
         supply: u64
     ) acquires Rewards {
-        let addr = signer::address_of(publisher);
-        
-        // Optional role check: if roles is initialized, verify permission
-        if (roles::is_initialized(addr)) {
-            assert!(
-                roles::can_manage_rewards(addr, addr),
-                E_NO_PERMISSION
-            );
-        };
-        
-        let r = borrow_global_mut<Rewards>(addr);
+        let caller = signer::address_of(actor);
+        assert_can_manage_rewards(caller, publisher);
+        let r = borrow_global_mut<Rewards>(publisher);
         
         assert!(!table::contains<u64, Reward>(&r.by_achievement, achievement_id), E_ALREADY_ATTACHED);
         assert!(supply > 0, E_INVALID_SUPPLY);  // NFTs must have limited supply
@@ -286,7 +276,7 @@ module sigil::rewards {
         
         event::emit_event<RewardAttachedEvent>(
             &mut r.events.attached,
-            RewardAttachedEvent { publisher: addr, achievement_id, is_ft: false, supply }
+            RewardAttachedEvent { publisher, achievement_id, is_ft: false, supply }
         );
     }
 
