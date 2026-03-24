@@ -6,6 +6,9 @@ module sigil::seasons_tests {
     use aptos_framework::timestamp;
     use sigil::seasons;
     use sigil::game_platform;
+    use sigil::leaderboard;
+    use sigil::treasury;
+    use aptos_framework::fungible_asset;
 
     // Test accounts helper
     fun setup_accounts(): (signer, signer, signer) {
@@ -420,6 +423,122 @@ module sigil::seasons_tests {
         
         let (has_score, _) = seasons::get_season_score(pub_addr, 0, 0, player1_addr);
         assert!(!has_score, 0);
+    }
+
+    #[test]
+    fun test_finalize_season_after_end() {
+        let (publisher, _, _) = setup_accounts();
+        let pub_addr = signer::address_of(&publisher);
+
+        seasons::init_seasons(&publisher);
+        let framework_signer = account::create_signer_for_test(@0x1);
+        timestamp::set_time_has_started_for_testing(&framework_signer);
+        timestamp::update_global_time_for_test(1700000000000000);
+
+        let now = timestamp::now_seconds();
+        let start_time = now + 10;
+        let end_time = now + 200;
+
+        seasons::create_season(
+            &publisher,
+            pub_addr,
+            string::utf8(b"Finalizable"),
+            start_time,
+            end_time,
+            0,
+            0
+        );
+
+        timestamp::update_global_time_for_test((end_time + 5) * 1000000);
+        seasons::finalize_season(&publisher, pub_addr, 0);
+
+        let (_, _, _, _, _, _, finalized) = seasons::get_season(pub_addr, 0);
+        assert!(finalized, 0);
+    }
+
+    #[test]
+    #[expected_failure(abort_code = 9, location = sigil::seasons)] // E_CANNOT_FINALIZE_YET
+    fun test_finalize_season_before_end_fails() {
+        let (publisher, _, _) = setup_accounts();
+        let pub_addr = signer::address_of(&publisher);
+
+        seasons::init_seasons(&publisher);
+        let framework_signer = account::create_signer_for_test(@0x1);
+        timestamp::set_time_has_started_for_testing(&framework_signer);
+        timestamp::update_global_time_for_test(1700000000000000);
+
+        let now = timestamp::now_seconds();
+        let start_time = now + 10;
+        let end_time = now + 10_000;
+
+        seasons::create_season(
+            &publisher,
+            pub_addr,
+            string::utf8(b"Running"),
+            start_time,
+            end_time,
+            0,
+            0
+        );
+
+        timestamp::update_global_time_for_test((start_time + 50) * 1000000);
+        seasons::finalize_season(&publisher, pub_addr, 0);
+    }
+
+    #[test]
+    #[expected_failure(abort_code = 10, location = sigil::seasons)]
+    fun test_finalize_distribute_must_be_publisher_signer() {
+        let (publisher, player1, _) = setup_accounts();
+        let pub_addr = signer::address_of(&publisher);
+        let creator = account::create_signer_for_test(@0xcafe);
+        account::create_account_for_test(@0xcafe);
+        let (_mint, _tr, _br, _mr, meta) = fungible_asset::create_fungible_asset(&creator);
+
+        seasons::finalize_season_and_distribute_prizes(&player1, pub_addr, 0, meta, 3);
+    }
+
+    #[test]
+    #[expected_failure(abort_code = 14, location = sigil::seasons)]
+    fun test_finalize_distribute_no_leaderboard_winners() {
+        let (publisher, _, _) = setup_accounts();
+        let pub_addr = signer::address_of(&publisher);
+        let creator = account::create_signer_for_test(@0xcafe);
+        account::create_account_for_test(@0xcafe);
+        let (_mint, _tr, _br, _mr, meta) = fungible_asset::create_fungible_asset(&creator);
+
+        game_platform::init(&publisher);
+        leaderboard::init_leaderboards(&publisher);
+        leaderboard::create_leaderboard(
+            &publisher,
+            pub_addr,
+            0,
+            0,
+            0,
+            1000,
+            false,
+            false,
+            5
+        );
+
+        seasons::init_seasons(&publisher);
+        let framework_signer = account::create_signer_for_test(@0x1);
+        timestamp::set_time_has_started_for_testing(&framework_signer);
+        timestamp::update_global_time_for_test(1700000000000000);
+        let now = timestamp::now_seconds();
+        seasons::create_season(
+            &publisher,
+            pub_addr,
+            string::utf8(b"Prize"),
+            now + 10,
+            now + 200,
+            0,
+            1_000_000
+        );
+
+        timestamp::update_global_time_for_test((now + 300) * 1000000);
+        treasury::init_treasury(&publisher);
+
+        seasons::finalize_season_and_distribute_prizes(&publisher, pub_addr, 0, meta, 5);
     }
 }
 

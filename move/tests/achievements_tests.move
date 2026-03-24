@@ -26,7 +26,7 @@ module sigil::achievements_tests {
     }
 
     #[test]
-    #[expected_failure(abort_code = 0)] // E_ALREADY_INIT
+    #[expected_failure(abort_code = 0, location = sigil::achievements)] // E_ALREADY_INIT
     fun test_init_achievements_twice_fails() {
         let publisher = account::create_account_for_test(@0x123);
         achievements::init_achievements(&publisher);
@@ -371,7 +371,7 @@ module sigil::achievements_tests {
         achievements::create(&publisher, @0x123, b"Ach2", b"Desc2", 200, vector::empty<u8>());
         achievements::create_with_game(&publisher, @0x123, b"Ach3", b"Desc3", 5, 300, vector::empty<u8>());
         
-        let (ids, titles, descs, mins, game_ids) = achievements::list_catalog(@0x123);
+        let (ids, titles, _descs, mins, _game_ids) = achievements::list_catalog(@0x123);
         
         assert!(vector::length(&ids) == 3, 120);
         assert!(*vector::borrow(&ids, 0) == 0, 121);
@@ -529,7 +529,6 @@ module sigil::achievements_tests {
         
         let publisher = account::create_account_for_test(@0x123);
         let unauthorized = account::create_account_for_test(@0x999);
-        let pub_addr = signer::address_of(&publisher);
         
         // Initialize achievements and roles
         achievements::init_achievements(&publisher);
@@ -581,7 +580,6 @@ module sigil::achievements_tests {
         let publisher = account::create_account_for_test(@0x123);
         let unauthorized = account::create_account_for_test(@0x999);
         let player = account::create_account_for_test(@0x789);
-        let pub_addr = signer::address_of(&publisher);
         let player_addr = signer::address_of(&player);
         
         // Setup

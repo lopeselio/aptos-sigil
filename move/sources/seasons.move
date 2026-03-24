@@ -16,16 +16,21 @@ module sigil::seasons {
     use aptos_framework::timestamp;
     use aptos_framework::account;
     use aptos_framework::event::{Self, EventHandle};
+    use aptos_framework::object::Object;
+    use aptos_framework::fungible_asset::Metadata;
     use sigil::roles;
     use sigil::game_platform;
     use sigil::leaderboard;
     use sigil::achievements;
+    use sigil::treasury;
 
     /************
      * Constants
      ************/
 
     const MAX_SEASON_DURATION: u64 = 7776000; // 90 days in seconds
+    /// Cap on how many leaderboard slots receive an equal share of `prize_pool`.
+    const MAX_SEASON_PAYOUT_RECIPIENTS: u64 = 50;
 
     /************
      * Errors
@@ -39,6 +44,14 @@ module sigil::seasons {
     const E_SEASON_ENDED: u64 = 5;
     const E_INVALID_DURATION: u64 = 6;
     const E_NO_PERMISSION: u64 = 7;
+    const E_ALREADY_FINALIZED: u64 = 8;
+    const E_CANNOT_FINALIZE_YET: u64 = 9;
+    const E_PUBLISHER_MUST_SIGN: u64 = 10;
+    const E_TREASURY_NOT_INITIALIZED: u64 = 11;
+    const E_INVALID_PAYOUT_CONFIG: u64 = 12;
+    const E_ZERO_PRIZE_POOL: u64 = 13;
+    const E_NO_WINNERS: u64 = 14;
+    const E_PAYOUT_ROUNDED_TO_ZERO: u64 = 15;
 
     /************
      * Structs
@@ -259,6 +272,96 @@ module sigil::seasons {
             &mut seasons.events.ended,
             SeasonEndedEvent { publisher, season_id }
         );
+    }
+
+    /// Mark a season as finalized (e.g. after off-chain prize distribution). Requires wall time `>= end_time`.
+    public entry fun finalize_season(
+        actor: &signer,
+        publisher: address,
+        season_id: u64
+    ) acquires Seasons {
+        let caller = signer::address_of(actor);
+        assert!(exists<Seasons>(publisher), E_NOT_INITIALIZED);
+
+        if (roles::is_initialized(publisher)) {
+            assert!(roles::can_manage_leaderboards(publisher, caller), E_NO_PERMISSION);
+        } else {
+            assert!(caller == publisher, E_NO_PERMISSION);
+        };
+
+        let seasons = borrow_global_mut<Seasons>(publisher);
+        assert!(table::contains(&seasons.seasons, season_id), E_SEASON_NOT_FOUND);
+
+        let season = table::borrow_mut(&mut seasons.seasons, season_id);
+        let now = timestamp::now_seconds();
+        assert!(now >= season.end_time, E_CANNOT_FINALIZE_YET);
+        assert!(!season.is_finalized, E_ALREADY_FINALIZED);
+        season.is_finalized = true;
+    }
+
+    /// Finalize a season and split `prize_pool` **evenly** across up to `max_placements` addresses
+    /// from `leaderboard::get_top_entries` for this season's `leaderboard_id`.
+    ///
+    /// **The transaction sender must be `publisher`.** FA is withdrawn from the publisher primary store
+    /// (same balance `treasury::deposit` uses). Fund the pool via `treasury::deposit` before finalizing.
+    ///
+    /// Remainder after `floor(prize_pool / n) * n` stays recorded on the season as `prize_pool`.
+    public entry fun finalize_season_and_distribute_prizes(
+        actor: &signer,
+        publisher: address,
+        season_id: u64,
+        fa_metadata: Object<Metadata>,
+        max_placements: u64
+    ) acquires Seasons {
+        let caller = signer::address_of(actor);
+        assert!(caller == publisher, E_PUBLISHER_MUST_SIGN);
+        assert!(exists<Seasons>(publisher), E_NOT_INITIALIZED);
+        assert!(treasury::is_initialized(publisher), E_TREASURY_NOT_INITIALIZED);
+        assert!(
+            max_placements > 0 && max_placements <= MAX_SEASON_PAYOUT_RECIPIENTS,
+            E_INVALID_PAYOUT_CONFIG
+        );
+
+        let seasons = borrow_global_mut<Seasons>(publisher);
+        assert!(table::contains(&seasons.seasons, season_id), E_SEASON_NOT_FOUND);
+
+        let season = table::borrow_mut(&mut seasons.seasons, season_id);
+        let now = timestamp::now_seconds();
+        assert!(now >= season.end_time, E_CANNOT_FINALIZE_YET);
+        assert!(!season.is_finalized, E_ALREADY_FINALIZED);
+
+        let pool = season.prize_pool;
+        assert!(pool > 0, E_ZERO_PRIZE_POOL);
+
+        let leaderboard_id = season.leaderboard_id;
+        let (players, _scores) = leaderboard::get_top_entries(publisher, leaderboard_id);
+        let total_players = vector::length(&players);
+        assert!(total_players > 0, E_NO_WINNERS);
+
+        let n_u64 = if ((total_players as u64) < max_placements) {
+            total_players as u64
+        } else {
+            max_placements
+        };
+        assert!(n_u64 > 0, E_NO_WINNERS);
+
+        let per = pool / n_u64;
+        assert!(per > 0, E_PAYOUT_ROUNDED_TO_ZERO);
+
+        let paid = per * n_u64;
+        assert!(paid / n_u64 == per, E_PAYOUT_ROUNDED_TO_ZERO);
+
+        let recipients = vector::empty<address>();
+        let j = 0;
+        while (j < n_u64) {
+            vector::push_back(&mut recipients, *vector::borrow(&players, j));
+            j = j + 1;
+        };
+
+        treasury::distribute_fa_equal(actor, fa_metadata, recipients, per);
+
+        season.is_finalized = true;
+        season.prize_pool = pool - paid;
     }
 
     /************

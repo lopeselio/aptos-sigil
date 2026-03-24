@@ -1,9 +1,7 @@
 #[test_only]
 module sigil::attest_tests {
-    use std::vector;
     use std::signer;
     use aptos_framework::account;
-    use aptos_framework::timestamp;
     use sigil::attest;
 
     // Test accounts

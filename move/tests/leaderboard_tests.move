@@ -27,7 +27,7 @@ module sigil::leaderboard_tests {
     }
 
     #[test]
-    #[expected_failure(abort_code = 0)] // E_ALREADY_INIT
+    #[expected_failure(abort_code = 0, location = sigil::leaderboard)] // E_ALREADY_INIT
     fun test_init_leaderboards_twice_fails() {
         let publisher = account::create_account_for_test(@0x123);
         leaderboard::init_leaderboards(&publisher);
@@ -102,7 +102,7 @@ module sigil::leaderboard_tests {
 
     #[test]
     fun test_submit_score_and_ranking() {
-        let (publisher, player1, player2, player3) = setup_test_accounts();
+        let (publisher, _, _, _) = setup_test_accounts();
         
         // Setup game and leaderboard
         game_platform::init(&publisher);
@@ -135,7 +135,7 @@ module sigil::leaderboard_tests {
 
     #[test]
     fun test_score_update_replaces_old_score() {
-        let (publisher, player1, _, _) = setup_test_accounts();
+        let (publisher, _, _, _) = setup_test_accounts();
         
         // Setup
         game_platform::init(&publisher);
@@ -160,7 +160,7 @@ module sigil::leaderboard_tests {
 
     #[test]
     fun test_worse_score_ignored() {
-        let (publisher, player1, _, _) = setup_test_accounts();
+        let (publisher, _, _, _) = setup_test_accounts();
         
         // Setup
         game_platform::init(&publisher);
@@ -180,7 +180,7 @@ module sigil::leaderboard_tests {
 
     #[test]
     fun test_ascending_order() {
-        let (publisher, player1, player2, _) = setup_test_accounts();
+        let (publisher, _, _, _) = setup_test_accounts();
         
         // Setup with ascending order (lower is better)
         game_platform::init(&publisher);
@@ -214,7 +214,7 @@ module sigil::leaderboard_tests {
 
     #[test]
     fun test_score_gates_min() {
-        let (publisher, player1, _, _) = setup_test_accounts();
+        let (publisher, _, _, _) = setup_test_accounts();
         
         // Setup with min score = 100
         game_platform::init(&publisher);
@@ -248,7 +248,7 @@ module sigil::leaderboard_tests {
 
     #[test]
     fun test_score_gates_max() {
-        let (publisher, player1, _, _) = setup_test_accounts();
+        let (publisher, _, _, _) = setup_test_accounts();
         
         // Setup with max score = 1000
         game_platform::init(&publisher);
@@ -318,7 +318,7 @@ module sigil::leaderboard_tests {
 
     #[test]
     fun test_multiple_leaderboards_per_game() {
-        let (publisher, player1, _, _) = setup_test_accounts();
+        let (publisher, _, _, _) = setup_test_accounts();
         
         // Setup
         game_platform::init(&publisher);

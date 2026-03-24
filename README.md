@@ -100,7 +100,7 @@ A complete, production-ready gaming platform on Aptos featuring **instant automa
 - [Aptos CLI](https://aptos.dev/tools/install-cli/) installed (v9.0.0+ recommended; required for current `aptos-framework` `mainnet` rev / Move 2.2)
 - Aptos account with devnet tokens (your publisher address)
 
-**Entry functions (actor + publisher address):** Several modules use `actor: &signer` (the transaction sender) plus an explicit `publisher: address` for the account that owns the on-chain resource. When you act as the owner, pass **your publisher address** as the first `--args` address (then the rest of the arguments). This is what enables operator/admin delegation. Affected entrypoints include `achievements::{create,create_with_game,create_advanced,create_with_game_advanced,grant}`, `leaderboard::create_leaderboard`, `rewards::{attach_fa_reward,attach_nft_reward,create_nft_collection}`, and `seasons::{create_season,start_season,end_season,add_season_achievement}`.
+**Entry functions (actor + publisher address):** Several modules use `actor: &signer` (the transaction sender) plus an explicit `publisher: address` for the account that owns the on-chain resource. When you act as the owner, pass **your publisher address** as the first `--args` address (then the rest of the arguments). This is what enables operator/admin delegation. Affected entrypoints include `achievements::{create,create_with_game,create_advanced,create_with_game_advanced,grant}`, `leaderboard::create_leaderboard`, `rewards::{attach_fa_reward,attach_nft_reward,create_nft_collection}`, and `seasons::{create_season,start_season,end_season,add_season_achievement,finalize_season}`. **Exception:** `seasons::finalize_season_and_distribute_prizes` requires the **publisher account to sign** the transaction (no operator delegation); it also needs `treasury` initialized and a **primary-store-enabled** FA metadata object (CLI: `object:METADATA_ADDRESS`). See [Seasons Guide](./docs/modules/SEASONS_GUIDE.md#step-5-end-season--distribute-prizes).
 - API Key from [Aptos Labs](https://geomi.dev/docs/start) (optional, for higher rate limits)
 
 ## 📁 Project Structure
@@ -617,7 +617,9 @@ aptos move run \
 
 ### Seasons (publisher entry functions)
 
-`create_season`, `start_season`, `end_season`, and `add_season_achievement` use the same **actor + `publisher` address** pattern. `init_seasons` still takes only the publisher signer (no extra address arg).
+`create_season`, `start_season`, `end_season`, `add_season_achievement`, and `finalize_season` use the same **actor + `publisher` address** pattern (operators/admins can act when `roles` grants permission). `init_seasons` still takes only the publisher signer (no extra address arg).
+
+**On-chain prize split:** `finalize_season_and_distribute_prizes` must be sent **from the publisher account**; fund prizes with `treasury::deposit` first. Pass prize FA metadata as **`object:0x...`** (same as FA rewards). Details: [Seasons Guide — Step 5](./docs/modules/SEASONS_GUIDE.md#step-5-end-season--distribute-prizes).
 
 **Initialize seasons (once per publisher):**
 ```bash
@@ -672,6 +674,44 @@ aptos move run \
   --assume-yes \
   --max-gas 2000
 ```
+
+**Finalize season (off-chain prizes already paid — operator OK if `roles` allows):**
+
+```bash
+aptos move run \
+  --profile sigil-main \
+  --function-id 'YOUR_ACCOUNT_ADDRESS::seasons::finalize_season' \
+  --args address:YOUR_ACCOUNT_ADDRESS u64:SEASON_ID \
+  --assume-yes \
+  --max-gas 2000
+```
+
+**Finalize and pay winners on-chain (publisher profile only; after `end_time`, treasury funded, leaderboard has scores):**
+
+```bash
+# 1) Once per publisher: treasury::init_treasury (publisher signer)
+# 2) Deposit prize FA into treasury so the publisher primary store can cover the split
+aptos move run \
+  --profile sigil-main \
+  --function-id 'YOUR_ACCOUNT_ADDRESS::treasury::deposit' \
+  --args address:YOUR_ACCOUNT_ADDRESS object:FA_METADATA_ADDRESS u64:AMOUNT_BASE_UNITS \
+  --assume-yes \
+  --max-gas 3000
+
+# 3) Equal split to top MAX_PLACEMENTS (1–50) from season's leaderboard_id; uses season.prize_pool
+aptos move run \
+  --profile sigil-main \
+  --function-id 'YOUR_ACCOUNT_ADDRESS::seasons::finalize_season_and_distribute_prizes' \
+  --args \
+    address:YOUR_ACCOUNT_ADDRESS \
+    u64:SEASON_ID \
+    object:FA_METADATA_ADDRESS \
+    u64:MAX_PLACEMENTS \
+  --assume-yes \
+  --max-gas 5000
+```
+
+Use a **primary-store-enabled** fungible asset for `FA_METADATA_ADDRESS` (see [Seasons Guide](./docs/modules/SEASONS_GUIDE.md) and [Treasury Guide](./docs/modules/TREASURY_GUIDE.md)).
 
 ---
 
@@ -1239,12 +1279,18 @@ If republishing, the modules will be upgraded automatically. Make sure you're us
 
 ## 📚 Additional Documentation
 
+### **Operations**
+
+- **[Deployment & upgrades](./docs/DEPLOYMENT.md)** - `aptos move publish`, breaking layout/signature changes, smoke-test checklist
+
 ### **Module Guides** (Individual modules in depth)
 
 - **[Achievements Guide](./docs/modules/ACHIEVEMENTS_GUIDE.md)** - Complete achievements documentation with 6 types, live testing
 - **[Rewards Guide](./docs/modules/REWARDS_GUIDE.md)** - Complete rewards guide with 10 practical use cases
 - **[Seasons Guide](./docs/modules/SEASONS_GUIDE.md)** - Time-bounded competitions, battle passes, tournaments 🏆
 - **[Quests Guide](./docs/modules/QUESTS_GUIDE.md)** - Mission-based progression, 6 quest types, wrapper pattern 🎯 (NEW!)
+- **[Merge Guide](./docs/modules/MERGE_GUIDE.md)** - Crafting recipes over abstract item IDs (MVP)
+- **[Guilds Guide](./docs/modules/GUILDS_GUIDE.md)** - On-chain teams / clans (MVP)
 - **[Roles Guide](./docs/modules/ROLES_GUIDE.md)** - Multi-admin & operator management for teams
 - **[Attest Guide](./docs/modules/ATTEST_GUIDE.md)** - Anti-cheat server attestation (competitive games)
 - **[Shadow Signers Guide](./docs/modules/SHADOW_SIGNERS_GUIDE.md)** - Gasless gameplay with session keys
@@ -1281,7 +1327,7 @@ aptos move test
 - **Achievements:** 20 unit tests ✅
 - **Rewards:** 26 unit tests ✅
 - **Roles:** 23 unit tests ✅
-- **Seasons:** 16 unit tests (14 passing) ✅
+- **Seasons:** 20 unit tests ✅
 - **Quests:** 22 unit tests (8 passing) ✅
 - **Total:** 122+ tests ✅
 

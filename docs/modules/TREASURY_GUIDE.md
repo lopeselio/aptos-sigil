@@ -249,6 +249,25 @@ public entry fun withdraw(
 
 ---
 
+#### `distribute_fa_equal` (called by `seasons`)
+
+```move
+public fun distribute_fa_equal(
+    publisher: &signer,
+    fa_metadata: Object<Metadata>,
+    recipients: vector<address>,
+    amount_each: u64
+)
+```
+
+**Purpose:** Send `amount_each` of `fa_metadata` from the publisher’s **primary fungible store** to every address in `recipients`, update treasury withdrawal stats, and emit withdraw events. Used by `seasons::finalize_season_and_distribute_prizes` for equal prize splits.
+
+**Requirements:** Treasury initialized; sufficient balance for `amount_each * len(recipients)`; `amount_each > 0` and recipients non-empty; each amount ≤ per-tx max; FA must work with `primary_fungible_store` (metadata should be **primary-store enabled**).
+
+**Docs:** [Seasons Guide — Step 5](./SEASONS_GUIDE.md#step-5-end-season--distribute-prizes).
+
+---
+
 ### Public Functions
 
 #### `can_fulfill_reward`

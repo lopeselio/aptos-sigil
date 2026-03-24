@@ -31,7 +31,7 @@ The **Seasons Module** enables publishers to create **time-bounded competitive p
 
 ✅ **Temporal Boundaries** - Start/end timestamps with automatic validation  
 ✅ **Isolated Data** - Each season tracks independent scores & leaderboards  
-✅ **Prize Pools** - APT allocation for top performers  
+✅ **Prize Pools** - On-chain accounting plus optional **equal split** payout via treasury (`finalize_season_and_distribute_prizes`)  
 ✅ **Season States** - Upcoming → Active → Ended lifecycle  
 ✅ **Wrapper Pattern** - Coordinates existing modules without breaking changes  
 ✅ **Optional Integration** - Works alongside regular gameplay  
@@ -222,9 +222,54 @@ aptos move run \
 - Season automatically becomes "ended" after `end_time`
 - `get_season_status()` will return `(false, false, true)` = ended
 
-**Prize Distribution:**
-- *Future integration:* Use `rewards` module to auto-distribute prizes
-- *Current:* Manually send APT to top leaderboard players
+**Prize distribution (two paths)**
+
+1. **Off-chain prizes** — Pay winners however you like, then mark the season finalized (no token movement on-chain):
+
+```bash
+aptos move run \
+  --function-id '<PUBLISHER_ADDR>::seasons::finalize_season' \
+  --args address:PUBLISHER_ADDRESS u64:SEASON_ID
+```
+
+Uses the usual **actor + `publisher` address** pattern: if `roles` is initialized, an authorized admin/operator can call this as long as they have leaderboard management permission.
+
+2. **On-chain equal split** — Call `finalize_season_and_distribute_prizes` after `now >= end_time`. This reads `prize_pool` from the season record, takes the top `n` addresses from `leaderboard::get_top_entries(publisher, season.leaderboard_id)` where `n = min(top_count, max_placements)`, computes `per = prize_pool / n`, transfers `per` of the chosen FA from the **publisher’s primary fungible store** to each winner via `treasury::distribute_fa_equal`, sets `is_finalized`, and reduces `prize_pool` by `per * n` (any remainder stays on the season for bookkeeping).
+
+**Requirements for on-chain payout:**
+
+- **`treasury::init_treasury`** must already exist for the publisher.
+- **Fund the publisher balance** for that FA with **`treasury::deposit`** (or any path that credits the publisher’s primary store for that metadata). The on-chain split uses **actual balance** in the publisher account; `prize_pool` on the season is the amount **accounted** for the split (you should align deposit amount with `prize_pool` before finalizing).
+- **Transaction sender must equal `publisher`.** Operators/admins cannot call this entry on behalf of the publisher (no role delegation for this entry).
+- **`max_placements`** must satisfy `1 ≤ max_placements ≤ 50`.
+- **FA metadata** must refer to a fungible asset that supports **primary stores** (Aptos `primary_fungible_store::create_primary_store_enabled_fungible_asset` or equivalent). Assets created with only `fungible_asset::add_fungibility` and no `DeriveRefPod` may fail when the framework tries to use primary stores. See [Treasury Guide](./TREASURY_GUIDE.md) for metadata addresses and [Rewards Guide](./REWARDS_GUIDE.md) for CLI `object:` examples.
+
+**CLI (on-chain payout, after season ended and treasury funded):**
+
+```bash
+aptos move run \
+  --profile YOUR_PROFILE \
+  --function-id '<PUBLISHER_ADDR>::seasons::finalize_season_and_distribute_prizes' \
+  --args \
+    address:PUBLISHER_ADDR \
+    u64:SEASON_ID \
+    object:FA_METADATA_OBJECT_ADDRESS \
+    u64:MAX_PLACEMENTS \
+  --assume-yes \
+  --max-gas 5000
+```
+
+`object:...` is the **object address** of `Object<Metadata>` for the prize token (same shape as `rewards::attach_fa_reward`).
+
+**CLI (finalize only, off-chain prizes already handled):**
+
+```bash
+aptos move run \
+  --function-id '<PUBLISHER_ADDR>::seasons::finalize_season' \
+  --args address:PUBLISHER_ADDRESS u64:SEASON_ID
+```
+
+Sets `is_finalized` on the season. Cannot finalize twice; cannot finalize before `end_time`.
 
 ---
 
@@ -254,12 +299,13 @@ aptos move run \
 
 ```move
 public entry fun create_season(
-    publisher: &signer,
+    actor: &signer,
+    publisher: address,
     name: String,
     start_time: u64,      // Unix seconds
     end_time: u64,        // Unix seconds
     leaderboard_id: u64,
-    prize_pool: u64       // APT (octas)
+    prize_pool: u64       // informational (octas)
 )
 ```
 
@@ -272,7 +318,7 @@ public entry fun create_season(
 - `start_time` - Unix timestamp when season begins (must be future)
 - `end_time` - Unix timestamp when season ends (max 90 days after start)
 - `leaderboard_id` - Associated leaderboard for this season
-- `prize_pool` - Total APT allocated for prizes (in octas: 1 APT = 10^8 octas)
+- `prize_pool` - Amount **recorded on the season** for prize accounting (same units as the FA you pay with—typically **octas** for APT). For `finalize_season_and_distribute_prizes`, this value drives how much is split on-chain; you should **deposit at least that much** of the same FA into the publisher treasury balance before calling finalize.
 
 **Validation:**
 - ✅ `start_time >= now`
@@ -289,11 +335,71 @@ await createSeason("Season 1", startTime, endTime, 0, 10_000_000_000);
 
 ---
 
+#### `finalize_season`
+
+```move
+public entry fun finalize_season(
+    actor: &signer,
+    publisher: address,
+    season_id: u64
+)
+```
+
+**Purpose:** Set `is_finalized` after `now >= end_time` (e.g. off-chain prize payout done). Aborts if already finalized or season not ended yet.
+
+**Permissions:** Publisher, or (if `roles` is initialized) any account with leaderboard management permission for that publisher.
+
+---
+
+#### `finalize_season_and_distribute_prizes`
+
+```move
+public entry fun finalize_season_and_distribute_prizes(
+    actor: &signer,
+    publisher: address,
+    season_id: u64,
+    fa_metadata: Object<Metadata>,
+    max_placements: u64
+)
+```
+
+**Purpose:** After `now >= end_time`, split the season’s `prize_pool` **evenly** across up to `max_placements` leaderboard winners (from `leaderboard::get_top_entries` for this season’s `leaderboard_id`), transfer FA via `treasury::distribute_fa_equal`, set `is_finalized`, and set `prize_pool := prize_pool - (per * n)` where `per = prize_pool / n` and `n` is the number of recipients.
+
+**Permissions:** **Only the publisher address may sign the transaction** (`signer::address_of(actor) == publisher`). This entry does **not** use the roles module for delegation.
+
+**Preconditions:**
+
+- `treasury::is_initialized(publisher)`
+- `1 <= max_placements <= 50`
+- Season exists, not already finalized, `now >= end_time`
+- `prize_pool > 0`
+- At least one player on the season’s leaderboard (`get_top_entries` non-empty)
+- `prize_pool / n > 0` (no zero payout after integer division; overflow-safe product checks in-module)
+- Publisher **primary store** balance for `fa_metadata` ≥ `per * n`
+
+**FA metadata:** Use an asset whose metadata object is **primary-store enabled** so `primary_fungible_store::transfer` works for winners. Pass the metadata **object address** to the CLI as `object:0x...`.
+
+**Abort codes (payout-specific):**
+
+| Code | Name | Meaning |
+|------|------|---------|
+| 10 | `E_PUBLISHER_MUST_SIGN` | Caller is not `publisher` |
+| 11 | `E_TREASURY_NOT_INITIALIZED` | `treasury::init_treasury` not called |
+| 12 | `E_INVALID_PAYOUT_CONFIG` | `max_placements` not in `1..=50` |
+| 13 | `E_ZERO_PRIZE_POOL` | Season `prize_pool` is zero |
+| 14 | `E_NO_WINNERS` | No leaderboard entries (or `n == 0`) |
+| 15 | `E_PAYOUT_ROUNDED_TO_ZERO` | `per == 0` or multiply overflow guard |
+
+(Treasury balance failures surface as `treasury` module aborts, e.g. insufficient balance.)
+
+---
+
 #### `start_season`
 
 ```move
 public entry fun start_season(
-    publisher: &signer,
+    actor: &signer,
+    publisher: address,
     season_id: u64
 )
 ```
@@ -318,7 +424,8 @@ public entry fun start_season(
 
 ```move
 public entry fun end_season(
-    publisher: &signer,
+    actor: &signer,
+    publisher: address,
     season_id: u64
 )
 ```

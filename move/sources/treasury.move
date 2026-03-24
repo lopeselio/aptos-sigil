@@ -9,6 +9,7 @@
 /// Designed to integrate with rewards module for automated FA transfers.
 module sigil::treasury {
     use std::signer;
+    use std::vector;
     use aptos_std::table::{Self, Table};
     use aptos_framework::object::{Self, Object};
     use aptos_framework::fungible_asset::Metadata;
@@ -192,6 +193,63 @@ module sigil::treasury {
                 recipient,
             }
         );
+    }
+
+    /// Send `amount_each` of FA from the publisher's primary store to every address in `recipients`.
+    /// Used by `seasons` for equal prize splits. Publisher must be the transaction sender.
+    public fun distribute_fa_equal(
+        publisher: &signer,
+        fa_metadata: Object<Metadata>,
+        recipients: vector<address>,
+        amount_each: u64
+    ) acquires Treasury {
+        let publisher_addr = signer::address_of(publisher);
+        assert!(exists<Treasury>(publisher_addr), E_NOT_INITIALIZED);
+        assert!(amount_each > 0, E_INVALID_AMOUNT);
+
+        let n = vector::length(&recipients);
+        assert!(n > 0, E_INVALID_AMOUNT);
+
+        let total = amount_each * n;
+        assert!(total / n == amount_each, E_INVALID_AMOUNT);
+
+        assert!(amount_each <= MAX_WITHDRAWAL, E_WITHDRAWAL_TOO_LARGE);
+
+        let balance = primary_fungible_store::balance(publisher_addr, fa_metadata);
+        assert!(balance >= total, E_INSUFFICIENT_BALANCE);
+
+        let metadata_addr = object::object_address(&fa_metadata);
+
+        let treasury = borrow_global_mut<Treasury>(publisher_addr);
+        let i = 0;
+        while (i < n) {
+            let to = *vector::borrow(&recipients, i);
+            primary_fungible_store::transfer(publisher, fa_metadata, to, amount_each);
+            event::emit_event(
+                &mut treasury.events.withdraw_events,
+                WithdrawEvent {
+                    publisher: publisher_addr,
+                    fa_metadata: metadata_addr,
+                    amount: amount_each,
+                    recipient: to,
+                }
+            );
+            i = i + 1;
+        };
+
+        if (!table::contains(&treasury.tracking, metadata_addr)) {
+            table::add(
+                &mut treasury.tracking,
+                metadata_addr,
+                FATracking {
+                    fa_metadata_addr: metadata_addr,
+                    total_deposited: 0,
+                    total_withdrawn: 0,
+                }
+            );
+        };
+        let fa_tracking = table::borrow_mut(&mut treasury.tracking, metadata_addr);
+        fa_tracking.total_withdrawn = fa_tracking.total_withdrawn + total;
     }
 
     /// Check if treasury can fulfill a reward withdrawal

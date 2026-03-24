@@ -151,7 +151,7 @@ module sigil::quests_tests {
         quests::submit_score_with_quest(&player1, pub_addr, 0, 150);
         
         // Check quest is completed
-        let (has_progress, current, target, completed, claimed) = 
+        let (has_progress, current, target, completed, _claimed) = 
             quests::get_quest_progress(pub_addr, 0, player1_addr);
         assert!(has_progress, 0);
         assert!(current == 150, 1);
@@ -212,7 +212,7 @@ module sigil::quests_tests {
             false   // not seasonal
         );
         
-        let (exists, title, description, quest_type, target, _, _) = 
+        let (exists, title, _description, quest_type, target, _, _) = 
             quests::get_quest(pub_addr, 0);
         
         assert!(exists, 0);
@@ -583,6 +583,178 @@ module sigil::quests_tests {
         
         quests::start_quest(&player1, pub_addr, 0);
         quests::start_quest(&player1, pub_addr, 0); // Should fail
+    }
+
+    #[test]
+    #[expected_failure(abort_code = 0, location = sigil::quests)] // E_NOT_INITIALIZED
+    fun test_create_score_quest_without_init_fails() {
+        let (publisher, _, _) = setup_accounts();
+        init_test_chain_clock();
+        quests::create_score_quest(
+            &publisher,
+            string::utf8(b"X"),
+            string::utf8(b"Y"),
+            0,
+            1,
+            0,
+            false
+        );
+    }
+
+    #[test]
+    #[expected_failure(abort_code = 5, location = sigil::quests)] // E_QUEST_NOT_AVAILABLE
+    fun test_start_seasonal_quest_after_season_ends_fails() {
+        let (publisher, player1, _) = setup_accounts();
+        let pub_addr = signer::address_of(&publisher);
+
+        let framework_signer = account::create_signer_for_test(@0x1);
+        timestamp::set_time_has_started_for_testing(&framework_signer);
+        let base_micros = 1700000000000000;
+        timestamp::update_global_time_for_test(base_micros);
+
+        seasons::init_seasons(&publisher);
+        let now = timestamp::now_seconds();
+        seasons::create_season(
+            &publisher,
+            pub_addr,
+            string::utf8(b"Season 1"),
+            now + 10,
+            now + 86500,
+            0,
+            0
+        );
+        timestamp::update_global_time_for_test(base_micros + 20000000);
+        seasons::start_season(&publisher, pub_addr, 0);
+
+        quests::init_quests(&publisher);
+        quests::create_score_quest(
+            &publisher,
+            string::utf8(b"Seasonal"),
+            string::utf8(b"Score 10"),
+            0,
+            10,
+            0,
+            true
+        );
+
+        seasons::end_season(&publisher, pub_addr, 0);
+        quests::start_quest(&player1, pub_addr, 0);
+    }
+
+    #[test]
+    fun test_score_quest_respects_game_id_filter() {
+        let (publisher, player1, _) = setup_accounts();
+        let pub_addr = signer::address_of(&publisher);
+        let player1_addr = signer::address_of(&player1);
+
+        setup_game_environment(&publisher, &player1);
+        game_platform::register_game(&publisher, string::utf8(b"Game2"));
+
+        quests::create_score_quest(
+            &publisher,
+            string::utf8(b"Game1 only"),
+            string::utf8(b"Score 100 on game 1"),
+            1,
+            100,
+            0,
+            false
+        );
+
+        quests::start_quest(&player1, pub_addr, 0);
+        quests::submit_score_with_quest(&player1, pub_addr, 0, 500);
+        let (_, _, _, completed_wrong_game, _) =
+            quests::get_quest_progress(pub_addr, 0, player1_addr);
+        assert!(!completed_wrong_game, 0);
+
+        quests::submit_score_with_quest(&player1, pub_addr, 1, 150);
+        let (_, current, _, completed_ok, _) =
+            quests::get_quest_progress(pub_addr, 0, player1_addr);
+        assert!(current == 150, 1);
+        assert!(completed_ok, 2);
+    }
+
+    #[test]
+    fun test_streak_quest_two_consecutive_days_completes() {
+        let (publisher, player1, _) = setup_accounts();
+        let pub_addr = signer::address_of(&publisher);
+        let player1_addr = signer::address_of(&player1);
+
+        setup_game_environment(&publisher, &player1);
+        // Must match `init_test_chain_clock` baseline (microseconds).
+        let base_micros = 1700000000000000;
+
+        quests::create_streak_quest(
+            &publisher,
+            string::utf8(b"Two days"),
+            string::utf8(b"Play 2 days"),
+            2,
+            0,
+            false
+        );
+
+        quests::start_quest(&player1, pub_addr, 0);
+        quests::submit_score_with_quest(&player1, pub_addr, 0, 10);
+        let (_, p1, _, c1, _) =
+            quests::get_quest_progress(pub_addr, 0, player1_addr);
+        assert!(p1 == 1, 0);
+        assert!(!c1, 1);
+
+        timestamp::update_global_time_for_test(base_micros + 86400 * 1000000);
+        quests::submit_score_with_quest(&player1, pub_addr, 0, 20);
+        let (_, p2, _, c2, _) =
+            quests::get_quest_progress(pub_addr, 0, player1_addr);
+        assert!(p2 == 2, 2);
+        assert!(c2, 3);
+    }
+
+    #[test]
+    fun test_update_quest_progress_without_start_is_noop() {
+        let (publisher, player1, _) = setup_accounts();
+        let pub_addr = signer::address_of(&publisher);
+        let player1_addr = signer::address_of(&player1);
+
+        setup_game_environment(&publisher, &player1);
+        quests::create_achievement_quest(
+            &publisher,
+            string::utf8(b"Achieve"),
+            string::utf8(b"Get 3 achievements"),
+            3,
+            0,
+            false
+        );
+
+        quests::update_quest_progress(&player1, pub_addr, 0);
+        let (has_progress, _, _, _, _) =
+            quests::get_quest_progress(pub_addr, 0, player1_addr);
+        assert!(!has_progress, 0);
+    }
+
+    #[test]
+    fun test_submit_score_with_quest_skips_unstarted_quests() {
+        let (publisher, player1, _) = setup_accounts();
+        let pub_addr = signer::address_of(&publisher);
+        let player1_addr = signer::address_of(&player1);
+
+        setup_game_environment(&publisher, &player1);
+        quests::create_score_quest(
+            &publisher,
+            string::utf8(b"Q"),
+            string::utf8(b"Score 50"),
+            0,
+            50,
+            0,
+            false
+        );
+
+        quests::submit_score_with_quest(&player1, pub_addr, 0, 999);
+        let (has_progress, _, _, _, _) =
+            quests::get_quest_progress(pub_addr, 0, player1_addr);
+        assert!(!has_progress, 0);
+
+        let (has_score, best, _) =
+            game_platform::score_summary(pub_addr, player1_addr, 0);
+        assert!(has_score, 1);
+        assert!(best == 999, 2);
     }
 }
 

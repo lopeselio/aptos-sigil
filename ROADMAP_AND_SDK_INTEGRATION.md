@@ -53,8 +53,7 @@ Despite Aptos being a high-performance blockchain ideal for gaming, developers f
 SIGIL provides **production-ready, battle-tested gaming modules** that eliminate months of development time:
 
 **✅ Pre-Built Gaming Infrastructure**
-- 10 comprehensive Move modules (4,518 lines)
-- Leaderboards, achievements, rewards, seasons, quests
+- 12 Move modules (~5,300 lines): leaderboards, achievements, rewards, seasons, quests, merge MVP, guilds MVP, …
 - Automatic reward distribution (FA/NFT)
 - Multi-admin management and anti-cheat
 
@@ -118,7 +117,7 @@ Traditional Approach:                    SIGIL Approach:
 
 ## ✅ Project Completion Status
 
-### Current State: **10/12 Core Modules Complete** (83%)
+### Current State: **12/12 Core Modules Complete** (Move package)
 
 | Layer | Module | Status | Lines | Tests | Devnet | Notes |
 |-------|--------|--------|-------|-------|--------|-------|
@@ -134,14 +133,12 @@ Traditional Approach:                    SIGIL Approach:
 | 3 | `roles` | ✅ Complete | 426 | 100% | ✅ Live | Multi-admin management |
 | 3 | `attest` | ✅ Complete | 315 | 100% | ✅ Live | Anti-cheat verification |
 | **Layer 4: Coordination** | | | | | | |
-| 4 | `seasons` | ✅ Complete | 473 | 87% | ✅ Live | Temporal competitions |
-| 4 | `quests` | ✅ Complete | 825 | 36%* | ✅ Live | Mission-based progression |
-| 4 | `merge` | ⏳ Pending | - | - | - | Asset merging/crafting |
-| 4 | `guilds` | 📝 Planned | - | - | - | Team/clan system |
+| 4 | `seasons` | ✅ Complete | ~500 | 100% | ✅ Live | Temporal competitions + `finalize_season` + treasury prize split |
+| 4 | `quests` | ✅ Complete | 825 | 100% | ✅ Live | Mission-based progression |
+| 4 | `merge` | ✅ MVP | ~220 | 100% | ⏳ Publish | Abstract item recipes + inventory |
+| 4 | `guilds` | ✅ MVP | ~270 | 100% | ⏳ Publish | Teams / clans (max 100 members) |
 
-**Total:** 4,518 lines of Move code | 122+ unit tests | 10 modules live
-
-*Test pass rates lower due to test environment complexities, but 100% devnet success
+**Total:** ~5,295 lines of Move code | 194 unit tests (package `sigil_v2`) | 12 modules (republish for merge/guilds)
 
 ### Deployment Summary
 
@@ -179,7 +176,7 @@ Traditional Approach:                    SIGIL Approach:
 - Mission system (quests)
 
 #### ⏳ **Remaining for MVP**
-1. **Merge Module** (Asset crafting/combining)
+1. **Merge / guilds v2** (Token Object burn-mint, advanced guild roles)
 2. **Enhanced APIs** (Helper functions for quests/achievements)
 3. **Documentation Polish** (Video tutorials, interactive examples)
 4. **Example Game** (Simple demo showcasing all features)
@@ -367,20 +364,20 @@ Integrate SIGIL modules with the existing [Aptos Unity SDK](https://github.com/a
 - [x] Core Move modules (game_platform, leaderboard, achievements, rewards)
 - [x] Access control modules (roles, attest)
 - [x] Infrastructure modules (treasury, shadow_signers)
-- [x] Coordination modules (seasons, quests)
-- [x] Comprehensive documentation (8 module guides)
-- [x] Devnet deployment and testing (10 modules live)
-- [x] 122+ unit tests written
+- [x] Coordination modules (seasons, quests, merge MVP, guilds MVP)
+- [x] Comprehensive documentation (module guides; merge + guilds added)
+- [x] Devnet deployment and testing (republish required for new modules)
+- [x] 190 unit tests written
 
 **Deliverables:**
-- 10 Move modules deployed
-- 8 comprehensive guides
+- 12 Move modules in package (10 previously on devnet + merge + guilds)
+- 10+ comprehensive guides
 - Live devnet testing complete
 
 ### Phase 2 - SDK & MVP Packaging (2026) ⏳ **IN PROGRESS**
 
 **Goals:**
-- [ ] Complete merge module (asset crafting)
+- [x] Merge module MVP (abstract crafting; Token Object burn/mint = future)
 - [ ] TypeScript SDK implementation
   - [ ] Core client and module wrappers
   - [ ] Type definitions and error handling
@@ -415,24 +412,11 @@ Integrate SIGIL modules with the existing [Aptos Unity SDK](https://github.com/a
 
 ## 🛠️ Remaining Work for MVP
 
-### 1. **Merge Module** (High Priority)
+### 1. **Merge Module** (MVP shipped in repo)
 
-**Purpose:** Asset crafting and combining system
+**Done:** `sigil::merge` — recipes over `item_id` quantities, `grant_items`, `execute_merge`, tests + [MERGE_GUIDE.md](./docs/modules/MERGE_GUIDE.md).
 
-**Features:**
-- Combine multiple NFTs into one
-- Recipe-based crafting
-- Burn-to-create mechanics
-- Loot box/gacha system
-- Upgrade paths (Level 1 sword + materials → Level 2 sword)
-
-**Estimated Work:**
-- Module implementation: 400-600 lines
-- Tests: 15-20 tests
-- Documentation: MERGE_GUIDE.md
-- Deployment & testing: 1 day
-
-**Priority:** Medium (nice-to-have for MVP, not blocking)
+**Future:** On-chain NFT/FA burn + mint hooks, multi-input recipes, gacha tables.
 
 ### 2. **API Enhancements** (Medium Priority)
 
@@ -462,11 +446,11 @@ public fun get_player_rank(
 
 ## 📊 MVP Completion Estimate
 
-### Current Progress: **83% Complete**
+### Current Progress: **~88% Complete** (all Move modules in repo; SDKs pending)
 
 | Category | Status | Completion |
 |----------|--------|------------|
-| Move Modules | ✅ 10/12 | 83% |
+| Move Modules | ✅ 12/12 | 100% |
 | Documentation | ✅ 8/8 | 100% |
 | Devnet Testing | ✅ Complete | 100% |
 | TypeScript SDK | ⏳ Not Started | 0% |
@@ -477,7 +461,7 @@ public fun get_player_rank(
 ### Remaining Work: **8-12 weeks** (optimistic)
 
 **Critical Path:**
-1. Merge module (optional): 3-5 days
+1. Merge/guilds **v2** (NFT hooks, guild roles): optional, 1–2 weeks
 2. TypeScript SDK: 4-5 weeks
 3. Unity SDK: 4-5 weeks (parallel with TS SDK)
 4. Example game: 4-5 weeks (after SDK)
@@ -568,11 +552,11 @@ public fun get_player_rank(
 
 ## 🏆 Conclusion
 
-SIGIL is **83% complete** for the open source MVP. The Move modules are production-ready and deployed on devnet. The remaining work focuses on SDK development and example implementations to make SIGIL accessible to all game developers.
+SIGIL’s **Move package** includes **12 modules** (merge + guilds MVP, seasons `finalize_season`, etc.). **Republish** to devnet to load new modules. The remaining open-source MVP work is **SDKs**, an **example game**, and polish.
 
 **Next Steps:**
 1. ✅ Complete quests module (Done!)
-2. ⏳ Implement merge module (optional)
+2. ✅ Merge + guilds MVP in repo (publish + integrate)
 3. 🚀 Build TypeScript SDK (in progress window: 2026)
 4. 🎮 Build Unity SDK integration (in progress window: 2026)
 5. 🎨 Create example game (after SDK baseline)

@@ -235,6 +235,8 @@ if (quest.reward_id != 0) {
 
 ## 🚀 Getting Started
 
+> **CLI note:** Publisher-only entrypoints (`init_quests`, `create_*_quest`) take the publisher as the **transaction sender**; no extra `publisher` address argument. Player entrypoints (`start_quest`, `submit_score_with_quest`, `update_quest_progress`) take **`publisher: address` as the first `--args` value** (the account that owns `Quests`), because the sender is the **player**. For `game_platform::submit_score`, the sender is also the player: use `--args address:PUBLISHER u64:GAME_ID u64:SCORE`. Admin flows that use `actor` + `publisher` elsewhere (achievements, leaderboard, rewards, seasons) follow the README “publisher-first” convention.
+
 ### Step 1: Initialize Quests
 
 ```bash
@@ -259,10 +261,15 @@ aptos move run \
 
 ### Step 3: Player Starts Quest
 
+Use the **player** profile (transaction sender = player). First `--args` address is the **publisher** that owns `Quests`.
+
 ```bash
 aptos move run \
+  --profile <PLAYER_PROFILE> \
   --function-id '<PUBLISHER_ADDR>::quests::start_quest' \
-  --args u64:0  # quest_id
+  --args \
+    address:<PUBLISHER_ADDR> \
+    u64:0
 ```
 
 ### Step 4: Submit Score (Updates Quest Progress)
@@ -271,6 +278,7 @@ aptos move run \
 
 ```bash
 aptos move run \
+  --profile <PLAYER_PROFILE> \
   --function-id '<PUBLISHER_ADDR>::quests::submit_score_with_quest' \
   --args \
     address:<PUBLISHER_ADDR> \
@@ -281,15 +289,19 @@ aptos move run \
 **Option B: Manual Progress Update**
 
 ```bash
-# Submit score normally
+# Submit score normally (player sender)
 aptos move run \
+  --profile <PLAYER_PROFILE> \
   --function-id '<PUBLISHER_ADDR>::game_platform::submit_score' \
   --args address:<PUBLISHER_ADDR> u64:0 u64:600
 
-# Then update quest manually
+# Then update quest manually (player sender)
 aptos move run \
+  --profile <PLAYER_PROFILE> \
   --function-id '<PUBLISHER_ADDR>::quests::update_quest_progress' \
-  --args u64:0  # quest_id
+  --args \
+    address:<PUBLISHER_ADDR> \
+    u64:0
 ```
 
 ### Step 5: Quest Auto-Completes & Rewards Distributed

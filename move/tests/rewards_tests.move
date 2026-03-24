@@ -46,7 +46,7 @@ module sigil::rewards_tests {
     }
 
     #[test]
-    #[expected_failure(abort_code = 0)] // E_ALREADY_INIT
+    #[expected_failure(abort_code = 0, location = sigil::rewards)] // E_ALREADY_INIT
     fun test_init_rewards_twice_fails() {
         let publisher = account::create_account_for_test(@0x123);
         rewards::init_rewards(&publisher);
@@ -121,7 +121,7 @@ module sigil::rewards_tests {
     }
 
     #[test]
-    #[expected_failure(abort_code = 6)] // E_INVALID_SUPPLY
+    #[expected_failure(abort_code = 6, location = sigil::rewards)] // E_INVALID_SUPPLY
     fun test_attach_nft_with_zero_supply_fails() {
         let (publisher, _, _) = setup_test_accounts();
         rewards::init_rewards_for_test(&publisher);
@@ -140,7 +140,7 @@ module sigil::rewards_tests {
     }
 
     #[test]
-    #[expected_failure(abort_code = 2)] // E_ALREADY_ATTACHED
+    #[expected_failure(abort_code = 2, location = sigil::rewards)] // E_ALREADY_ATTACHED
     fun test_attach_reward_twice_fails() {
         let (publisher, _, _) = setup_test_accounts();
         rewards::init_rewards_for_test(&publisher);
@@ -197,7 +197,7 @@ module sigil::rewards_tests {
     }
 
     #[test]
-    #[expected_failure(abort_code = 4)] // E_ALREADY_CLAIMED
+    #[expected_failure(abort_code = 4, location = sigil::rewards)] // E_ALREADY_CLAIMED
     fun test_double_claim_fails() {
         let (publisher, player1, _) = setup_test_accounts();
         rewards::init_rewards_for_test(&publisher);
@@ -213,7 +213,7 @@ module sigil::rewards_tests {
     }
 
     #[test]
-    #[expected_failure(abort_code = 5)] // E_OUT_OF_STOCK
+    #[expected_failure(abort_code = 5, location = sigil::rewards)] // E_OUT_OF_STOCK
     fun test_claim_out_of_stock_fails() {
         let (publisher, player1, player2) = setup_test_accounts();
         let player3 = account::create_account_for_test(@0xdef);
@@ -234,7 +234,7 @@ module sigil::rewards_tests {
     }
 
     #[test]
-    #[expected_failure(abort_code = 1)] // E_NOT_FOUND
+    #[expected_failure(abort_code = 1, location = sigil::rewards)] // E_NOT_FOUND
     fun test_claim_non_existent_reward_fails() {
         let (publisher, player1, _) = setup_test_accounts();
         rewards::init_rewards_for_test(&publisher);
@@ -361,7 +361,7 @@ module sigil::rewards_tests {
     }
 
     #[test]
-    #[expected_failure(abort_code = 4)] // E_ALREADY_CLAIMED
+    #[expected_failure(abort_code = 4, location = sigil::rewards)] // E_ALREADY_CLAIMED
     fun test_remove_reward_with_claims_fails() {
         let (publisher, player1, _) = setup_test_accounts();
         rewards::init_rewards_for_test(&publisher);

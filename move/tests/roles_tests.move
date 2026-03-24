@@ -64,7 +64,7 @@ module sigil::roles_tests {
     fun test_add_admin_not_owner_fails() {
         let (publisher, admin, operator, _) = setup_test_accounts();
         let pub_addr = signer::address_of(&publisher);
-        let admin_addr = signer::address_of(&admin);
+        let _admin_addr = signer::address_of(&admin);
         let op_addr = signer::address_of(&operator);
         
         roles::init_roles(&publisher);
