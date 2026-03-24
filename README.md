@@ -185,12 +185,19 @@ aptos move compile --save-metadata
 
 ### 5. Deploy to Devnet
 
+The `sigil_v2` package exceeds the default **60 KB** publish limit unless you shrink artifacts or use chunked publish. Use a profile that controls the **`sigil` address** in `move/Move.toml`.
+
 ```bash
+cd move
 aptos move publish \
-  --package-dir move \
-  --profile sigil-main \
-  --assume-yes
+  --profile YOUR_PUBLISHER_PROFILE \
+  --included-artifacts none \
+  --skip-fetch-latest-git-deps \
+  --assume-yes \
+  --max-gas 2000000
 ```
+
+See [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) for **chunked publish** (`--chunked-publish`, devnet `large_packages` at `0x7`) and a **devnet season + treasury payout smoke script**: `./scripts/devnet_season_payout_smoke.sh`.
 
 ### 6. Initialize the Modules
 
