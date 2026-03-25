@@ -7,7 +7,7 @@
 #   - Account funded on devnet (faucet).
 #
 # Usage:
-#   export APTOS_PROFILE=phase-final-test   # example; must match Move.toml [addresses].sigil
+#   export APTOS_PROFILE=sigil-main       # or `devnet`; must match Move.toml [addresses].sigil
 #   ./scripts/devnet_season_payout_smoke.sh
 #
 # Optional:
@@ -21,11 +21,11 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 MOVE_DIR="$ROOT/move"
 
 # Must equal `sigil` under [addresses] in move/Move.toml
-PUB="${SIGIL_PUBLISHER:-0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19}"
+PUB="${SIGIL_PUBLISHER:-0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6}"
 PROFILE="${APTOS_PROFILE:?Set APTOS_PROFILE to an Aptos CLI profile for $PUB}"
 SLEEP_SEC="${SLEEP_AFTER_CREATE:-110}"
 
-if [[ "$(echo "$PUB" | tr '[:upper:]' '[:lower:]')" != 0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19 ]]; then
+if [[ "$(echo "$PUB" | tr '[:upper:]' '[:lower:]')" != 0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 ]]; then
   echo "Warning: PUB/SIGIL_PUBLISHER differs from repo Move.toml default; ensure it matches [addresses].sigil."
 fi
 
