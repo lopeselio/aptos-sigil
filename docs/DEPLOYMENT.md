@@ -74,4 +74,6 @@ export APTOS_PROFILE=your_publisher_profile
 
 Set `SKIP_PUBLISH=1` to only run the on-chain calls after you have already published. The script uses **native APT** metadata **`0xa`** (primary-store compatible). See `scripts/devnet_season_payout_smoke.sh` for tunables (`SLEEP_AFTER_CREATE`, `PUBLISH_CHUNKED`, etc.).
 
+**Faster multi-module smoke (no season wait):** `./scripts/devnet_quick_module_smoke.sh` — inits, a game registration, leaderboard score, achievement, guild, merge recipe + grant, quest, small treasury deposit, and a few views (~minute, no `sleep`).
+
 Detailed command snippets also live in the [README](../README.md) (CLI sections per module).
