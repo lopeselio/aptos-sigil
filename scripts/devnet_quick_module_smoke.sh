@@ -5,6 +5,9 @@
 #   export APTOS_PROFILE=sigil-main   # or devnet
 #   ./scripts/devnet_quick_module_smoke.sh
 #
+# Optional:
+#   SKIP_INITS=1   Skip module init_* calls (cleaner logs / less gas on repeat runs)
+#
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -25,21 +28,25 @@ parse_u64() {
 
 echo "== Quick module smoke profile=$PROFILE publisher=$PUB =="
 
-echo "== Inits (ignore if already done) =="
-set +e
-run --function-id "${PUB}::merge::init_merge" || true
-run --function-id "${PUB}::guilds::init_guilds" || true
-run --function-id "${PUB}::game_platform::init" || true
-run --function-id "${PUB}::leaderboard::init_leaderboards" || true
-run --function-id "${PUB}::seasons::init_seasons" || true
-run --function-id "${PUB}::treasury::init_treasury" || true
-run --function-id "${PUB}::achievements::init_achievements" || true
-run --function-id "${PUB}::rewards::init_rewards" || true
-run --function-id "${PUB}::roles::init_roles" || true
-run --function-id "${PUB}::quests::init_quests" || true
-run --function-id "${PUB}::shadow_signers::init_sessions" || true
-run --function-id "${PUB}::attest::init_attest" --args "hex:${PK32}" u64:60 || true
-set -e
+if [[ "${SKIP_INITS:-0}" == "1" ]]; then
+  echo "== SKIP_INITS=1: skipping module inits =="
+else
+  echo "== Inits (ignore if already done; set SKIP_INITS=1 to skip) =="
+  set +e
+  run --function-id "${PUB}::merge::init_merge" || true
+  run --function-id "${PUB}::guilds::init_guilds" || true
+  run --function-id "${PUB}::game_platform::init" || true
+  run --function-id "${PUB}::leaderboard::init_leaderboards" || true
+  run --function-id "${PUB}::seasons::init_seasons" || true
+  run --function-id "${PUB}::treasury::init_treasury" || true
+  run --function-id "${PUB}::achievements::init_achievements" || true
+  run --function-id "${PUB}::rewards::init_rewards" || true
+  run --function-id "${PUB}::roles::init_roles" || true
+  run --function-id "${PUB}::quests::init_quests" || true
+  run --function-id "${PUB}::shadow_signers::init_sessions" || true
+  run --function-id "${PUB}::attest::init_attest" --args "hex:${PK32}" u64:60 || true
+  set -e
+fi
 
 echo "== game_platform: register_game =="
 set +e

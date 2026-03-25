@@ -12,6 +12,7 @@
 #
 # Optional:
 #   SKIP_PUBLISH=1              Skip `aptos move publish`
+#   SKIP_INITS=1                Skip optional module init_* calls (avoids E_ALREADY_INIT noise and wasted gas on re-runs)
 #   PUBLISH_CHUNKED=1           Use --chunked-publish (and default/sparse artifacts) instead of --included-artifacts none
 #   SLEEP_AFTER_CREATE=100      Seconds to wait after create_season (must be > end_time - start_time)
 #
@@ -63,17 +64,21 @@ else
   echo "== SKIP_PUBLISH=1: not publishing =="
 fi
 
-echo "== Optional module inits (ok if already initialized) =="
-set +e
-run --function-id "${PUB}::merge::init_merge" || true
-run --function-id "${PUB}::guilds::init_guilds" || true
-run --function-id "${PUB}::game_platform::init" || true
-run --function-id "${PUB}::leaderboard::init_leaderboards" || true
-run --function-id "${PUB}::seasons::init_seasons" || true
-run --function-id "${PUB}::treasury::init_treasury" || true
-run --function-id "${PUB}::achievements::init_achievements" || true
-run --function-id "${PUB}::rewards::init_rewards" || true
-set -e
+if [[ "${SKIP_INITS:-0}" == "1" ]]; then
+  echo "== SKIP_INITS=1: skipping module inits =="
+else
+  echo "== Optional module inits (ok if already initialized; set SKIP_INITS=1 to skip) =="
+  set +e
+  run --function-id "${PUB}::merge::init_merge" || true
+  run --function-id "${PUB}::guilds::init_guilds" || true
+  run --function-id "${PUB}::game_platform::init" || true
+  run --function-id "${PUB}::leaderboard::init_leaderboards" || true
+  run --function-id "${PUB}::seasons::init_seasons" || true
+  run --function-id "${PUB}::treasury::init_treasury" || true
+  run --function-id "${PUB}::achievements::init_achievements" || true
+  run --function-id "${PUB}::rewards::init_rewards" || true
+  set -e
+fi
 
 echo "== Register game (ignore failure if duplicate) =="
 set +e
