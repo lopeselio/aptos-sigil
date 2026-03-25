@@ -1,0 +1,25 @@
+{
+  "name": "@sigil-aptos/sdk",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Minimal TypeScript helpers for Sigil Move modules on Aptos",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck:examples": "tsc -p examples/tsconfig.json",
+    "example:deeper-smoke": "npx tsx examples/deeper-smoke.ts"
+  },
+  "dependencies": {
+    "@aptos-labs/ts-sdk": "^6.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

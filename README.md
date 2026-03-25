@@ -199,6 +199,17 @@ aptos move publish \
 
 See [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) for **chunked publish** (`--chunked-publish`, devnet `large_packages` at `0x7`) and a **devnet season + treasury payout smoke script**: `./scripts/devnet_season_payout_smoke.sh`.
 
+### Devnet QA (smoke tests)
+
+From the repo root, use a publisher profile whose address matches `[addresses].sigil` in `move/Move.toml` (e.g. `sigil-main`).
+
+| Flow | Command | Notes |
+|------|---------|--------|
+| Fast multi-module touch | `export APTOS_PROFILE=sigil-main` then `./scripts/devnet_quick_module_smoke.sh` | No season wait. |
+| Rewards pool + FA attach + optional `claim_testing` | `export APTOS_PROFILE=sigil-main` and `export APTOS_PLAYER_PROFILE=…` (a **second** account), then `./scripts/devnet_deeper_onchain_smoke.sh` | `claim_testing` is **player-signed**. Fund the player with `aptos account fund-with-faucet --profile YOUR_PLAYER_PROFILE` if you see `INSUFFICIENT_BALANCE_FOR_TRANSACTION_FEE`. |
+| Season → treasury deposit → finalize / payout | `SKIP_PUBLISH=1 APTOS_PROFILE=sigil-main ./scripts/devnet_season_payout_smoke.sh` | Waits ~110s after creating the season for chain time to pass `end_time`. |
+| TypeScript (`@aptos-labs/ts-sdk`) | `cd sdk/typescript && npm install && npm run typecheck:examples` then `SIGIL_PUBLISHER_PRIVATE_KEY=0x… npm run example:deeper-smoke` | Optional: `SIGIL_PLAYER_PRIVATE_KEY` and `FA_ACHIEVEMENT_ID`. Fund the player on devnet before the claim step if needed. |
+
 ### 6. Initialize the Modules
 
 **Important:** Initialize all modules after deployment.
