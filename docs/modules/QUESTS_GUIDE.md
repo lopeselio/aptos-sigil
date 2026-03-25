@@ -761,7 +761,7 @@ await createRankQuest({
 
 ### Devnet Deployment
 
-**Address:** `0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19`  
+**Address:** `0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6`  
 **Deployment Method:** Chunked publish (package size: 68,533 bytes)  
 **Transaction 1:** [0x99889d38de548abf5f0d39bb3cd130b04aed01a6d9f2fd32c5c9b0a56193c907](https://explorer.aptoslabs.com/txn/0x99889d38de548abf5f0d39bb3cd130b04aed01a6d9f2fd32c5c9b0a56193c907?network=devnet) ✅  
 **Transaction 2:** [0xeeea89c1a25acb21541932a65ee7a2c89541e4485d2dd334857c39b1dd68c18a](https://explorer.aptoslabs.com/txn/0xeeea89c1a25acb21541932a65ee7a2c89541e4485d2dd334857c39b1dd68c18a?network=devnet) ✅  

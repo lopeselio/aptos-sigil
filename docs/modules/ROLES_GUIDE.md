@@ -5,7 +5,7 @@
 **Last Updated:** October 2025  
 **Module:** `sigil::roles`  
 **Status:** ✅ **LIVE on Devnet**  
-**Address:** `0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19`
+**Address:** `0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6`
 
 ---
 
@@ -149,7 +149,7 @@ public entry fun add_admin(
 aptos move run \
   --function-id '0x1cc...::roles::add_admin' \
   --args address:0x1cc... address:0xADMIN_ADDRESS \
-  --profile phase-final-test
+  --profile sigil-main
 ```
 
 ---
@@ -200,7 +200,7 @@ public entry fun add_operator(
 aptos move run \
   --function-id '0x1cc...::roles::add_operator' \
   --args address:0x1cc... address:0xOPERATOR_ADDRESS \
-  --profile phase-final-test
+  --profile sigil-main
 ```
 
 ---
@@ -330,8 +330,8 @@ public entry fun create(publisher: &signer, ...) {
 ```bash
 # As publisher
 aptos move run \
-  --function-id '0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19::roles::init_roles' \
-  --profile phase-final-test \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::roles::init_roles' \
+  --profile sigil-main \
   --assume-yes
 ```
 
@@ -340,10 +340,10 @@ aptos move run \
 ```bash
 # Owner adds admin
 aptos move run \
-  --function-id '0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19::roles::add_admin' \
-  --args address:0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19 \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::roles::add_admin' \
+  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 \
          address:0xADMIN_ADDRESS \
-  --profile phase-final-test \
+  --profile sigil-main \
   --assume-yes
 ```
 
@@ -352,8 +352,8 @@ aptos move run \
 ```bash
 # Admin adds operator
 aptos move run \
-  --function-id '0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19::roles::add_operator' \
-  --args address:0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19 \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::roles::add_operator' \
+  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 \
          address:0xOPERATOR_ADDRESS \
   --profile admin-profile \
   --assume-yes
@@ -364,8 +364,8 @@ aptos move run \
 ```bash
 # Check if operator can manage achievements
 aptos move view \
-  --function-id '0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19::roles::can_manage_achievements' \
-  --args address:0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19 \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::roles::can_manage_achievements' \
+  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 \
          address:0xOPERATOR_ADDRESS
 
 # Expected output: [true]
@@ -376,8 +376,8 @@ aptos move view \
 ```bash
 # Get all roles for an address
 aptos move view \
-  --function-id '0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19::roles::get_role_summary' \
-  --args address:0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19 \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::roles::get_role_summary' \
+  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 \
          address:0xUSER_ADDRESS
 
 # Expected output: [false, true, false]  (not owner, is admin, not operator)
@@ -388,8 +388,8 @@ aptos move view \
 ```bash
 # Unauthorized user tries to create achievement (with roles enabled)
 aptos move run \
-  --function-id '0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19::achievements::create' \
-  --args address:0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19 hex:"556e617574686f72697a6564" hex:"546573" u64:100 hex:"" \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::create' \
+  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 hex:"556e617574686f72697a6564" hex:"546573" u64:100 hex:"" \
   --profile unauthorized-profile \
   --assume-yes
 
@@ -605,7 +605,7 @@ public entry fun create(publisher: &signer, ...) acquires Achievements {
 ## Explorer Links
 
 **Deployed Modules:**
-- [View on Explorer](https://explorer.aptoslabs.com/account/0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19/modules?network=devnet)
+- [View on Explorer](https://explorer.aptoslabs.com/account/0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6/modules?network=devnet)
 
 **Deployment Transaction:**
 - [0xaf62f47...](https://explorer.aptoslabs.com/txn/0xaf62f47a2d3e81f174755a9c35beb128794fcf80e92d34493855b29226b7b503?network=devnet)

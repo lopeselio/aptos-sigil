@@ -817,7 +817,7 @@ displayLeaderboard(globalTop);
 
 ### Devnet Deployment
 
-**Address:** `0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19`
+**Address:** `0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6`
 
 **Transaction:** [0x8802d5828092f9d11c8178b35482b7d368f88b83be2a049550717824d8ac91ba](https://explorer.aptoslabs.com/txn/0x8802d5828092f9d11c8178b35482b7d368f88b83be2a049550717824d8ac91ba?network=devnet)
 
@@ -1151,7 +1151,7 @@ The seasons module integrates with:
 
 ## 📚 Additional Resources
 
-- **Explorer:** [View seasons module on devnet](https://explorer.aptoslabs.com/account/0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19/modules/code/seasons?network=devnet)
+- **Explorer:** [View seasons module on devnet](https://explorer.aptoslabs.com/account/0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6/modules/code/seasons?network=devnet)
 - **Source Code:** [seasons.move](../../move/sources/seasons.move)
 - **Tests:** [seasons_tests.move](../../move/tests/seasons_tests.move)
 - **Main README:** [Project overview](../../README.md)
