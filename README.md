@@ -1,7 +1,7 @@
 # Sigil Game Platform - Aptos Smart Contract
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Aptos](https://img.shields.io/badge/Aptos-Devnet-blue.svg)](https://explorer.aptoslabs.com/account/0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19?network=devnet)
+[![Aptos](https://img.shields.io/badge/Aptos-Devnet-blue.svg)](https://explorer.aptoslabs.com/account/0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6?network=devnet)
 [![Move](https://img.shields.io/badge/Move-10_Modules-brightgreen.svg)](./move/sources/)
 
 **SIGIL - Signatures for In-Game Incentives & Leaderboards**
@@ -961,13 +961,13 @@ roles::add_operator(economy_lead, community_manager)
 - [Achievements Module Upgraded](https://explorer.aptoslabs.com/txn/0xc411143c25a9fbf6352993b597846fdd7b8f026248a8ae26b1bd451cf61ade0c?network=devnet)
 - [Rewards Module Deployed](https://explorer.aptoslabs.com/txn/0x4bc16150bb80e5c28fe9a773ffe4c4963395b40475074212877a564c529b5ff1?network=devnet)
 
-### **🎊 Phase Final Deployment** (phase-final-test) ⚡ **AUTOMATIC REWARDS!**
-**Module Address:** `0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19`  
+### **🎊 Devnet deployment** (`sigil-main` / `devnet` profile = `Move.toml` `sigil`) ⚡ **AUTOMATIC REWARDS!**
+**Module Address:** `0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6`  
 **Resource Account:** `0x7352fcfd4658a3181264d1ac50ccdde5c56dc73d4fbc07887e4fb24c8e109835`  
 **Modules:** ALL 10 modules with **automatic FA/NFT distribution + seasons + quests + anti-cheat!**
 
 **Explorer Links:**
-- [Account View](https://explorer.aptoslabs.com/account/0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19?network=devnet)
+- [Account View](https://explorer.aptoslabs.com/account/0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6?network=devnet)
 - [Full Deployment (Phase Final)](https://explorer.aptoslabs.com/txn/0xe97a033ed80f75b7f488c3dbcf28cc1fb6fbd901a5118c7baf7ac69c21311d15?network=devnet) (Gas: 19,106 units)
 - [**Automatic 0.5 APT Transfer**](https://explorer.aptoslabs.com/txn/0x44537872b1dc81cb0a586e682a5c33796cd939e8db862ef4e374961f40a7094d?network=devnet) ⚡ (Gas: 870 units)
 
