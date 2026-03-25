@@ -95,6 +95,89 @@ export class SigilClient {
     });
   }
 
+  /** Publishes `game_platform::Player` under the sender (one-time per address). */
+  buildRegisterPlayer(args: {
+    sender: Account;
+    username: string;
+    options?: InputGenerateTransactionOptions;
+  }) {
+    return this.aptos.transaction.build.simple({
+      sender: args.sender.accountAddress,
+      data: {
+        function: this.fid("game_platform", "register_player"),
+        functionArguments: [args.username],
+      },
+      options: args.options,
+    });
+  }
+
+  /** Player-signed score for a publisher’s game (requires `register_player` first). */
+  buildSubmitScore(args: {
+    sender: Account;
+    gameId: AnyNumber;
+    score: AnyNumber;
+    options?: InputGenerateTransactionOptions;
+  }) {
+    return this.aptos.transaction.build.simple({
+      sender: args.sender.accountAddress,
+      data: {
+        function: this.fid("game_platform", "submit_score"),
+        functionArguments: [this.moduleAddress, args.gameId, args.score],
+      },
+      options: args.options,
+    });
+  }
+
+  /**
+   * Payload for `useWallet().signAndSubmitTransaction` / Petra (sender = connected account).
+   * Matches `@aptos-labs/wallet-adapter-react` `InputTransactionData` shape.
+   */
+  walletPayloadRegisterPlayer(username: string) {
+    return {
+      data: {
+        function: this.fid("game_platform", "register_player"),
+        functionArguments: [username],
+      },
+    };
+  }
+
+  /** @see {@link walletPayloadRegisterPlayer} */
+  walletPayloadSubmitScore(args: { gameId: AnyNumber; score: AnyNumber }) {
+    return {
+      data: {
+        function: this.fid("game_platform", "submit_score"),
+        functionArguments: [this.moduleAddress, args.gameId, args.score],
+      },
+    };
+  }
+
+  async viewGameCount() {
+    return this.aptos.view({
+      payload: {
+        function: this.fid("game_platform", "game_count"),
+        functionArguments: [this.moduleAddress],
+      },
+    });
+  }
+
+  async viewLeaderboardCount() {
+    return this.aptos.view({
+      payload: {
+        function: this.fid("leaderboard", "get_leaderboard_count"),
+        functionArguments: [this.moduleAddress],
+      },
+    });
+  }
+
+  async viewTopEntries(leaderboardId: AnyNumber) {
+    return this.aptos.view({
+      payload: {
+        function: this.fid("leaderboard", "get_top_entries"),
+        functionArguments: [this.moduleAddress, leaderboardId],
+      },
+    });
+  }
+
   async viewReward(achievementId: AnyNumber) {
     return this.aptos.view({
       payload: {

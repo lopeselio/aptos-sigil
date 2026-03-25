@@ -7,6 +7,7 @@
  *   SIGIL_MODULE_ADDRESS         — defaults to devnet publisher in repo.
  *   FA_ACHIEVEMENT_ID            — u64 slot for attach_fa_reward (default 424242; change if E_ALREADY_ATTACHED).
  *   SIGIL_PLAYER_PRIVATE_KEY     — if set, runs claim_testing after attach.
+ *   SIGIL_FAUCET_PLAYER=0        — disable devnet faucet top-up for the player before claim (default: fund when player key is set).
  *   SKIP_FA_REWARD=1             — only run create_session + views.
  *
  * Run from sdk/typescript:
@@ -111,6 +112,13 @@ async function main() {
     const player = Account.fromPrivateKey({
       privateKey: new Ed25519PrivateKey(playerHex),
     });
+    if (process.env.SIGIL_FAUCET_PLAYER !== "0") {
+      console.log("== Devnet faucet: fund player for gas (set SIGIL_FAUCET_PLAYER=0 to skip) ==");
+      await aptos.fundAccount({
+        accountAddress: player.accountAddress,
+        amount: 100_000_000,
+      });
+    }
     console.log("== rewards::claim_testing (player)", player.accountAddress.toString(), "==");
     const claimTx = await sigil.buildClaimTesting({ sender: player, achievementId: achId });
     const claimPending = await aptos.signAndSubmitTransaction({ signer: player, transaction: claimTx });
