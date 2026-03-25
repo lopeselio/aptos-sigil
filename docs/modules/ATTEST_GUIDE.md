@@ -245,8 +245,8 @@ public fun get_last_nonce(publisher: address, player: address): (bool, u64)
 
 ## 💻 CLI Commands & Testing
 
-**Module Address:** `0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19`  
-**Profile:** phase-final-test
+**Module Address:** `0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6`  
+**Profile:** `sigil-main` or `devnet` (must match `[addresses].sigil` in `move/Move.toml`)
 
 ### **1. Initialize Attest**
 
@@ -256,8 +256,8 @@ public fun get_last_nonce(publisher: address, player: address): (bool, u64)
 SERVER_PUBKEY="0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20"
 
 aptos move run \
-  --profile phase-final-test \
-  --function-id '0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19::attest::init_attest' \
+  --profile sigil-main \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::attest::init_attest' \
   --args \
     hex:$SERVER_PUBKEY \
     u64:60 \
@@ -281,9 +281,9 @@ aptos move run \
 
 ```bash
 aptos move view \
-  --profile phase-final-test \
-  --function-id '0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19::attest::is_initialized' \
-  --args address:0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19
+  --profile sigil-main \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::attest::is_initialized' \
+  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6
 ```
 
 **Expected Result:**
@@ -299,9 +299,9 @@ aptos move view \
 
 ```bash
 aptos move view \
-  --profile phase-final-test \
-  --function-id '0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19::attest::get_server_pubkey' \
-  --args address:0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19
+  --profile sigil-main \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::attest::get_server_pubkey' \
+  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6
 ```
 
 **Expected Result:**
@@ -320,9 +320,9 @@ aptos move view \
 
 ```bash
 aptos move view \
-  --profile phase-final-test \
-  --function-id '0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19::attest::get_max_age' \
-  --args address:0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19
+  --profile sigil-main \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::attest::get_max_age' \
+  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6
 ```
 
 **Expected Result:**
@@ -340,10 +340,10 @@ aptos move view \
 PLAYER="0x14cbd78dff52d5f30941b1f891b80db3a520bb6fe698c1b1b09c8e4653f69604"
 
 aptos move view \
-  --profile phase-final-test \
-  --function-id '0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19::attest::get_last_nonce' \
+  --profile sigil-main \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::attest::get_last_nonce' \
   --args \
-    address:0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19 \
+    address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 \
     address:$PLAYER
 ```
 
@@ -363,8 +363,8 @@ aptos move view \
 NEW_SERVER_PUBKEY="2021222324252627282930313233343536373839404142434445464748495051"
 
 aptos move run \
-  --profile phase-final-test \
-  --function-id '0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19::attest::update_server_key' \
+  --profile sigil-main \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::attest::update_server_key' \
   --args hex:$NEW_SERVER_PUBKEY \
   --assume-yes --max-gas 2000
 ```
@@ -386,9 +386,9 @@ aptos move run \
 
 ```bash
 aptos move view \
-  --profile phase-final-test \
-  --function-id '0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19::attest::get_server_pubkey' \
-  --args address:0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19
+  --profile sigil-main \
+  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::attest::get_server_pubkey' \
+  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6
 ```
 
 **Expected Result:**
@@ -473,7 +473,7 @@ app.post('/api/verify-and-sign-score', async (req, res) => {
   }
   
   // 2. BUILD MESSAGE (must match contract format!)
-  const publisher = "0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19";
+  const publisher = "0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6";
   const timestamp = Math.floor(Date.now() / 1000);
   const nonce = (playerNonces.get(player) || 0) + 1;
   
@@ -858,7 +858,7 @@ Security:
 Format: "SIGIL_ATTEST_V1||{publisher}||{player}||{game_id}||{score}||{nonce}||{timestamp}"
 
 Example:
-"SIGIL_ATTEST_V1||0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19||0x14cbd78dff52d5f30941b1f891b80db3a520bb6fe698c1b1b09c8e4653f69604||0||1500||42||1760268000"
+"SIGIL_ATTEST_V1||0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6||0x14cbd78dff52d5f30941b1f891b80db3a520bb6fe698c1b1b09c8e4653f69604||0||1500||42||1760268000"
 
 Components:
 - Domain: SIGIL_ATTEST_V1 (prevents cross-app replay)
@@ -1047,7 +1047,7 @@ Server-side score verification module using ed25519 signatures to prevent cheati
 
 ---
 
-**Module Address:** `0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19`  
+**Module Address:** `0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6`  
 **Network:** Aptos Devnet  
 **Status:** ✅ Production Ready - Anti-Cheat Verified!
 

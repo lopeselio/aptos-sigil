@@ -142,7 +142,7 @@ Traditional Approach:                    SIGIL Approach:
 
 ### Deployment Summary
 
-**Address:** `0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19`  
+**Address:** `0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6`  
 **Network:** Aptos Devnet  
 **Deployment Method:** Chunked publish (large package support)  
 **Package Size:** 68,533 bytes  
@@ -234,7 +234,7 @@ Create a comprehensive TypeScript SDK that provides high-level abstractions over
                       ↓ calls
 ┌─────────────────────────────────────────────────────┐
 │         SIGIL Move Modules (On-Chain)               │
-│         Address: 0x1cc029...c19                     │
+│         Address: 0xe68ef23...ac6                     │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -482,7 +482,7 @@ public fun get_player_rank(
 
 - **Move Modules:** [GitHub Repository](https://github.com/lopeselio/aptos-sigil)
 - **Documentation:** [docs/modules/](./docs/modules/)
-- **Devnet Deployment:** [Explorer](https://explorer.aptoslabs.com/account/0x1cc029fcb6f1c5770147584f3bdedc9e0fe4a59353de514342b57cb4f4286c19?network=devnet)
+- **Devnet Deployment:** [Explorer](https://explorer.aptoslabs.com/account/0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6?network=devnet)
 
 ### External SDKs
 
