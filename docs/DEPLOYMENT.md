@@ -72,8 +72,8 @@ export APTOS_PROFILE=your_publisher_profile
 ./scripts/devnet_season_payout_smoke.sh
 ```
 
-Set `SKIP_PUBLISH=1` to only run the on-chain calls after you have already published. The script uses **native APT** metadata **`0xa`** (primary-store compatible). See `scripts/devnet_season_payout_smoke.sh` for tunables (`SLEEP_AFTER_CREATE`, `PUBLISH_CHUNKED`, etc.).
+Set `SKIP_PUBLISH=1` to only run the on-chain calls after you have already published. Set **`SKIP_INITS=1`** on repeat runs to skip optional `init_*` calls (avoids `E_ALREADY_INIT` spam and wasted gas once modules are initialized). The script uses **native APT** metadata **`0xa`** (primary-store compatible). See `scripts/devnet_season_payout_smoke.sh` for tunables (`SLEEP_AFTER_CREATE`, `PUBLISH_CHUNKED`, etc.).
 
-**Faster multi-module smoke (no season wait):** `./scripts/devnet_quick_module_smoke.sh` — inits, a game registration, leaderboard score, achievement, guild, merge recipe + grant, quest, small treasury deposit, and a few views (~minute, no `sleep`).
+**Faster multi-module smoke (no season wait):** `./scripts/devnet_quick_module_smoke.sh` — same optional inits (use **`SKIP_INITS=1`** when already initialized), a game registration, leaderboard score, achievement, guild, merge recipe + grant, quest, small treasury deposit, and a few views (~minute, no `sleep`).
 
 Detailed command snippets also live in the [README](../README.md) (CLI sections per module).
