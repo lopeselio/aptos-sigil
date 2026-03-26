@@ -1,7 +1,7 @@
 import { useWallet, WalletItem } from "@aptos-labs/wallet-adapter-react";
 import { AccountAddress, Network } from "@aptos-labs/ts-sdk";
 import React, { useMemo, useState } from "react";
-import { createAptosClient, SigilClient } from "../../../src/client.js";
+import { createAptosClient, DEFAULT_SIGIL_TX_GAS, SigilClient } from "../../../src/client.js";
 
 const DEFAULT_MODULE =
   import.meta.env.VITE_SIGIL_MODULE_ADDRESS ??
@@ -64,6 +64,24 @@ function rpcParseErrorHints(message: string): string[] {
   return lines;
 }
 
+/** True when the simulated execution succeeded (vm_status formats differ by SDK path). */
+function isTxSimulationSuccess(sim: Record<string, unknown>): boolean {
+  if (sim.success === true) return true;
+  const vm = String(sim.vm_status ?? "");
+  if (vm.includes("Executed successfully")) return true;
+  if (/EXECUTED/i.test(vm) && /Execution/i.test(vm)) return true;
+  return false;
+}
+
+/** Normalize `aptos.view` u64 result (number, bigint, string, or [x]). */
+function parseViewU64(value: unknown): number {
+  if (typeof value === "bigint") return Number(value);
+  if (typeof value === "number") return value;
+  if (typeof value === "string") return parseInt(value, 10);
+  if (Array.isArray(value) && value.length > 0) return parseViewU64(value[0]);
+  return NaN;
+}
+
 export function App() {
   const {
     wallets,
@@ -124,19 +142,20 @@ export function App() {
     }
   };
 
-  type SigilWalletPayload = { data: { function: string; functionArguments: unknown[] } };
+  type SigilWalletPayload = {
+    data: { function: string; typeArguments?: string[]; functionArguments: unknown[] };
+  };
 
-  /** Pre-set gas so the wallet spends less time estimating; tune if simulation still hangs. */
+  /** Pre-set gas: same as `aptos move run --max-gas 200000 --gas-unit-price 100`; wallet expiry is separate. */
   const WALLET_TX_OPTIONS = {
-    maxGasAmount: 150_000,
-    gasUnitPrice: 100,
+    ...DEFAULT_SIGIL_TX_GAS,
     expirationSecondsFromNow: 600,
   } as const;
 
-  /** Explicit `sender` + gas hints: helps Approve enable after simulation. */
+  /** Canonical sender + gas hints so wallet simulation matches the app’s preflight. */
   const walletTx = (payload: SigilWalletPayload) =>
     ({
-      sender: account!.address,
+      sender: account!.address.toString(),
       ...payload,
       options: { ...WALLET_TX_OPTIONS },
     }) as Parameters<typeof signAndSubmitTransaction>[0];
@@ -188,9 +207,62 @@ export function App() {
     );
   };
 
-  const onLoadBoard = async () => {
-    const top = await sigil.viewTopEntries(0);
-    push(`get_top_entries (lb 0): ${JSON.stringify(top)}`);
+  const onLoadBoard = async (leaderboardId: number) => {
+    try {
+      const countRaw = await sigil.viewLeaderboardCount();
+      const nextId = parseViewU64(countRaw);
+      if (!Number.isFinite(nextId) || nextId < 0) {
+        push(`get_top_entries (lb ${leaderboardId}): could not parse leaderboard count (raw: ${JSON.stringify(countRaw)})`);
+        return;
+      }
+      if (nextId === 0) {
+        push(
+          `get_top_entries (lb ${leaderboardId}): no leaderboards for this publisher — run leaderboard::init_leaderboards / create_leaderboard on this network first.`,
+        );
+        return;
+      }
+      if (leaderboardId < 0 || leaderboardId >= nextId) {
+        push(
+          `get_top_entries (lb ${leaderboardId}): invalid id — leaderboard next_id is ${nextId} (valid ids: 0..${nextId - 1}). Id 1 only exists after a second create_leaderboard.`,
+        );
+        return;
+      }
+      const top = await sigil.viewTopEntries(leaderboardId);
+      push(`get_top_entries (lb ${leaderboardId}): ${JSON.stringify(top)}`);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      push(`ERROR get_top_entries (lb ${leaderboardId}): ${msg}`);
+      if (/0x6507|table.*abort|Move abort.*table/i.test(msg)) {
+        push(
+          `→ Table lookup failed: this leaderboard id is missing under the publisher (same as id ≥ next_id).`,
+        );
+      }
+      rpcParseErrorHints(msg).forEach(push);
+      console.error(e);
+    }
+  };
+
+  /** Reads `game_platform::get_scores` — same store `submit_score` writes (not the leaderboard module). */
+  const onLoadMyGameScores = async () => {
+    if (!account) return;
+    let gid: bigint;
+    try {
+      gid = BigInt(gameId);
+    } catch {
+      push("ERROR get_scores: game_id must be an integer");
+      return;
+    }
+    try {
+      const rows = await sigil.viewPlayerGameScores({
+        player: account.address.toString(),
+        gameId: gid,
+      });
+      push(`game_platform::get_scores (you, game ${gameId}): ${JSON.stringify(rows)}`);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      push(`ERROR get_scores: ${msg}`);
+      rpcParseErrorHints(msg).forEach(push);
+    }
   };
 
   /** submit_score aborts without Player (run register_player once) and without game_id on-chain. */
@@ -240,11 +312,11 @@ export function App() {
     }
     push("Preflight: building transaction…");
     try {
-      const data = sigil.walletPayloadSubmitScore({ gameId: gid, score: sc }).data;
+      const payload = sigil.walletPayloadSubmitScore({ gameId: gid, score: sc });
       const t0 = performance.now();
       const transaction = await sigil.aptos.transaction.build.simple({
         sender: account.address.toString(),
-        data,
+        data: payload.data,
         options: { ...WALLET_TX_OPTIONS },
       });
       push("Preflight: simulating…");
@@ -268,10 +340,11 @@ export function App() {
         return;
       }
       const vm = String(sim.vm_status ?? "?");
+      const ok = isTxSimulationSuccess(sim);
       push(
-        `Preflight simulate (${ms}ms): success=${String(sim.success ?? "?")} vm_status=${vm} gas_used=${String(sim.gas_used ?? "?")}`,
+        `Preflight simulate (${ms}ms): success=${String(sim.success ?? "?")} vm_ok=${ok} vm_status=${vm} gas_used=${String(sim.gas_used ?? "?")}`,
       );
-      if (vm !== "Executed successfully" && vm !== "?") {
+      if (!ok) {
         push(
           `→ Move did not execute successfully; the wallet may keep Approve disabled. vm_status is the real error (Aptos does not echo println! from simulate).`,
         );
@@ -437,8 +510,23 @@ export function App() {
           </div>
 
           <h3>leaderboard (views)</h3>
-          <button type="button" onClick={() => void onLoadBoard()}>
+          <p style={{ color: "#666", fontSize: 13, marginBottom: 8 }}>
+            <code>submit_score</code> writes to <strong>game_platform</strong> (<code>get_scores</code> below).{" "}
+            <code>get_top_entries</code> reads the <strong>leaderboard</strong> module — a separate table, often seeded in
+            tests via <code>submit_score_direct</code>. Your txs can succeed without changing the leaderboard list until the
+            publisher wires <code>leaderboard::on_score</code> (or you call the leaderboard entry that updates it).{" "}
+            Leaderboard ids are <strong>0..next_id−1</strong> per publisher; if only one board exists, <strong>id 1</strong>{" "}
+            will not exist until a second <code>create_leaderboard</code> (otherwise the view aborts with Move table{" "}
+            <code>0x6507</code>).
+          </p>
+          <button type="button" onClick={() => void onLoadMyGameScores()}>
+            game_platform get_scores (me, game_id above)
+          </button>
+          <button type="button" onClick={() => void onLoadBoard(0)} style={{ marginLeft: 8 }}>
             get_top_entries (id 0)
+          </button>
+          <button type="button" onClick={() => void onLoadBoard(1)} style={{ marginLeft: 8 }}>
+            get_top_entries (id 1)
           </button>
         </section>
       )}
