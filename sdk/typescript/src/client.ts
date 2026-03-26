@@ -17,6 +17,12 @@ export const SIGIL_REWARDS_RESOURCE_SEED = "rewards_v1" as const;
 export const APTOS_COIN_METADATA_ADDRESS =
   "0x000000000000000000000000000000000000000000000000000000000000000a" as const;
 
+/** Matches `aptos move run --max-gas 200000 --gas-unit-price 100` for `build.simple` defaults. */
+export const DEFAULT_SIGIL_TX_GAS: InputGenerateTransactionOptions = {
+  maxGasAmount: 200_000,
+  gasUnitPrice: 100,
+};
+
 /**
  * Builds an {@link Aptos} client with optional fullnode URL and API key.
  * Keys are sent as `Authorization: Bearer …` (see [Geomi](https://geomi.dev/docs/api-reference) / Aptos Labs node access).
@@ -82,7 +88,7 @@ export class SigilClient {
         function: this.fid("rewards", "attach_fa_reward"),
         functionArguments: [this.moduleAddress, args.achievementId, meta, args.amount, args.supply],
       },
-      options: args.options,
+      options: { ...DEFAULT_SIGIL_TX_GAS, ...args.options } as InputGenerateTransactionOptions,
     });
   }
 
@@ -97,7 +103,7 @@ export class SigilClient {
         function: this.fid("rewards", "claim_testing"),
         functionArguments: [this.moduleAddress, args.achievementId],
       },
-      options: args.options,
+      options: { ...DEFAULT_SIGIL_TX_GAS, ...args.options } as InputGenerateTransactionOptions,
     });
   }
 
@@ -116,7 +122,7 @@ export class SigilClient {
         function: this.fid("shadow_signers", "create_session"),
         functionArguments: [args.shadowPublicKey, scopeBytes, args.ttlSecs],
       },
-      options: args.options,
+      options: { ...DEFAULT_SIGIL_TX_GAS, ...args.options } as InputGenerateTransactionOptions,
     });
   }
 
@@ -132,7 +138,7 @@ export class SigilClient {
         function: this.fid("game_platform", "register_player"),
         functionArguments: [args.username],
       },
-      options: args.options,
+      options: { ...DEFAULT_SIGIL_TX_GAS, ...args.options } as InputGenerateTransactionOptions,
     });
   }
 
@@ -149,18 +155,21 @@ export class SigilClient {
         function: this.fid("game_platform", "submit_score"),
         functionArguments: [this.moduleAddress, args.gameId, args.score],
       },
-      options: args.options,
+      options: { ...DEFAULT_SIGIL_TX_GAS, ...args.options } as InputGenerateTransactionOptions,
     });
   }
 
   /**
    * Payload for `useWallet().signAndSubmitTransaction` / Petra (sender = connected account).
    * Matches `@aptos-labs/wallet-adapter-react` `InputTransactionData` shape.
+   *
+   * Uses hex `address` strings and `bigint` `u64`s so every wallet encodes the same BCS as the CLI.
    */
   walletPayloadRegisterPlayer(username: string) {
     return {
       data: {
         function: this.fid("game_platform", "register_player"),
+        typeArguments: [],
         functionArguments: [username],
       },
     };
@@ -170,13 +179,12 @@ export class SigilClient {
   walletPayloadSubmitScore(args: { gameId: AnyNumber; score: AnyNumber }) {
     const gid = BigInt(args.gameId as bigint | number | string);
     const sc = BigInt(args.score as bigint | number | string);
-    // Wallets often encode `u64` more reliably as JS numbers when values are small.
-    const u64Arg = (n: bigint) =>
-      n <= BigInt(Number.MAX_SAFE_INTEGER) ? Number(n) : n;
+    const publisher = this.moduleAddress.toString();
     return {
       data: {
         function: this.fid("game_platform", "submit_score"),
-        functionArguments: [this.moduleAddress, u64Arg(gid), u64Arg(sc)],
+        typeArguments: [],
+        functionArguments: [publisher, gid, sc],
       },
     };
   }
@@ -195,6 +203,17 @@ export class SigilClient {
       payload: {
         function: this.fid("game_platform", "has_game"),
         functionArguments: [this.moduleAddress, gameId],
+      },
+    });
+  }
+
+  /** All scores `submit_score` stored for `(player, game_id)` under this publisher (`Sigil.scores`). */
+  async viewPlayerGameScores(args: { player: AddressInput; gameId: AnyNumber }) {
+    const player = normalizeAddress(args.player);
+    return this.aptos.view({
+      payload: {
+        function: this.fid("game_platform", "get_scores"),
+        functionArguments: [this.moduleAddress, player, args.gameId],
       },
     });
   }
