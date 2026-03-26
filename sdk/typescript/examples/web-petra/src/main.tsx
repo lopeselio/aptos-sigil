@@ -12,6 +12,8 @@ createRoot(root).render(
     <AptosWalletAdapterProvider
       autoConnect={false}
       dappConfig={{ network: Network.DEVNET }}
+      hideWallets={[]}
+      optInWallets={["Nightly"]}
     >
       <App />
     </AptosWalletAdapterProvider>
