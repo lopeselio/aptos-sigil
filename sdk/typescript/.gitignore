@@ -24,4 +24,6 @@ examples/typescript/facoin/facoin.json
 
 .env
 .env.*
+!.env.example
+!examples/web-petra/.env.example
 *.tgz
