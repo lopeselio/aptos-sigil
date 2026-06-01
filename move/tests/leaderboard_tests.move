@@ -317,30 +317,43 @@ module sigil::leaderboard_tests {
     }
 
     #[test]
-    fun test_multiple_leaderboards_per_game() {
+    /// One leaderboard per `game_id`; two games => two leaderboards (ids 0 and 1).
+    fun test_multiple_leaderboards_for_distinct_games() {
         let (publisher, _, _, _) = setup_test_accounts();
-        
-        // Setup
+
         game_platform::init(&publisher);
-        game_platform::register_game(&publisher, string::utf8(b"Test Game"));
+        game_platform::register_game(&publisher, string::utf8(b"Game A"));
+        game_platform::register_game(&publisher, string::utf8(b"Game B"));
         leaderboard::init_leaderboards(&publisher);
-        
-        // Create two leaderboards for the same game
+
         leaderboard::create_leaderboard(&publisher, @0x123, 0, 0, 0, 10000, false, false, 5);
-        leaderboard::create_leaderboard(&publisher, @0x123, 0, 0, 0, 10000, true, false, 3);
-        
+        leaderboard::create_leaderboard(&publisher, @0x123, 1, 0, 0, 10000, true, false, 3);
+
         let count = leaderboard::get_leaderboard_count(@0x123);
         assert!(count == 2, 80);
-        
-        // Submit score to each
+
         leaderboard::on_score(@0x123, 0, @0x456, 1000);
         leaderboard::on_score(@0x123, 1, @0x456, 2000);
-        
+
         let (_, scores1) = leaderboard::get_top_entries(@0x123, 0);
         let (_, scores2) = leaderboard::get_top_entries(@0x123, 1);
-        
+
         assert!(*vector::borrow(&scores1, 0) == 1000, 81);
         assert!(*vector::borrow(&scores2, 0) == 2000, 82);
+    }
+
+    #[test]
+    fun test_game_platform_submit_score_updates_leaderboard() {
+        let (publisher, player1, _, _) = setup_test_accounts();
+        game_platform::init(&publisher);
+        game_platform::register_game(&publisher, string::utf8(b"G"));
+        leaderboard::init_leaderboards(&publisher);
+        leaderboard::create_leaderboard(&publisher, @0x123, 0, 0, 0, 10000, false, false, 5);
+        game_platform::register_player(&player1, string::utf8(b"p1"));
+        game_platform::submit_score(&player1, @0x123, 0, 777);
+        let (_, scores) = leaderboard::get_top_entries(@0x123, 0);
+        assert!(vector::length(&scores) == 1, 200);
+        assert!(*vector::borrow(&scores, 0) == 777, 201);
     }
 
     #[test]
