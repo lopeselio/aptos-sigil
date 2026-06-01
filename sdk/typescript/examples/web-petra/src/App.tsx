@@ -207,6 +207,32 @@ export function App() {
     );
   };
 
+  /** Rankings for `game_id` (requires `create_leaderboard` for that game on this publisher). */
+  const onLoadLeaderboardForGame = async () => {
+    let gid: bigint;
+    try {
+      gid = BigInt(gameId);
+    } catch {
+      push("ERROR leaderboard: game_id must be an integer");
+      return;
+    }
+    try {
+      const top = await sigil.viewTopEntriesForGame(gid);
+      push(`get_top_entries_for_game (game ${gameId}): ${JSON.stringify(top)}`);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      push(`ERROR get_top_entries_for_game (game ${gameId}): ${msg}`);
+      if (/E_NOT_FOUND|0x6507|not found/i.test(msg)) {
+        push(
+          `→ No leaderboard for this game_id — publisher must run leaderboard::init_leaderboards then create_leaderboard(..., game_id=${gameId}, ...).`,
+        );
+      }
+      rpcParseErrorHints(msg).forEach(push);
+      console.error(e);
+    }
+  };
+
+  /** Sequential leaderboard index (0..next_id−1). Prefer `onLoadLeaderboardForGame` for game-aligned rankings. */
   const onLoadBoard = async (leaderboardId: number) => {
     try {
       const countRaw = await sigil.viewLeaderboardCount();
@@ -223,7 +249,7 @@ export function App() {
       }
       if (leaderboardId < 0 || leaderboardId >= nextId) {
         push(
-          `get_top_entries (lb ${leaderboardId}): invalid id — leaderboard next_id is ${nextId} (valid ids: 0..${nextId - 1}). Id 1 only exists after a second create_leaderboard.`,
+          `get_top_entries (lb ${leaderboardId}): invalid id — leaderboard next_id is ${nextId} (valid ids: 0..${nextId - 1}).`,
         );
         return;
       }
@@ -289,7 +315,7 @@ export function App() {
         push("→ submit_score will ABORT (E_PLAYER_REQUIRED) until register_player succeeds for THIS wallet on THIS network.");
       }
       push(
-        "→ get_top_entries can list leaderboard rows seeded by tests; that does not mean your wallet has Player or that game_platform wrote those rows.",
+        "→ After deploy, submit_score updates the leaderboard for this game_id when create_leaderboard exists for that game.",
       );
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -511,23 +537,27 @@ export function App() {
 
           <h3>leaderboard (views)</h3>
           <p style={{ color: "#666", fontSize: 13, marginBottom: 8 }}>
-            <code>submit_score</code> writes to <strong>game_platform</strong> (<code>get_scores</code> below).{" "}
-            <code>get_top_entries</code> reads the <strong>leaderboard</strong> module — a separate table, often seeded in
-            tests via <code>submit_score_direct</code>. Your txs can succeed without changing the leaderboard list until the
-            publisher wires <code>leaderboard::on_score</code> (or you call the leaderboard entry that updates it).{" "}
-            Leaderboard ids are <strong>0..next_id−1</strong> per publisher; if only one board exists, <strong>id 1</strong>{" "}
-            will not exist until a second <code>create_leaderboard</code> (otherwise the view aborts with Move table{" "}
-            <code>0x6507</code>).
+            <strong>Per game:</strong> publisher runs <code>create_leaderboard</code> once per <code>game_id</code>.{" "}
+            <code>submit_score</code> then updates that game’s leaderboard on-chain. Use <strong>Leaderboard top (game_id)</strong>{" "}
+            with the same <code>game_id</code> as scores. <code>get_scores</code> below is raw history; leaderboard is ranked
+            top-N. Optional buttons use <strong>sequential</strong> leaderboard index (0..next_id−1) for seasons/tests — not the
+            same as <code>game_id</code> unless you create boards in order.
           </p>
-          <button type="button" onClick={() => void onLoadMyGameScores()}>
+          <button type="button" onClick={() => void onLoadLeaderboardForGame()}>
+            Leaderboard top (game_id above)
+          </button>
+          <button type="button" onClick={() => void onLoadMyGameScores()} style={{ marginLeft: 8 }}>
             game_platform get_scores (me, game_id above)
           </button>
-          <button type="button" onClick={() => void onLoadBoard(0)} style={{ marginLeft: 8 }}>
-            get_top_entries (id 0)
-          </button>
-          <button type="button" onClick={() => void onLoadBoard(1)} style={{ marginLeft: 8 }}>
-            get_top_entries (id 1)
-          </button>
+          <div style={{ marginTop: 8 }}>
+            <span style={{ color: "#888", fontSize: 12 }}>Advanced (sequential lb id):</span>{" "}
+            <button type="button" onClick={() => void onLoadBoard(0)}>
+              get_top_entries (lb 0)
+            </button>
+            <button type="button" onClick={() => void onLoadBoard(1)} style={{ marginLeft: 8 }}>
+              get_top_entries (lb 1)
+            </button>
+          </div>
         </section>
       )}
 
