@@ -236,6 +236,16 @@ export class SigilClient {
     });
   }
 
+  /** Top-N for the leaderboard bound to this `game_id` (after `create_leaderboard` for that game). */
+  async viewTopEntriesForGame(gameId: AnyNumber) {
+    return this.aptos.view({
+      payload: {
+        function: this.fid("leaderboard", "get_top_entries_for_game"),
+        functionArguments: [this.moduleAddress, gameId],
+      },
+    });
+  }
+
   /**
    * Whether `game_platform::Player` exists under this address (same check as `submit_score` on-chain).
    * Uses the indexer/fullnode resource API — no extra Move view required.
