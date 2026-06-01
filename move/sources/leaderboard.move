@@ -35,6 +35,8 @@ module sigil::leaderboard {
     struct Leaderboards has key {
         next_id: u64,
         by_id: Table<u64, Leaderboard>,
+        /// One canonical leaderboard per `game_id` (key = game_id, value = sequential leaderboard id).
+        game_to_leaderboard: Table<u64, u64>,
     }
 
     /*************
@@ -45,6 +47,7 @@ module sigil::leaderboard {
     const E_ID_EXISTS: u64 = 2;
     // const E_GAME_NOT_FOUND: u64 = 3;  // Reserved for future use
     const E_NO_PERMISSION: u64 = 4;
+    const E_GAME_ALREADY_HAS_LEADERBOARD: u64 = 5;
 
     fun assert_can_manage_leaderboards(actor: address, resource_owner: address) {
         if (roles::is_initialized(resource_owner)) {
@@ -69,6 +72,7 @@ module sigil::leaderboard {
         move_to<Leaderboards>(publisher, Leaderboards {
             next_id: 0,
             by_id: table::new<u64, Leaderboard>(),
+            game_to_leaderboard: table::new<u64, u64>(),
         });
     }
 
@@ -93,6 +97,11 @@ module sigil::leaderboard {
         
         let regs = borrow_global_mut<Leaderboards>(publisher);
 
+        assert!(
+            !table::contains<u64, u64>(&regs.game_to_leaderboard, game_id),
+            E_GAME_ALREADY_HAS_LEADERBOARD
+        );
+
         let id = regs.next_id;
         regs.next_id = id + 1;
 
@@ -113,6 +122,7 @@ module sigil::leaderboard {
         };
 
         table::add<u64, Leaderboard>(&mut regs.by_id, id, lb);
+        table::add<u64, u64>(&mut regs.game_to_leaderboard, game_id, id);
     }
 
     /*************
@@ -175,6 +185,44 @@ module sigil::leaderboard {
         };
     }
 
+    /// Apply a score to the leaderboard bound to `game_id` (see `game_to_leaderboard`).
+    /// No-op if `Leaderboards` is missing or no leaderboard was created for this game.
+    public fun on_score_for_game(
+        publisher: address,
+        game_id: u64,
+        player: address,
+        score: u64
+    ) acquires Leaderboards {
+        if (!exists<Leaderboards>(publisher)) {
+            return
+        };
+        let regs = borrow_global<Leaderboards>(publisher);
+        if (!table::contains<u64, u64>(&regs.game_to_leaderboard, game_id)) {
+            return
+        };
+        let leaderboard_id = *table::borrow<u64, u64>(&regs.game_to_leaderboard, game_id);
+        on_score(publisher, leaderboard_id, player, score);
+    }
+
+    #[view]
+    /// Whether this publisher has registered a leaderboard for `game_id`.
+    public fun has_leaderboard_for_game(owner: address, game_id: u64): bool acquires Leaderboards {
+        if (!exists<Leaderboards>(owner)) {
+            return false
+        };
+        let regs = borrow_global<Leaderboards>(owner);
+        table::contains<u64, u64>(&regs.game_to_leaderboard, game_id)
+    }
+
+    #[view]
+    /// Sequential leaderboard id for `game_id`, or aborts with `E_NOT_FOUND`.
+    public fun get_leaderboard_id_for_game(owner: address, game_id: u64): u64 acquires Leaderboards {
+        assert!(exists<Leaderboards>(owner), E_NOT_FOUND);
+        let regs = borrow_global<Leaderboards>(owner);
+        assert!(table::contains<u64, u64>(&regs.game_to_leaderboard, game_id), E_NOT_FOUND);
+        *table::borrow<u64, u64>(&regs.game_to_leaderboard, game_id)
+    }
+
     /*************
      *  Testing & Integration Helpers
      *************/
@@ -223,6 +271,20 @@ module sigil::leaderboard {
         let regs = borrow_global<Leaderboards>(owner);
         let lb = table::borrow<u64, Leaderboard>(&regs.by_id, leaderboard_id);
         // clone vectors for return
+        (clone_addresses(&lb.top_entries_players), clone_u64s(&lb.top_entries_scores))
+    }
+
+    #[view]
+    /// Top entries for the leaderboard bound to `game_id` (same table `submit_score` updates via `on_score_for_game`).
+    public fun get_top_entries_for_game(
+        owner: address,
+        game_id: u64
+    ): (vector<address>, vector<u64>) acquires Leaderboards {
+        assert!(exists<Leaderboards>(owner), E_NOT_FOUND);
+        let regs = borrow_global<Leaderboards>(owner);
+        assert!(table::contains<u64, u64>(&regs.game_to_leaderboard, game_id), E_NOT_FOUND);
+        let leaderboard_id = *table::borrow<u64, u64>(&regs.game_to_leaderboard, game_id);
+        let lb = table::borrow<u64, Leaderboard>(&regs.by_id, leaderboard_id);
         (clone_addresses(&lb.top_entries_players), clone_u64s(&lb.top_entries_scores))
     }
 
