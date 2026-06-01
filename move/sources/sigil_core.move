@@ -6,6 +6,7 @@ module sigil::game_platform {
     use aptos_framework::signer;
     use aptos_framework::account;
     use sigil::attest;
+    use sigil::leaderboard;
 
     /*************
      *  Types
@@ -152,6 +153,8 @@ module sigil::game_platform {
             &mut sigil.events.score_submitted,
             ScoreSubmittedEvent { publisher, player: player_addr, game_id, score }
         );
+
+        leaderboard::on_score_for_game(publisher, game_id, player_addr, score);
     }
 
     /// Submit a score with server attestation (anti-cheat)
