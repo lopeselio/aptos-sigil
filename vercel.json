@@ -1,0 +1,7 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "cd sdk/typescript && npm install && cd examples/web-petra && npm install && npm run build",
+  "outputDirectory": "sdk/typescript/examples/web-petra/dist",
+  "installCommand": "echo skip-root-install",
+  "framework": null
+}
