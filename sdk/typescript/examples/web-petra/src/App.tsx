@@ -343,7 +343,10 @@ export function App() {
       const transaction = await sigil.aptos.transaction.build.simple({
         sender: account.address.toString(),
         data: payload.data,
-        options: { ...WALLET_TX_OPTIONS },
+        options: {
+          ...DEFAULT_SIGIL_TX_GAS,
+          expireTimestamp: Math.floor(Date.now() / 1000) + 600,
+        },
       });
       push("Preflight: simulating…");
       // `signerPublicKey` is optional; some wallets expose a key shape the SDK rejects — fall back without it.
@@ -392,7 +395,7 @@ export function App() {
     String(network.name).toLowerCase() !== String(Network.DEVNET).toLowerCase();
 
   return (
-    <div style={{ fontFamily: "system-ui", maxWidth: 520, margin: "2rem auto", padding: 16 }}>
+    <div style={{ fontFamily: "system-ui", maxWidth: 1200, margin: "2rem auto", padding: 16 }}>
       <h1>Sigil + Nightly (Aptos devnet)</h1>
       <p style={{ color: "#444" }}>
         Module: <code>{DEFAULT_MODULE}</code>. Set <code>VITE_SIGIL_MODULE_ADDRESS</code> to override.
@@ -568,8 +571,14 @@ export function App() {
           color: "#e0e0e0",
           padding: 12,
           borderRadius: 8,
-          minHeight: 80,
+          minHeight: 240,
+          maxHeight: 480,
+          overflow: "auto",
           fontSize: 12,
+          whiteSpace: "pre-wrap",
+          wordBreak: "break-word",
+          width: "100%",
+          boxSizing: "border-box",
         }}
       >
         {log.length ? log.join("\n") : "…"}
