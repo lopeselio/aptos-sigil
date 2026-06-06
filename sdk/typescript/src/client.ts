@@ -126,7 +126,11 @@ export class SigilClient {
     });
   }
 
-  /** Publishes `game_platform::Player` under the sender (one-time per address). */
+  /**
+   * Optional: set/update the sender's `game_platform::Player` username.
+   * NOT required before {@link buildSubmitScore} — `submit_score` auto-registers
+   * the player on first submit. Call this only to set a display username.
+   */
   buildRegisterPlayer(args: {
     sender: Account;
     username: string;
@@ -142,18 +146,24 @@ export class SigilClient {
     });
   }
 
-  /** Player-signed score for a publisher’s game (requires `register_player` first). */
+  /**
+   * Player-signed score for a publisher’s game with a display `username`.
+   * Registers the player on-chain on first submit (one funded tx — no separate
+   * `register_player` needed) and keeps the username current. Pass a non-empty
+   * `username`; an empty string leaves any existing name untouched.
+   */
   buildSubmitScore(args: {
     sender: Account;
     gameId: AnyNumber;
     score: AnyNumber;
+    username: string;
     options?: InputGenerateTransactionOptions;
   }) {
     return this.aptos.transaction.build.simple({
       sender: args.sender.accountAddress,
       data: {
-        function: this.fid("game_platform", "submit_score"),
-        functionArguments: [this.moduleAddress, args.gameId, args.score],
+        function: this.fid("game_platform", "submit_score_named"),
+        functionArguments: [this.moduleAddress, args.gameId, args.score, args.username],
       },
       options: { ...DEFAULT_SIGIL_TX_GAS, ...args.options } as InputGenerateTransactionOptions,
     });
@@ -176,15 +186,15 @@ export class SigilClient {
   }
 
   /** @see {@link walletPayloadRegisterPlayer} */
-  walletPayloadSubmitScore(args: { gameId: AnyNumber; score: AnyNumber }) {
+  walletPayloadSubmitScore(args: { gameId: AnyNumber; score: AnyNumber; username: string }) {
     const gid = BigInt(args.gameId as bigint | number | string);
     const sc = BigInt(args.score as bigint | number | string);
     const publisher = this.moduleAddress.toString();
     return {
       data: {
-        function: this.fid("game_platform", "submit_score"),
+        function: this.fid("game_platform", "submit_score_named"),
         typeArguments: [],
-        functionArguments: [publisher, gid, sc],
+        functionArguments: [publisher, gid, sc, args.username],
       },
     };
   }
@@ -247,7 +257,9 @@ export class SigilClient {
   }
 
   /**
-   * Whether `game_platform::Player` exists under this address (same check as `submit_score` on-chain).
+   * Whether `game_platform::Player` exists under this address (i.e. the player
+   * has set a username). NOT a prerequisite for `submit_score` — that
+   * auto-registers. Use this only to decide whether to prompt for a username.
    * Uses the indexer/fullnode resource API — no extra Move view required.
    */
   async isPlayerRegistered(player: AddressInput): Promise<boolean> {
