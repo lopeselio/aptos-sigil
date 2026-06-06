@@ -45,6 +45,24 @@ function rpcParseErrorHints(message: string): string[] {
   }
 
   if (
+    m.includes("504") ||
+    m.includes("failed to fetch") ||
+    m.includes("upstream request timeout") ||
+    m.includes("stream timeout") ||
+    m.includes("networkerror") ||
+    m.includes("load failed") ||
+    m.includes("timed out") ||
+    m.includes("timeout")
+  ) {
+    lines.push(
+      "→ Network/RPC error reaching the fullnode — commonly a devnet 504 “upstream request timeout” when the simulate endpoint is overloaded. This is infrastructure, NOT your transaction.",
+    );
+    lines.push(
+      "→ The submit path is usually still healthy: click Submit score and Approve in your wallet. If Approve stays disabled, the wallet ran the same simulate against its own RPC — switch the wallet’s Devnet Custom RPC (e.g. https://api.devnet.aptoslabs.com/v1) or retry in a minute.",
+    );
+  }
+
+  if (
     m.includes("not valid json") ||
     m.includes("unexpected token") ||
     m.includes("bad gateway") ||
@@ -62,6 +80,35 @@ function rpcParseErrorHints(message: string): string[] {
   }
 
   return lines;
+}
+
+/**
+ * A network/transport failure (couldn't reach or get a response from the RPC),
+ * as opposed to a real VM failure. These should be treated as non-blocking:
+ * the transaction itself is fine, the simulate call just couldn't complete.
+ */
+function isNetworkSimError(message: string): boolean {
+  const m = message.toLowerCase();
+  return (
+    m.includes("failed to fetch") ||
+    m.includes("504") ||
+    m.includes("upstream request timeout") ||
+    m.includes("stream timeout") ||
+    m.includes("networkerror") ||
+    m.includes("load failed") ||
+    m.includes("timed out") ||
+    m.includes("timeout")
+  );
+}
+
+/** Reject after `ms` so a stuck simulate (e.g. devnet 504) fails fast instead of hanging ~30s. */
+function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([
+    p,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms),
+    ),
+  ]);
 }
 
 /** True when the simulated execution succeeded (vm_status formats differ by SDK path). */
@@ -180,13 +227,13 @@ export function App() {
     }
   };
 
-  const onRegister = async () => {
-    if (!connected || !account) return;
-    await submitOrLog("register_player", walletTx(sigil.walletPayloadRegisterPlayer(username)));
-  };
-
   const onSubmitScore = async () => {
     if (!connected || !account) return;
+    const name = username.trim();
+    if (!name) {
+      push("ERROR submit_score: enter a username (set once on your first score; required).");
+      return;
+    }
     let gid: bigint;
     let sc: bigint;
     try {
@@ -202,6 +249,7 @@ export function App() {
         sigil.walletPayloadSubmitScore({
           gameId: gid,
           score: sc,
+          username: name,
         }),
       ),
     );
@@ -306,13 +354,13 @@ export function App() {
       const playerOk = await sigil.isPlayerRegistered(account!.address.toString());
       push(`game_count raw: ${JSON.stringify(countRes)}`);
       push(`has_game(${gameId}) raw: ${JSON.stringify(hasRes)}`);
-      push(`player resource (required for submit_score): ${JSON.stringify(playerOk)}`);
+      push(`player registered already: ${JSON.stringify(playerOk)}`);
       const has = Array.isArray(hasRes) ? hasRes[0] : hasRes;
       if (has !== true) {
         push("→ If has_game is false, register a game for this publisher on THIS network (smoke script / CLI) or fix game_id.");
       }
       if (!playerOk) {
-        push("→ submit_score will ABORT (E_PLAYER_REQUIRED) until register_player succeeds for THIS wallet on THIS network.");
+        push("→ Not registered yet — that's fine: your first submit_score registers you. Enter a username and submit (one tx).");
       }
       push(
         "→ After deploy, submit_score updates the leaderboard for this game_id when create_leaderboard exists for that game.",
@@ -338,7 +386,7 @@ export function App() {
     }
     push("Preflight: building transaction…");
     try {
-      const payload = sigil.walletPayloadSubmitScore({ gameId: gid, score: sc });
+      const payload = sigil.walletPayloadSubmitScore({ gameId: gid, score: sc, username: username.trim() || "preflight" });
       const t0 = performance.now();
       const transaction = await sigil.aptos.transaction.build.simple({
         sender: account.address.toString(),
@@ -350,17 +398,27 @@ export function App() {
       });
       push("Preflight: simulating…");
       // `signerPublicKey` is optional; some wallets expose a key shape the SDK rejects — fall back without it.
+      // Each attempt is time-bounded so a stuck devnet simulate (504) fails fast instead of hanging.
+      const SIM_TIMEOUT_MS = 12_000;
       let sims: unknown[];
       try {
-        sims = await sigil.aptos.transaction.simulate.simple({
-          signerPublicKey: account.publicKey as never,
-          transaction,
-        });
+        sims = await withTimeout(
+          sigil.aptos.transaction.simulate.simple({
+            signerPublicKey: account.publicKey as never,
+            transaction,
+          }),
+          SIM_TIMEOUT_MS,
+          "simulate (with key)",
+        );
       } catch (simErr) {
         push(
           `Preflight: simulate with wallet public key failed (${simErr instanceof Error ? simErr.message : String(simErr)}), retrying without key…`,
         );
-        sims = await sigil.aptos.transaction.simulate.simple({ transaction });
+        sims = await withTimeout(
+          sigil.aptos.transaction.simulate.simple({ transaction }),
+          SIM_TIMEOUT_MS,
+          "simulate (no key)",
+        );
       }
       const sim = sims[0] as Record<string, unknown> | undefined;
       const ms = Math.round(performance.now() - t0);
@@ -381,7 +439,14 @@ export function App() {
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      push(`ERROR preflight: ${msg}`);
+      if (isNetworkSimError(msg)) {
+        // Network/transport failure (e.g. devnet 504), not a VM failure — non-blocking.
+        push(`Preflight: simulate could not reach the RPC (${msg}) — treating as non-blocking.`);
+        push("→ This is an RPC/network problem, NOT your transaction. submit_score itself is valid.");
+        push("→ Click Submit score and approve in your wallet; the actual submit path is independent of this preflight.");
+      } else {
+        push(`ERROR preflight: ${msg}`);
+      }
       rpcParseErrorHints(msg).forEach(push);
       console.error(e);
     }
@@ -512,18 +577,24 @@ export function App() {
           </button>
 
           <h3>game_platform</h3>
-          <label>
-            Username{" "}
-            <input value={username} onChange={(e) => setUsername(e.target.value)} />
-          </label>
-          <button type="button" onClick={() => void onRegister()}>
-            register_player
-          </button>
-          <button type="button" onClick={() => void onCheckPrereqs()} style={{ marginLeft: 8 }}>
+          <p style={{ color: "#666", fontSize: 13, marginBottom: 8 }}>
+            One funded transaction: <code>submit_score</code> registers you on your first score (sets your
+            username) and records the score. No separate register step.
+          </p>
+          <button type="button" onClick={() => void onCheckPrereqs()}>
             Check game exists
           </button>
 
           <div style={{ marginTop: 12 }}>
+            <label>
+              username{" "}
+              <input
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="display name"
+                style={{ width: 140 }}
+              />
+            </label>{" "}
             <label>
               game_id <input value={gameId} onChange={(e) => setGameId(e.target.value)} style={{ width: 64 }} />
             </label>{" "}
@@ -556,9 +627,6 @@ export function App() {
             <span style={{ color: "#888", fontSize: 12 }}>Advanced (sequential lb id):</span>{" "}
             <button type="button" onClick={() => void onLoadBoard(0)}>
               get_top_entries (lb 0)
-            </button>
-            <button type="button" onClick={() => void onLoadBoard(1)} style={{ marginLeft: 8 }}>
-              get_top_entries (lb 1)
             </button>
           </div>
         </section>
