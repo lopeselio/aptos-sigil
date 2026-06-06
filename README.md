@@ -140,6 +140,22 @@ sigil-aptos/
 
 ## 🚀 Deployment Steps
 
+> ### ⚠️ Devnet resets weekly — use the one-command redeploy
+>
+> Aptos **devnet wipes ALL state on its (roughly weekly) reset**: published modules and account balances disappear. When that happens the app fails with:
+>
+> ```
+> module_not_found: Module ... Module name(game_platform) ...
+> ```
+>
+> Nothing is wrong with your config — the contract just needs to be republished. From the repo root:
+>
+> ```bash
+> ./scripts/redeploy_devnet.sh
+> ```
+>
+> This funds the publisher account, republishes the package (artifacts stripped to fit the 60 KB limit), and re-runs all module inits + registers a game. Override `APTOS_PROFILE` (default `devnet`) or `SIGIL_PUBLISHER` if needed. The manual equivalent is steps 3, 5, and 6 below.
+
 ### 1. Configure Your Environment
 
 Create or update `.aptos/config.yaml` in your project root:
