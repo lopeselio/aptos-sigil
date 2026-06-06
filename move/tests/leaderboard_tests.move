@@ -349,8 +349,7 @@ module sigil::leaderboard_tests {
         game_platform::register_game(&publisher, string::utf8(b"G"));
         leaderboard::init_leaderboards(&publisher);
         leaderboard::create_leaderboard(&publisher, @0x123, 0, 0, 0, 10000, false, false, 5);
-        game_platform::register_player(&player1, string::utf8(b"p1"));
-        game_platform::submit_score(&player1, @0x123, 0, 777);
+        game_platform::submit_score_named(&player1, @0x123, 0, 777, string::utf8(b"p1"));
         let (_, scores) = leaderboard::get_top_entries(@0x123, 0);
         assert!(vector::length(&scores) == 1, 200);
         assert!(*vector::borrow(&scores, 0) == 777, 201);

@@ -60,8 +60,6 @@ module sigil::game_platform {
      *************/
     const E_ALREADY_INIT: u64 = 0;
     const E_GAME_NOT_FOUND: u64 = 1;
-    const E_PLAYER_EXISTS: u64 = 2;
-    const E_PLAYER_REQUIRED: u64 = 3;
     const E_INVALID_ATTESTATION: u64 = 4;
 
     /*************
@@ -106,14 +104,44 @@ module sigil::game_platform {
         );
     }
 
-    /// Publish a Player under the caller's address.
-    public entry fun register_player(user: &signer, username: String) {
+    /// Optional: set/update a username for the caller. Not required to submit
+    /// scores (see `submit_score`, which auto-registers). Idempotent: calling it
+    /// again just updates the username instead of aborting.
+    public entry fun register_player(user: &signer, username: String) acquires Player {
         let addr = signer::address_of(user);
-        assert!(!exists<Player>(addr), E_PLAYER_EXISTS);
-        move_to<Player>(user, Player { user: addr, username });
+        if (exists<Player>(addr)) {
+            borrow_global_mut<Player>(addr).username = username;
+        } else {
+            move_to<Player>(user, Player { user: addr, username });
+        }
     }
 
-    /// Submit a score to a publisher’s game. Requires the caller to be a registered Player.
+    /// Submit a score with a display `username` (the primary client entrypoint).
+    /// Registers the player on first submit (one funded tx — no separate
+    /// `register_player` needed) and keeps the username current. A blank
+    /// `username` never overwrites an existing name.
+    public entry fun submit_score_named(
+        player: &signer,
+        publisher: address,
+        game_id: u64,
+        score: u64,
+        username: String
+    ) acquires Sigil, Player {
+        let player_addr = signer::address_of(player);
+        // Register on first score / refresh the display name on later submits.
+        if (exists<Player>(player_addr)) {
+            if (string::length(&username) > 0) {
+                borrow_global_mut<Player>(player_addr).username = username;
+            }
+        } else {
+            move_to<Player>(player, Player { user: player_addr, username });
+        };
+        submit_score(player, publisher, game_id, score);
+    }
+
+    /// Submit a score to a publisher’s game. Auto-registers a blank-username
+    /// Player on first submit; used by internal wrappers. Most clients should
+    /// call {@link submit_score_named} to set a display name.
     public entry fun submit_score(
         player: &signer,
         publisher: address,
@@ -121,7 +149,10 @@ module sigil::game_platform {
         score: u64
     ) acquires Sigil {
         let player_addr = signer::address_of(player);
-        assert!(exists<Player>(player_addr), E_PLAYER_REQUIRED);
+        // Auto-register on first score (collapses onboarding to a single tx).
+        if (!exists<Player>(player_addr)) {
+            move_to<Player>(player, Player { user: player_addr, username: string::utf8(b"") });
+        };
 
         let sigil = borrow_global_mut<Sigil>(publisher);
         if (!table::contains<u64, Game>(&sigil.games, game_id)) {
@@ -195,7 +226,7 @@ module sigil::game_platform {
             E_INVALID_ATTESTATION
         );
         
-        // If attestation valid, submit score normally
+        // If attestation valid, submit score normally.
         submit_score(player, publisher, game_id, score);
     }
 
