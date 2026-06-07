@@ -246,7 +246,7 @@ export function App() {
     await submitOrLog(
       "submit_score",
       walletTx(
-        sigil.walletPayloadSubmitScore({
+        sigil.gamePlatform.walletPayloadSubmitScore({
           gameId: gid,
           score: sc,
           username: name,
@@ -265,7 +265,7 @@ export function App() {
       return;
     }
     try {
-      const top = await sigil.viewTopEntriesForGame(gid);
+      const top = await sigil.leaderboard.viewTopEntriesForGame(gid);
       push(`get_top_entries_for_game (game ${gameId}): ${JSON.stringify(top)}`);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -283,7 +283,7 @@ export function App() {
   /** Sequential leaderboard index (0..next_id−1). Prefer `onLoadLeaderboardForGame` for game-aligned rankings. */
   const onLoadBoard = async (leaderboardId: number) => {
     try {
-      const countRaw = await sigil.viewLeaderboardCount();
+      const countRaw = await sigil.leaderboard.viewLeaderboardCount();
       const nextId = parseViewU64(countRaw);
       if (!Number.isFinite(nextId) || nextId < 0) {
         push(`get_top_entries (lb ${leaderboardId}): could not parse leaderboard count (raw: ${JSON.stringify(countRaw)})`);
@@ -301,7 +301,7 @@ export function App() {
         );
         return;
       }
-      const top = await sigil.viewTopEntries(leaderboardId);
+      const top = await sigil.leaderboard.viewTopEntries(leaderboardId);
       push(`get_top_entries (lb ${leaderboardId}): ${JSON.stringify(top)}`);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -327,7 +327,7 @@ export function App() {
       return;
     }
     try {
-      const rows = await sigil.viewPlayerGameScores({
+      const rows = await sigil.gamePlatform.viewPlayerGameScores({
         player: account.address.toString(),
         gameId: gid,
       });
@@ -349,9 +349,9 @@ export function App() {
         push("ERROR check: game_id must be an integer");
         return;
       }
-      const countRes = await sigil.viewGameCount();
-      const hasRes = await sigil.viewHasGame(gid);
-      const playerOk = await sigil.isPlayerRegistered(account!.address.toString());
+      const countRes = await sigil.gamePlatform.viewGameCount();
+      const hasRes = await sigil.gamePlatform.viewHasGame(gid);
+      const playerOk = await sigil.gamePlatform.isPlayerRegistered(account!.address.toString());
       push(`game_count raw: ${JSON.stringify(countRes)}`);
       push(`has_game(${gameId}) raw: ${JSON.stringify(hasRes)}`);
       push(`player registered already: ${JSON.stringify(playerOk)}`);
@@ -386,7 +386,7 @@ export function App() {
     }
     push("Preflight: building transaction…");
     try {
-      const payload = sigil.walletPayloadSubmitScore({ gameId: gid, score: sc, username: username.trim() || "preflight" });
+      const payload = sigil.gamePlatform.walletPayloadSubmitScore({ gameId: gid, score: sc, username: username.trim() || "preflight" });
       const t0 = performance.now();
       const transaction = await sigil.aptos.transaction.build.simple({
         sender: account.address.toString(),

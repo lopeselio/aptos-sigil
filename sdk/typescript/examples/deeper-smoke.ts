@@ -60,7 +60,7 @@ async function main() {
   const shadowPk = shadow.publicKey.toUint8Array();
 
   console.log("== shadow_signers::create_session ==");
-  const sessionTx = await sigil.buildCreateSession({
+  const sessionTx = await sigil.shadowSigners.buildCreateSession({
     sender: publisher,
     shadowPublicKey: shadowPk,
     scopes: ["submit_score", "claim_reward"],
@@ -70,10 +70,10 @@ async function main() {
   await aptos.waitForTransaction({ transactionHash: pending.hash });
   console.log("create_session:", pending.hash);
 
-  const valid = await sigil.viewSessionValid(publisher.accountAddress, shadowPk);
+  const valid = await sigil.shadowSigners.viewSessionValid(publisher.accountAddress, shadowPk);
   console.log("is_session_valid:", valid);
 
-  const scopes = await sigil.viewSessionScopes(publisher.accountAddress, shadowPk);
+  const scopes = await sigil.shadowSigners.viewSessionScopes(publisher.accountAddress, shadowPk);
   console.log("get_session_scopes:", scopes);
 
   if (process.env.SKIP_FA_REWARD === "1") {
@@ -95,7 +95,7 @@ async function main() {
 
   const achId = BigInt(process.env.FA_ACHIEVEMENT_ID ?? "424242");
   console.log("== rewards::attach_fa_reward achievement", achId.toString(), "==");
-  const attachTx = await sigil.buildAttachFaReward({
+  const attachTx = await sigil.rewards.buildAttachFaReward({
     sender: publisher,
     achievementId: achId,
     amount: 100_000,
@@ -105,7 +105,7 @@ async function main() {
   await aptos.waitForTransaction({ transactionHash: attachPending.hash });
   console.log("attach_fa_reward:", attachPending.hash);
 
-  console.log("get_reward view:", await sigil.viewReward(achId));
+  console.log("get_reward view:", await sigil.rewards.viewReward(achId));
 
   const playerHex = process.env.SIGIL_PLAYER_PRIVATE_KEY;
   if (playerHex) {
@@ -120,11 +120,11 @@ async function main() {
       });
     }
     console.log("== rewards::claim_testing (player)", player.accountAddress.toString(), "==");
-    const claimTx = await sigil.buildClaimTesting({ sender: player, achievementId: achId });
+    const claimTx = await sigil.rewards.buildClaimTesting({ sender: player, achievementId: achId });
     const claimPending = await aptos.signAndSubmitTransaction({ signer: player, transaction: claimTx });
     await aptos.waitForTransaction({ transactionHash: claimPending.hash });
     console.log("claim_testing:", claimPending.hash);
-    console.log("get_reward after:", await sigil.viewReward(achId));
+    console.log("get_reward after:", await sigil.rewards.viewReward(achId));
   } else {
     console.log("Set SIGIL_PLAYER_PRIVATE_KEY to run claim_testing.");
   }
