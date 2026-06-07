@@ -37,9 +37,6 @@ jobs:
   web-petra:
     name: web-petra (build)
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: sdk/typescript/examples/web-petra
     steps:
       - uses: actions/checkout@v4
 
@@ -47,11 +44,21 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: sdk/typescript/examples/web-petra/package-lock.json
+          cache-dependency-path: |
+            sdk/typescript/package-lock.json
+            sdk/typescript/examples/web-petra/package-lock.json
 
-      - run: npm ci
-      - name: Build (tsc + vite)
-        run: npm run build
+      # web-petra compiles the SDK source (../../../src) in place, so the SDK's
+      # own deps (e.g. @aptos-labs/ts-sdk) must be installed too.
+      - name: Install SDK deps
+        working-directory: sdk/typescript
+        run: npm ci
+
+      - name: Install + build web-petra
+        working-directory: sdk/typescript/examples/web-petra
+        run: |
+          npm ci
+          npm run build
 
   move:
     name: Move (unit tests)
