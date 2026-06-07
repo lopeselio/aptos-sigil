@@ -11,6 +11,32 @@ export class RewardsModule extends SigilModule {
     return this.buildEntry({ ...args, module: M, func: "init_rewards", functionArguments: [] });
   }
 
+  /** @see {@link buildInit} */
+  walletPayloadInit() {
+    return this.payload(M, "init_rewards", []);
+  }
+
+  /** @see {@link buildAttachFaReward} */
+  walletPayloadAttachFaReward(args: {
+    achievementId: AnyNumber;
+    amount: AnyNumber;
+    supply: AnyNumber;
+    faMetadataAddress?: AddressInput;
+    publisher?: AddressInput;
+  }) {
+    const publisher = args.publisher ? normalizeAddress(args.publisher) : this.moduleAddress;
+    const meta = args.faMetadataAddress
+      ? normalizeAddress(args.faMetadataAddress)
+      : AccountAddress.from(APTOS_COIN_METADATA_ADDRESS);
+    return this.payload(M, "attach_fa_reward", [
+      publisher,
+      BigInt(args.achievementId as never),
+      meta,
+      BigInt(args.amount as never),
+      BigInt(args.supply as never),
+    ]);
+  }
+
   /** Create an NFT collection used by {@link buildAttachNftReward}. Strings encode to bytes. */
   buildCreateNftCollection(args: {
     sender: Account;

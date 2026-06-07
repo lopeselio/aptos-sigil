@@ -10,6 +10,49 @@ export class SeasonsModule extends SigilModule {
     return this.buildEntry({ ...args, module: M, func: "init_seasons", functionArguments: [] });
   }
 
+  /** @see {@link buildInit} */
+  walletPayloadInit() {
+    return this.payload(M, "init_seasons", []);
+  }
+
+  /** @see {@link buildCreateSeason} */
+  walletPayloadCreateSeason(args: {
+    name: string;
+    startTime: AnyNumber;
+    endTime: AnyNumber;
+    leaderboardId: AnyNumber;
+    prizePool: AnyNumber;
+    publisher?: AddressInput;
+  }) {
+    const publisher = args.publisher ? normalizeAddress(args.publisher) : this.moduleAddress;
+    return this.payload(M, "create_season", [
+      publisher,
+      args.name,
+      BigInt(args.startTime as never),
+      BigInt(args.endTime as never),
+      BigInt(args.leaderboardId as never),
+      BigInt(args.prizePool as never),
+    ]);
+  }
+
+  /** @see {@link buildStartSeason} */
+  walletPayloadStartSeason(args: { seasonId: AnyNumber; publisher?: AddressInput }) {
+    const publisher = args.publisher ? normalizeAddress(args.publisher) : this.moduleAddress;
+    return this.payload(M, "start_season", [publisher, BigInt(args.seasonId as never)]);
+  }
+
+  /** @see {@link buildEndSeason} */
+  walletPayloadEndSeason(args: { seasonId: AnyNumber; publisher?: AddressInput }) {
+    const publisher = args.publisher ? normalizeAddress(args.publisher) : this.moduleAddress;
+    return this.payload(M, "end_season", [publisher, BigInt(args.seasonId as never)]);
+  }
+
+  /** @see {@link buildFinalizeSeason} */
+  walletPayloadFinalizeSeason(args: { seasonId: AnyNumber; publisher?: AddressInput }) {
+    const publisher = args.publisher ? normalizeAddress(args.publisher) : this.moduleAddress;
+    return this.payload(M, "finalize_season", [publisher, BigInt(args.seasonId as never)]);
+  }
+
   buildCreateSeason(args: {
     sender: Account;
     name: string;

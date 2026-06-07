@@ -9,6 +9,40 @@ export class MergeModule extends SigilModule {
     return this.buildEntry({ ...args, module: M, func: "init_merge", functionArguments: [] });
   }
 
+  /** @see {@link buildInit} */
+  walletPayloadInit() {
+    return this.payload(M, "init_merge", []);
+  }
+
+  /** @see {@link buildRegisterRecipe} */
+  walletPayloadRegisterRecipe(args: {
+    inputItemId: AnyNumber;
+    inputQty: AnyNumber;
+    outputItemId: AnyNumber;
+    outputQty: AnyNumber;
+    publisher?: AddressInput;
+  }) {
+    const publisher = args.publisher ? normalizeAddress(args.publisher) : this.moduleAddress;
+    return this.payload(M, "register_recipe", [
+      publisher,
+      BigInt(args.inputItemId as never),
+      BigInt(args.inputQty as never),
+      BigInt(args.outputItemId as never),
+      BigInt(args.outputQty as never),
+    ]);
+  }
+
+  /** @see {@link buildGrantItems} */
+  walletPayloadGrantItems(args: { player: AddressInput; itemId: AnyNumber; qty: AnyNumber; publisher?: AddressInput }) {
+    const publisher = args.publisher ? normalizeAddress(args.publisher) : this.moduleAddress;
+    return this.payload(M, "grant_items", [
+      publisher,
+      normalizeAddress(args.player),
+      BigInt(args.itemId as never),
+      BigInt(args.qty as never),
+    ]);
+  }
+
   /** Define a recipe: `inputQty` of `inputItemId` -> `outputQty` of `outputItemId`. */
   buildRegisterRecipe(args: {
     sender: Account;

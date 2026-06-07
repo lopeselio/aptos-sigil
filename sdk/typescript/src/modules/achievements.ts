@@ -11,6 +11,29 @@ export class AchievementsModule extends SigilModule {
     return this.buildEntry({ ...args, module: M, func: "init_achievements", functionArguments: [] });
   }
 
+  /** @see {@link buildInit} */
+  walletPayloadInit() {
+    return this.payload(M, "init_achievements", []);
+  }
+
+  /** @see {@link buildCreate} */
+  walletPayloadCreate(args: {
+    title: Bytes;
+    description: Bytes;
+    minScore: AnyNumber;
+    badgeUri?: Bytes;
+    publisher?: AddressInput;
+  }) {
+    const publisher = args.publisher ? normalizeAddress(args.publisher) : this.moduleAddress;
+    return this.payload(M, "create", [
+      publisher,
+      toBytes(args.title),
+      toBytes(args.description),
+      BigInt(args.minScore as never),
+      toBytes(args.badgeUri ?? ""),
+    ]);
+  }
+
   /** Basic score achievement. `badgeUri` empty = no badge. */
   buildCreate(args: {
     sender: Account;

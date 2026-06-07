@@ -9,6 +9,36 @@ export class QuestsModule extends SigilModule {
     return this.buildEntry({ ...args, module: M, func: "init_quests", functionArguments: [] });
   }
 
+  /** @see {@link buildInit} */
+  walletPayloadInit() {
+    return this.payload(M, "init_quests", []);
+  }
+
+  /** @see {@link buildCreateScoreQuest} */
+  walletPayloadCreateScoreQuest(args: {
+    title: string;
+    description: string;
+    gameId: AnyNumber;
+    targetScore: AnyNumber;
+    rewardId: AnyNumber;
+    isSeasonal: boolean;
+  }) {
+    return this.payload(M, "create_score_quest", [
+      args.title,
+      args.description,
+      BigInt(args.gameId as never),
+      BigInt(args.targetScore as never),
+      BigInt(args.rewardId as never),
+      args.isSeasonal,
+    ]);
+  }
+
+  /** @see {@link buildUpdateQuestProgress} */
+  walletPayloadUpdateQuestProgress(args: { questId: AnyNumber; publisher?: AddressInput }) {
+    const publisher = args.publisher ? normalizeAddress(args.publisher) : this.moduleAddress;
+    return this.payload(M, "update_quest_progress", [publisher, BigInt(args.questId as never)]);
+  }
+
   /** Reach `targetScore` on `gameId` (0 = any game). */
   buildCreateScoreQuest(args: {
     sender: Account;

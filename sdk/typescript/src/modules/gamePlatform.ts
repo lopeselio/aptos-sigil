@@ -10,9 +10,19 @@ export class GamePlatformModule extends SigilModule {
     return this.buildEntry({ ...args, module: M, func: "init", functionArguments: [] });
   }
 
+  /** @see {@link buildInit} */
+  walletPayloadInit() {
+    return this.payload(M, "init", []);
+  }
+
   /** Create a game under the sender (publisher). */
   buildRegisterGame(args: { sender: Account; title: string; options?: InputGenerateTransactionOptions }) {
     return this.buildEntry({ ...args, module: M, func: "register_game", functionArguments: [args.title] });
+  }
+
+  /** @see {@link buildRegisterGame} */
+  walletPayloadRegisterGame(title: string) {
+    return this.payload(M, "register_game", [title]);
   }
 
   /**
