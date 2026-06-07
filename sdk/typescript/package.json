@@ -8,6 +8,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
+    "test": "node --import tsx --test test/*.test.ts",
     "typecheck:examples": "tsc -p examples/tsconfig.json",
     "example:deeper-smoke": "npx tsx examples/deeper-smoke.ts"
   },
