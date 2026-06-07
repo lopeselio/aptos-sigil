@@ -1,5 +1,6 @@
 # Sigil Game Platform - Aptos Smart Contract
 
+[![CI](https://github.com/lopeselio/aptos-sigil/actions/workflows/ci.yml/badge.svg)](https://github.com/lopeselio/aptos-sigil/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Aptos](https://img.shields.io/badge/Aptos-Devnet-blue.svg)](https://explorer.aptoslabs.com/account/0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6?network=devnet)
 [![Move](https://img.shields.io/badge/Move-10_Modules-brightgreen.svg)](./move/sources/)
