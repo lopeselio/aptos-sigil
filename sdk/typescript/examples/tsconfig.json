@@ -5,5 +5,7 @@
     "rootDir": "..",
     "types": ["node"]
   },
-  "include": ["./**/*.ts", "../src/**/*.ts"]
+  "include": ["./**/*.ts", "../src/**/*.ts"],
+  "_comment": "web-petra is a standalone Vite app (own package.json/tsconfig, built in the CI web-petra job); excluded so this typecheck needs only the SDK's deps.",
+  "exclude": ["web-petra", "node_modules"]
 }
