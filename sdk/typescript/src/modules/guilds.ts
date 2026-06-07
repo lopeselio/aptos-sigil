@@ -9,6 +9,29 @@ export class GuildsModule extends SigilModule {
     return this.buildEntry({ ...args, module: M, func: "init_guilds", functionArguments: [] });
   }
 
+  /** @see {@link buildInit} */
+  walletPayloadInit() {
+    return this.payload(M, "init_guilds", []);
+  }
+
+  /** @see {@link buildCreateGuild} */
+  walletPayloadCreateGuild(args: { name: string; publisher?: AddressInput }) {
+    const publisher = args.publisher ? normalizeAddress(args.publisher) : this.moduleAddress;
+    return this.payload(M, "create_guild", [publisher, args.name]);
+  }
+
+  /** @see {@link buildJoinGuild} */
+  walletPayloadJoinGuild(args: { guildId: AnyNumber; publisher?: AddressInput }) {
+    const publisher = args.publisher ? normalizeAddress(args.publisher) : this.moduleAddress;
+    return this.payload(M, "join_guild", [publisher, BigInt(args.guildId as never)]);
+  }
+
+  /** @see {@link buildLeaveGuild} */
+  walletPayloadLeaveGuild(args?: { publisher?: AddressInput }) {
+    const publisher = args?.publisher ? normalizeAddress(args.publisher) : this.moduleAddress;
+    return this.payload(M, "leave_guild", [publisher]);
+  }
+
   /** Sender becomes the founder of the new guild. */
   buildCreateGuild(args: { sender: Account; name: string; publisher?: AddressInput; options?: InputGenerateTransactionOptions }) {
     const publisher = args.publisher ? normalizeAddress(args.publisher) : this.moduleAddress;

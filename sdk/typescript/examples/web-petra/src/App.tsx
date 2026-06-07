@@ -58,7 +58,7 @@ function rpcParseErrorHints(message: string): string[] {
       "→ Network/RPC error reaching the fullnode — commonly a devnet 504 “upstream request timeout” when the simulate endpoint is overloaded. This is infrastructure, NOT your transaction.",
     );
     lines.push(
-      "→ The submit path is usually still healthy: click Submit score and Approve in your wallet. If Approve stays disabled, the wallet ran the same simulate against its own RPC — switch the wallet’s Devnet Custom RPC (e.g. https://api.devnet.aptoslabs.com/v1) or retry in a minute.",
+      "→ The submit path is usually still healthy: click the action and Approve in your wallet. If Approve stays disabled, the wallet ran the same simulate against its own RPC — switch the wallet’s Devnet Custom RPC (e.g. https://api.devnet.aptoslabs.com/v1) or retry in a minute.",
     );
   }
 
@@ -120,14 +120,12 @@ function isTxSimulationSuccess(sim: Record<string, unknown>): boolean {
   return false;
 }
 
-/** Normalize `aptos.view` u64 result (number, bigint, string, or [x]). */
-function parseViewU64(value: unknown): number {
-  if (typeof value === "bigint") return Number(value);
-  if (typeof value === "number") return value;
-  if (typeof value === "string") return parseInt(value, 10);
-  if (Array.isArray(value) && value.length > 0) return parseViewU64(value[0]);
-  return NaN;
-}
+type Tab = "player" | "publisher" | "views";
+
+/** Wallet-adapter `InputTransactionData`-shaped payload (matches the SDK's `walletPayload*` return). */
+type SigilWalletPayload = {
+  data: { function: string; typeArguments?: string[]; functionArguments: unknown[] };
+};
 
 export function App() {
   const {
@@ -143,9 +141,62 @@ export function App() {
     signAndSubmitTransaction,
   } = useWallet();
   const [log, setLog] = useState<string[]>([]);
-  const [username, setUsername] = useState("player1");
-  const [gameId, setGameId] = useState("0");
-  const [score, setScore] = useState("1000");
+  const [tab, setTab] = useState<Tab>("player");
+
+  // Single registry for all text inputs across tabs; `f`/`setF` read & write by key.
+  const [fields, setFields] = useState<Record<string, string>>({
+    username: "player1",
+    gameId: "0",
+    score: "1000",
+    gameTitle: "My Game",
+    lbDecimals: "0",
+    lbMin: "0",
+    lbMax: "10000000000",
+    lbRetain: "10",
+    achTitle: "First Win",
+    achDesc: "Score 1000+",
+    achMin: "1000",
+    achBadge: "",
+    rewardAchId: "0",
+    rewardAmount: "100000",
+    rewardSupply: "100",
+    questTitle: "Hit 1000",
+    questDesc: "Reach a score of 1000",
+    questTarget: "1000",
+    questReward: "0",
+    questId: "0",
+    guildName: "My Clan",
+    guildId: "0",
+    recipeIn: "1",
+    recipeInQty: "2",
+    recipeOut: "2",
+    recipeOutQty: "1",
+    recipeId: "0",
+    grantItem: "1",
+    grantQty: "5",
+    seasonName: "Season 1",
+    seasonStart: "0",
+    seasonEnd: "0",
+    seasonLb: "0",
+    seasonPrize: "0",
+    seasonId: "0",
+    treasuryAmount: "100000",
+    withdrawTo: "",
+    withdrawAmount: "100000",
+    adminAddr: "",
+  });
+  // Boolean flags (checkboxes) kept apart from text fields.
+  const [flags, setFlags] = useState<Record<string, boolean>>({
+    lbAscending: false,
+    lbAllowMultiple: false,
+    questSeasonal: false,
+  });
+
+  const f = (k: string) => fields[k] ?? "";
+  const setF = (k: string, v: string) => setFields((prev) => ({ ...prev, [k]: v }));
+  const big = (k: string) => BigInt(f(k).trim());
+  const flag = (k: string) => flags[k] ?? false;
+  const setFlag = (k: string, v: boolean) => setFlags((prev) => ({ ...prev, [k]: v }));
 
   const sigil = useMemo(() => {
     const aptos = createAptosClient({
@@ -189,10 +240,6 @@ export function App() {
     }
   };
 
-  type SigilWalletPayload = {
-    data: { function: string; typeArguments?: string[]; functionArguments: unknown[] };
-  };
-
   /** Pre-set gas: same as `aptos move run --max-gas 200000 --gas-unit-price 100`; wallet expiry is separate. */
   const WALLET_TX_OPTIONS = {
     ...DEFAULT_SIGIL_TX_GAS,
@@ -223,148 +270,62 @@ export function App() {
       if (name === "WalletNotConnectedError" || /not connected/i.test(msg)) {
         push("→ Wallet lost the session (often after a rejected tx). Click Disconnect, then connect again.");
       }
+      if (/E_NOT_AUTHORIZED|not authorized|0x5000|EPERMISSION|owner/i.test(msg)) {
+        push("→ Admin/publisher action: this aborts unless the connected wallet is the publisher (or a roles-authorized admin/operator) for the module address above.");
+      }
       console.error(label, e);
     }
   };
 
-  const onSubmitScore = async () => {
-    if (!connected || !account) return;
-    const name = username.trim();
-    if (!name) {
-      push("ERROR submit_score: enter a username (set once on your first score; required).");
+  /** Wrap payload construction (incl. BigInt parsing) + submit into one click handler. */
+  const write = (label: string, build: () => SigilWalletPayload) => async () => {
+    if (!connected || !account) {
+      push(`ERROR ${label}: connect a wallet first.`);
       return;
     }
-    let gid: bigint;
-    let sc: bigint;
+    let payload: SigilWalletPayload;
     try {
-      gid = BigInt(gameId);
-      sc = BigInt(score);
-    } catch {
-      push("ERROR submit_score: game_id and score must be integers");
+      payload = build();
+    } catch (e) {
+      push(`ERROR ${label}: ${e instanceof Error ? e.message : String(e)} — check that numeric fields are integers.`);
       return;
     }
-    await submitOrLog(
-      "submit_score",
-      walletTx(
-        sigil.gamePlatform.walletPayloadSubmitScore({
-          gameId: gid,
-          score: sc,
-          username: name,
-        }),
-      ),
-    );
+    await submitOrLog(label, walletTx(payload));
   };
 
-  /** Rankings for `game_id` (requires `create_leaderboard` for that game on this publisher). */
-  const onLoadLeaderboardForGame = async () => {
-    let gid: bigint;
+  /** Run a read-only view and log the JSON result (with RPC hints on failure). */
+  const view = (label: string, run: () => Promise<unknown>) => async () => {
     try {
-      gid = BigInt(gameId);
-    } catch {
-      push("ERROR leaderboard: game_id must be an integer");
-      return;
-    }
-    try {
-      const top = await sigil.leaderboard.viewTopEntriesForGame(gid);
-      push(`get_top_entries_for_game (game ${gameId}): ${JSON.stringify(top)}`);
+      const r = await run();
+      push(`${label}: ${JSON.stringify(r)}`);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      push(`ERROR get_top_entries_for_game (game ${gameId}): ${msg}`);
-      if (/E_NOT_FOUND|0x6507|not found/i.test(msg)) {
-        push(
-          `→ No leaderboard for this game_id — publisher must run leaderboard::init_leaderboards then create_leaderboard(..., game_id=${gameId}, ...).`,
-        );
-      }
+      push(`ERROR ${label}: ${msg}`);
       rpcParseErrorHints(msg).forEach(push);
-      console.error(e);
+      console.error(label, e);
     }
   };
 
-  /** Sequential leaderboard index (0..next_id−1). Prefer `onLoadLeaderboardForGame` for game-aligned rankings. */
-  const onLoadBoard = async (leaderboardId: number) => {
-    try {
-      const countRaw = await sigil.leaderboard.viewLeaderboardCount();
-      const nextId = parseViewU64(countRaw);
-      if (!Number.isFinite(nextId) || nextId < 0) {
-        push(`get_top_entries (lb ${leaderboardId}): could not parse leaderboard count (raw: ${JSON.stringify(countRaw)})`);
-        return;
-      }
-      if (nextId === 0) {
-        push(
-          `get_top_entries (lb ${leaderboardId}): no leaderboards for this publisher — run leaderboard::init_leaderboards / create_leaderboard on this network first.`,
-        );
-        return;
-      }
-      if (leaderboardId < 0 || leaderboardId >= nextId) {
-        push(
-          `get_top_entries (lb ${leaderboardId}): invalid id — leaderboard next_id is ${nextId} (valid ids: 0..${nextId - 1}).`,
-        );
-        return;
-      }
-      const top = await sigil.leaderboard.viewTopEntries(leaderboardId);
-      push(`get_top_entries (lb ${leaderboardId}): ${JSON.stringify(top)}`);
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      push(`ERROR get_top_entries (lb ${leaderboardId}): ${msg}`);
-      if (/0x6507|table.*abort|Move abort.*table/i.test(msg)) {
-        push(
-          `→ Table lookup failed: this leaderboard id is missing under the publisher (same as id ≥ next_id).`,
-        );
-      }
-      rpcParseErrorHints(msg).forEach(push);
-      console.error(e);
-    }
-  };
+  const me = () => account!.address.toString();
 
-  /** Reads `game_platform::get_scores` — same store `submit_score` writes (not the leaderboard module). */
-  const onLoadMyGameScores = async () => {
-    if (!account) return;
-    let gid: bigint;
-    try {
-      gid = BigInt(gameId);
-    } catch {
-      push("ERROR get_scores: game_id must be an integer");
-      return;
-    }
-    try {
-      const rows = await sigil.gamePlatform.viewPlayerGameScores({
-        player: account.address.toString(),
-        gameId: gid,
-      });
-      push(`game_platform::get_scores (you, game ${gameId}): ${JSON.stringify(rows)}`);
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      push(`ERROR get_scores: ${msg}`);
-      rpcParseErrorHints(msg).forEach(push);
-    }
-  };
-
-  /** submit_score aborts without Player (run register_player once) and without game_id on-chain. */
+  /** submit_score aborts without a registered game; surfaces prereqs into the log. */
   const onCheckPrereqs = async () => {
+    if (!account) return;
     try {
-      let gid: bigint;
-      try {
-        gid = BigInt(gameId);
-      } catch {
-        push("ERROR check: game_id must be an integer");
-        return;
-      }
+      const gid = big("gameId");
       const countRes = await sigil.gamePlatform.viewGameCount();
       const hasRes = await sigil.gamePlatform.viewHasGame(gid);
-      const playerOk = await sigil.gamePlatform.isPlayerRegistered(account!.address.toString());
+      const playerOk = await sigil.gamePlatform.isPlayerRegistered(me());
       push(`game_count raw: ${JSON.stringify(countRes)}`);
-      push(`has_game(${gameId}) raw: ${JSON.stringify(hasRes)}`);
+      push(`has_game(${f("gameId")}) raw: ${JSON.stringify(hasRes)}`);
       push(`player registered already: ${JSON.stringify(playerOk)}`);
       const has = Array.isArray(hasRes) ? hasRes[0] : hasRes;
       if (has !== true) {
-        push("→ If has_game is false, register a game for this publisher on THIS network (smoke script / CLI) or fix game_id.");
+        push("→ If has_game is false, register a game for this publisher on THIS network (Publisher tab → register_game) or fix game_id.");
       }
       if (!playerOk) {
         push("→ Not registered yet — that's fine: your first submit_score registers you. Enter a username and submit (one tx).");
       }
-      push(
-        "→ After deploy, submit_score updates the leaderboard for this game_id when create_leaderboard exists for that game.",
-      );
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       push(`ERROR check: ${msg}`);
@@ -372,24 +333,24 @@ export function App() {
     }
   };
 
-  /** Same simulate path as Nightly uses; if this is fast but Nightly hangs, change Nightly’s Aptos devnet RPC in wallet settings. */
+  /** Same simulate path Nightly uses; if this is fast but Nightly hangs, change Nightly’s Aptos devnet RPC. */
   const onPreflightSubmitScore = async () => {
     if (!account) return;
     let gid: bigint;
     let sc: bigint;
     try {
-      gid = BigInt(gameId);
-      sc = BigInt(score);
+      gid = big("gameId");
+      sc = big("score");
     } catch {
       push("ERROR preflight: game_id and score must be integers");
       return;
     }
     push("Preflight: building transaction…");
     try {
-      const payload = sigil.gamePlatform.walletPayloadSubmitScore({ gameId: gid, score: sc, username: username.trim() || "preflight" });
+      const payload = sigil.gamePlatform.walletPayloadSubmitScore({ gameId: gid, score: sc, username: f("username").trim() || "preflight" });
       const t0 = performance.now();
       const transaction = await sigil.aptos.transaction.build.simple({
-        sender: account.address.toString(),
+        sender: me(),
         data: payload.data,
         options: {
           ...DEFAULT_SIGIL_TX_GAS,
@@ -397,8 +358,6 @@ export function App() {
         },
       });
       push("Preflight: simulating…");
-      // `signerPublicKey` is optional; some wallets expose a key shape the SDK rejects — fall back without it.
-      // Each attempt is time-bounded so a stuck devnet simulate (504) fails fast instead of hanging.
       const SIM_TIMEOUT_MS = 12_000;
       let sims: unknown[];
       try {
@@ -432,18 +391,13 @@ export function App() {
         `Preflight simulate (${ms}ms): success=${String(sim.success ?? "?")} vm_ok=${ok} vm_status=${vm} gas_used=${String(sim.gas_used ?? "?")}`,
       );
       if (!ok) {
-        push(
-          `→ Move did not execute successfully; the wallet may keep Approve disabled. vm_status is the real error (Aptos does not echo println! from simulate).`,
-        );
-        push(`Snippet: ${JSON.stringify(sim).slice(0, 1200)}`);
+        push(`→ Move did not execute successfully; vm_status is the real error. Snippet: ${JSON.stringify(sim).slice(0, 800)}`);
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       if (isNetworkSimError(msg)) {
-        // Network/transport failure (e.g. devnet 504), not a VM failure — non-blocking.
         push(`Preflight: simulate could not reach the RPC (${msg}) — treating as non-blocking.`);
         push("→ This is an RPC/network problem, NOT your transaction. submit_score itself is valid.");
-        push("→ Click Submit score and approve in your wallet; the actual submit path is independent of this preflight.");
       } else {
         push(`ERROR preflight: ${msg}`);
       }
@@ -459,9 +413,45 @@ export function App() {
     network != null &&
     String(network.name).toLowerCase() !== String(Network.DEVNET).toLowerCase();
 
+  // ---- tiny render helpers (functions, not components, to avoid input remount/focus loss) ----
+  const field = (k: string, label: string, width = 96) => (
+    <label style={{ marginRight: 10, fontSize: 14 }}>
+      {label} <input value={f(k)} onChange={(e) => setF(k, e.target.value)} style={{ width }} />
+    </label>
+  );
+  const check = (k: string, label: string) => (
+    <label style={{ marginRight: 10, fontSize: 14 }}>
+      <input type="checkbox" checked={flag(k)} onChange={(e) => setFlag(k, e.target.checked)} /> {label}
+    </label>
+  );
+  const row = (children: React.ReactNode) => <div style={{ margin: "8px 0", display: "flex", flexWrap: "wrap", alignItems: "center", gap: 6 }}>{children}</div>;
+  const card = (title: string, note: string, children: React.ReactNode) => (
+    <div style={{ border: "1px solid #ddd", borderRadius: 8, padding: 12, marginBottom: 12 }}>
+      <h4 style={{ margin: "0 0 4px" }}>{title}</h4>
+      <p style={{ color: "#666", fontSize: 13, margin: "0 0 8px" }}>{note}</p>
+      {children}
+    </div>
+  );
+  const tabBtn = (id: Tab, label: string) => (
+    <button
+      type="button"
+      onClick={() => setTab(id)}
+      style={{
+        padding: "6px 14px",
+        border: "1px solid #ccc",
+        borderBottom: tab === id ? "2px solid #2563eb" : "1px solid #ccc",
+        background: tab === id ? "#eef2ff" : "#fff",
+        fontWeight: tab === id ? 600 : 400,
+        cursor: "pointer",
+      }}
+    >
+      {label}
+    </button>
+  );
+
   return (
-    <div style={{ fontFamily: "system-ui", maxWidth: 1200, margin: "2rem auto", padding: 16 }}>
-      <h1>Sigil + Nightly (Aptos devnet)</h1>
+    <div style={{ fontFamily: "system-ui", maxWidth: 1100, margin: "2rem auto", padding: 16 }}>
+      <h1>Sigil + Nightly — module testing console (Aptos devnet)</h1>
       <p style={{ color: "#444" }}>
         Module: <code>{DEFAULT_MODULE}</code>. Set <code>VITE_SIGIL_MODULE_ADDRESS</code> to override.
       </p>
@@ -470,11 +460,8 @@ export function App() {
         <code style={{ fontSize: 12 }}>
           {APP_FULLNODE ?? "TS SDK default for Network.DEVNET (set VITE_APTOS_FULLNODE_URL to match Nightly)"}
         </code>
-        {RAW_APTOS_FULLNODE && !RAW_APTOS_FULLNODE.replace(/\/+$/, "").endsWith("/v1") ? (
-          <span style={{ color: "#a60" }}> (normalized: appended /v1)</span>
-        ) : null}
         {APTOS_API_KEY ? (
-          <span style={{ color: "#284", marginLeft: 8 }}>API key: on (Geomi / Aptos Labs)</span>
+          <span style={{ color: "#284", marginLeft: 8 }}>API key: on</span>
         ) : (
           <span style={{ color: "#666", marginLeft: 8, fontSize: 13 }}>
             Optional: set <code style={{ fontSize: 12 }}>VITE_APTOS_API_KEY</code> for higher RPC limits
@@ -482,53 +469,20 @@ export function App() {
         )}
       </p>
       <p style={{ color: "#a60", fontSize: 13 }}>
-        <strong>Staging vs public devnet:</strong> <code>api.devnet.staging.aptoslabs.com</code> and{" "}
-        <code>api.devnet.aptoslabs.com</code> are <strong>different chains</strong>. Your package and faucet balance must
-        exist on the <strong>same</strong> network your wallet uses.
-      </p>
-      <p style={{ color: "#a22", fontSize: 13, borderLeft: "3px solid #c44", paddingLeft: 10 }}>
-        If the wallet shows <strong>Simulation error</strong> with <code>429</code> and{" "}
-        <code>api.devnet.staging.aptoslabs.com</code>, it is still using <strong>staging</strong> for simulation. Set Nightly’s
-        Aptos devnet node / Custom RPC to{" "}
-        <code style={{ fontSize: 12 }}>https://api.devnet.aptoslabs.com/v1</code> to match this app (or use staging everywhere
-        if you deploy there). For Geomi quota, see{" "}
-        <a href="https://geomi.dev/docs/faq" target="_blank" rel="noreferrer">
-          geomi.dev/docs/faq
-        </a>
-        .
-      </p>
-      <p style={{ color: "#666", fontSize: 14 }}>
-        Approve every transaction prompt in your wallet. If you <strong>Reject</strong>, signing can break until you{" "}
-        <strong>Disconnect</strong> and connect again.
-      </p>
-      <p style={{ color: "#666", fontSize: 14 }}>
-        Most wallets enable <strong>Approve</strong> only after <strong>simulation</strong>. Set your wallet’s Devnet{" "}
-        <strong>Custom RPC</strong> to the <strong>same</strong> host as this app’s{" "}
-        <code style={{ fontSize: 12 }}>VITE_APTOS_FULLNODE_URL</code> (e.g. public devnet{" "}
-        <code style={{ fontSize: 12 }}>https://api.devnet.aptoslabs.com/v1</code>), then restart <code>npm run dev</code>. If
-        you see <strong>Bad Gateway</strong> or <strong>not valid JSON</strong>, avoid staging unless you deploy on that
-        chain. Use <strong>Preflight simulate</strong> to verify RPC from the app.
-      </p>
-      <p style={{ color: "#666", fontSize: 14 }}>
-        <strong>“No coin balance changes”</strong> in the preview is normal for <code>submit_score</code> (it updates game
-        state, not your APT balance). If Approve never enables, the simulation may still be running, RPC may be slow, or the
-        tx failed on-chain (see <strong>Preflight</strong> log).
-      </p>
-      <p style={{ color: "#a60", fontSize: 13 }}>
-        If the console shows <code>Cannot set property ethereum</code> / MetaMask / Nightly / Backpack fighting over{" "}
-        <code>window.ethereum</code>, disable other EVM wallet extensions for this tab (they are unrelated to Aptos).
-        Those errors are injected by EVM extensions, not this Aptos app.
+        <strong>Staging vs public devnet</strong> are different chains. Your wallet’s Devnet Custom RPC must match this app’s
+        fullnode, or simulation (and Approve) will fail. Public devnet:{" "}
+        <code style={{ fontSize: 12 }}>https://api.devnet.aptoslabs.com/v1</code>.
       </p>
 
       {!connected && (
         <section>
           <h2>Connect Nightly</h2>
           <p style={{ color: "#666", fontSize: 13 }}>
-            This demo uses only{" "}
+            This demo uses{" "}
             <a href="https://docs.nightly.app/docs/aptos/aptos/detection" target="_blank" rel="noreferrer">
               Nightly on Aptos
             </a>{" "}
-            (devnet). Install the Nightly extension and select the <strong>Aptos</strong> account.
+            (devnet). Install the extension and select the <strong>Aptos</strong> account.
           </p>
           {nightlyInstalled ? (
             <WalletItem wallet={nightlyInstalled} onConnect={() => void onConnectNightly()}>
@@ -550,89 +504,260 @@ export function App() {
 
       {connected && account && (
         <section>
-          <h2>Connected</h2>
-          {wallet?.name ? (
-            <p style={{ color: "#666", fontSize: 14 }}>
-              Wallet: <strong>{wallet.name}</strong>
-            </p>
-          ) : null}
-          {network ? (
-            <p style={{ color: onWrongNetwork ? "#a60" : "#666", fontSize: 14 }}>
-              Network: <strong>{String(network.name)}</strong>
-              {network.chainId != null ? ` (chain ${network.chainId})` : ""}
-            </p>
-          ) : null}
-          {onWrongNetwork ? (
-            <p style={{ marginTop: 8 }}>
-              <button type="button" onClick={() => void onSwitchToDevnet()}>
-                Switch Nightly to Aptos Devnet
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+            <div style={{ fontSize: 14, color: "#666" }}>
+              {wallet?.name ? <strong>{wallet.name}</strong> : null}
+              {network ? (
+                <span style={{ color: onWrongNetwork ? "#a60" : "#666", marginLeft: 8 }}>
+                  {String(network.name)}
+                  {network.chainId != null ? ` (chain ${network.chainId})` : ""}
+                </span>
+              ) : null}
+              <div>
+                <code style={{ fontSize: 12 }}>{account.address.toString()}</code>
+              </div>
+            </div>
+            <div>
+              {onWrongNetwork ? (
+                <button type="button" onClick={() => void onSwitchToDevnet()} style={{ marginRight: 8 }}>
+                  Switch to Devnet
+                </button>
+              ) : null}
+              <button type="button" onClick={() => disconnect()}>
+                Disconnect
               </button>
-            </p>
-          ) : null}
-          <p>
-            <code>{account.address.toString()}</code>
-          </p>
-          <button type="button" onClick={() => disconnect()}>
-            Disconnect
-          </button>
-
-          <h3>game_platform</h3>
-          <p style={{ color: "#666", fontSize: 13, marginBottom: 8 }}>
-            One funded transaction: <code>submit_score</code> registers you on your first score (sets your
-            username) and records the score. No separate register step.
-          </p>
-          <button type="button" onClick={() => void onCheckPrereqs()}>
-            Check game exists
-          </button>
-
-          <div style={{ marginTop: 12 }}>
-            <label>
-              username{" "}
-              <input
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="display name"
-                style={{ width: 140 }}
-              />
-            </label>{" "}
-            <label>
-              game_id <input value={gameId} onChange={(e) => setGameId(e.target.value)} style={{ width: 64 }} />
-            </label>{" "}
-            <label>
-              score <input value={score} onChange={(e) => setScore(e.target.value)} style={{ width: 96 }} />
-            </label>
-            <button type="button" onClick={() => void onSubmitScore()}>
-              submit_score
-            </button>
-            <button type="button" onClick={() => void onPreflightSubmitScore()} style={{ marginLeft: 8 }}>
-              Preflight simulate
-            </button>
+            </div>
           </div>
 
-          <h3>leaderboard (views)</h3>
-          <p style={{ color: "#666", fontSize: 13, marginBottom: 8 }}>
-            <strong>Per game:</strong> publisher runs <code>create_leaderboard</code> once per <code>game_id</code>.{" "}
-            <code>submit_score</code> then updates that game’s leaderboard on-chain. Use <strong>Leaderboard top (game_id)</strong>{" "}
-            with the same <code>game_id</code> as scores. <code>get_scores</code> below is raw history; leaderboard is ranked
-            top-N. Optional buttons use <strong>sequential</strong> leaderboard index (0..next_id−1) for seasons/tests — not the
-            same as <code>game_id</code> unless you create boards in order.
-          </p>
-          <button type="button" onClick={() => void onLoadLeaderboardForGame()}>
-            Leaderboard top (game_id above)
-          </button>
-          <button type="button" onClick={() => void onLoadMyGameScores()} style={{ marginLeft: 8 }}>
-            game_platform get_scores (me, game_id above)
-          </button>
-          <div style={{ marginTop: 8 }}>
-            <span style={{ color: "#888", fontSize: 12 }}>Advanced (sequential lb id):</span>{" "}
-            <button type="button" onClick={() => void onLoadBoard(0)}>
-              get_top_entries (lb 0)
-            </button>
+          <div style={{ display: "flex", gap: 0, marginTop: 16 }}>
+            {tabBtn("player", "Player")}
+            {tabBtn("publisher", "Publisher (admin)")}
+            {tabBtn("views", "Views (read-only)")}
+          </div>
+          <div style={{ border: "1px solid #ccc", borderTop: "none", padding: 16 }}>
+            {/* shared id fields */}
+            {row(<>
+              {field("username", "username", 130)}
+              {field("gameId", "game_id", 60)}
+              {field("score", "score", 90)}
+            </>)}
+
+            {tab === "player" && (
+              <>
+                {card("game_platform", "First submit_score registers you (sets username) and records the score — one tx, no separate register step.", row(<>
+                  <button type="button" onClick={() => void onCheckPrereqs()}>Check game exists</button>
+                  <button type="button" onClick={write("submit_score", () => sigil.gamePlatform.walletPayloadSubmitScore({ gameId: big("gameId"), score: big("score"), username: f("username").trim() }))}>submit_score</button>
+                  <button type="button" onClick={() => void onPreflightSubmitScore()}>Preflight simulate</button>
+                </>))}
+
+                {card("rewards", "Claim the FA/NFT reward attached to an unlocked achievement.", row(<>
+                  {field("rewardAchId", "achievement_id", 110)}
+                  <button type="button" onClick={write("rewards::claim_reward", () => sigil.rewards.walletPayloadClaimReward({ achievementId: big("rewardAchId") }))}>claim_reward</button>
+                </>))}
+
+                {card("quests", "Opt into a quest, then push your progress (score-driven quests also advance via submit_score).", row(<>
+                  {field("questId", "quest_id", 80)}
+                  <button type="button" onClick={write("quests::start_quest", () => sigil.quests.walletPayloadStartQuest({ questId: big("questId") }))}>start_quest</button>
+                  <button type="button" onClick={write("quests::update_quest_progress", () => sigil.quests.walletPayloadUpdateQuestProgress({ questId: big("questId") }))}>update_progress</button>
+                </>))}
+
+                {card("guilds", "Found a guild, join one by id, or leave your current guild.", <>
+                  {row(<>
+                    {field("guildName", "name", 140)}
+                    <button type="button" onClick={write("guilds::create_guild", () => sigil.guilds.walletPayloadCreateGuild({ name: f("guildName").trim() }))}>create_guild</button>
+                  </>)}
+                  {row(<>
+                    {field("guildId", "guild_id", 80)}
+                    <button type="button" onClick={write("guilds::join_guild", () => sigil.guilds.walletPayloadJoinGuild({ guildId: big("guildId") }))}>join_guild</button>
+                    <button type="button" onClick={write("guilds::leave_guild", () => sigil.guilds.walletPayloadLeaveGuild())}>leave_guild</button>
+                  </>)}
+                </>)}
+
+                {card("merge", "Consume a recipe's inputs from your inventory to mint its output (needs granted items — see Publisher tab).", row(<>
+                  {field("recipeId", "recipe_id", 80)}
+                  <button type="button" onClick={write("merge::execute_merge", () => sigil.merge.walletPayloadExecuteMerge({ recipeId: big("recipeId") }))}>execute_merge</button>
+                </>))}
+              </>
+            )}
+
+            {tab === "publisher" && (
+              <>
+                <p style={{ color: "#a22", fontSize: 13, borderLeft: "3px solid #c44", paddingLeft: 10 }}>
+                  These are <strong>owner/admin</strong> calls. They abort unless the connected wallet is the publisher (or a
+                  roles-authorized admin/operator) for the module address above. Most are already initialized on the shared demo
+                  module — re-running <code>init_*</code> there will abort (expected).
+                </p>
+
+                {card("game_platform", "One-time publisher init, then register a game (returns a new game_id).", row(<>
+                  <button type="button" onClick={write("game_platform::init", () => sigil.gamePlatform.walletPayloadInit())}>init</button>
+                  {field("gameTitle", "title", 140)}
+                  <button type="button" onClick={write("game_platform::register_game", () => sigil.gamePlatform.walletPayloadRegisterGame(f("gameTitle").trim()))}>register_game</button>
+                </>))}
+
+                {card("leaderboard", "Create a board bound to game_id; submit_score then updates it automatically.", <>
+                  {row(<button type="button" onClick={write("leaderboard::init", () => sigil.leaderboard.walletPayloadInit())}>init_leaderboards</button>)}
+                  {row(<>
+                    {field("lbDecimals", "decimals", 70)}
+                    {field("lbMin", "min", 90)}
+                    {field("lbMax", "max", 110)}
+                    {field("lbRetain", "retain", 70)}
+                  </>)}
+                  {row(<>
+                    {check("lbAscending", "ascending")}
+                    {check("lbAllowMultiple", "allow multiple")}
+                    <button type="button" onClick={write("leaderboard::create_leaderboard", () => sigil.leaderboard.walletPayloadCreateLeaderboard({ gameId: big("gameId"), decimals: big("lbDecimals"), minScore: big("lbMin"), maxScore: big("lbMax"), isAscending: flag("lbAscending"), allowMultiple: flag("lbAllowMultiple"), scoresToRetain: big("lbRetain") }))}>create_leaderboard (game_id above)</button>
+                  </>)}
+                </>)}
+
+                {card("achievements", "Init, then create a score achievement (badge_uri optional).", <>
+                  {row(<button type="button" onClick={write("achievements::init", () => sigil.achievements.walletPayloadInit())}>init_achievements</button>)}
+                  {row(<>
+                    {field("achTitle", "title", 130)}
+                    {field("achDesc", "description", 160)}
+                    {field("achMin", "min_score", 90)}
+                    {field("achBadge", "badge_uri", 120)}
+                    <button type="button" onClick={write("achievements::create", () => sigil.achievements.walletPayloadCreate({ title: f("achTitle"), description: f("achDesc"), minScore: big("achMin"), badgeUri: f("achBadge") }))}>create</button>
+                  </>)}
+                </>)}
+
+                {card("rewards", "Init the reward vault, then attach an FA reward (defaults to APT) to an achievement.", <>
+                  {row(<button type="button" onClick={write("rewards::init", () => sigil.rewards.walletPayloadInit())}>init_rewards</button>)}
+                  {row(<>
+                    {field("rewardAchId", "achievement_id", 110)}
+                    {field("rewardAmount", "amount (octas)", 120)}
+                    {field("rewardSupply", "supply", 80)}
+                    <button type="button" onClick={write("rewards::attach_fa_reward", () => sigil.rewards.walletPayloadAttachFaReward({ achievementId: big("rewardAchId"), amount: big("rewardAmount"), supply: big("rewardSupply") }))}>attach_fa_reward</button>
+                  </>)}
+                </>)}
+
+                {card("quests", "Init, then create a score quest (reward_id ties to an achievement reward; 0 = none).", <>
+                  {row(<button type="button" onClick={write("quests::init", () => sigil.quests.walletPayloadInit())}>init_quests</button>)}
+                  {row(<>
+                    {field("questTitle", "title", 130)}
+                    {field("questDesc", "description", 170)}
+                  </>)}
+                  {row(<>
+                    {field("questTarget", "target_score", 110)}
+                    {field("questReward", "reward_id", 90)}
+                    {check("questSeasonal", "seasonal")}
+                    <button type="button" onClick={write("quests::create_score_quest", () => sigil.quests.walletPayloadCreateScoreQuest({ title: f("questTitle"), description: f("questDesc"), gameId: big("gameId"), targetScore: big("questTarget"), rewardId: big("questReward"), isSeasonal: flag("questSeasonal") }))}>create_score_quest (game_id above)</button>
+                  </>)}
+                </>)}
+
+                {card("seasons", "Create a season over a leaderboard, then start/end/finalize by id.", <>
+                  {row(<button type="button" onClick={write("seasons::init", () => sigil.seasons.walletPayloadInit())}>init_seasons</button>)}
+                  {row(<>
+                    {field("seasonName", "name", 120)}
+                    {field("seasonStart", "start (unix)", 100)}
+                    {field("seasonEnd", "end (unix)", 100)}
+                    {field("seasonLb", "leaderboard_id", 110)}
+                    {field("seasonPrize", "prize_pool", 100)}
+                  </>)}
+                  {row(<button type="button" onClick={write("seasons::create_season", () => sigil.seasons.walletPayloadCreateSeason({ name: f("seasonName"), startTime: big("seasonStart"), endTime: big("seasonEnd"), leaderboardId: big("seasonLb"), prizePool: big("seasonPrize") }))}>create_season</button>)}
+                  {row(<>
+                    {field("seasonId", "season_id", 90)}
+                    <button type="button" onClick={write("seasons::start_season", () => sigil.seasons.walletPayloadStartSeason({ seasonId: big("seasonId") }))}>start</button>
+                    <button type="button" onClick={write("seasons::end_season", () => sigil.seasons.walletPayloadEndSeason({ seasonId: big("seasonId") }))}>end</button>
+                    <button type="button" onClick={write("seasons::finalize_season", () => sigil.seasons.walletPayloadFinalizeSeason({ seasonId: big("seasonId") }))}>finalize</button>
+                  </>)}
+                </>)}
+
+                {card("treasury", "Init the vault, deposit APT, or withdraw to a recipient (publisher-signed).", <>
+                  {row(<>
+                    <button type="button" onClick={write("treasury::init", () => sigil.treasury.walletPayloadInit())}>init_treasury</button>
+                    {field("treasuryAmount", "deposit (octas)", 120)}
+                    <button type="button" onClick={write("treasury::deposit", () => sigil.treasury.walletPayloadDeposit({ amount: big("treasuryAmount") }))}>deposit</button>
+                  </>)}
+                  {row(<>
+                    {field("withdrawTo", "recipient", 320)}
+                    {field("withdrawAmount", "amount", 100)}
+                    <button type="button" onClick={write("treasury::withdraw", () => sigil.treasury.walletPayloadWithdraw({ recipient: f("withdrawTo").trim(), amount: big("withdrawAmount") }))}>withdraw</button>
+                  </>)}
+                </>)}
+
+                {card("merge / roles / guilds", "Recipe + item grants, role grants, and guild init.", <>
+                  {row(<>
+                    <button type="button" onClick={write("merge::init", () => sigil.merge.walletPayloadInit())}>init_merge</button>
+                    {field("recipeIn", "in_item", 70)}
+                    {field("recipeInQty", "in_qty", 60)}
+                    {field("recipeOut", "out_item", 70)}
+                    {field("recipeOutQty", "out_qty", 60)}
+                    <button type="button" onClick={write("merge::register_recipe", () => sigil.merge.walletPayloadRegisterRecipe({ inputItemId: big("recipeIn"), inputQty: big("recipeInQty"), outputItemId: big("recipeOut"), outputQty: big("recipeOutQty") }))}>register_recipe</button>
+                  </>)}
+                  {row(<>
+                    {field("grantItem", "item_id", 70)}
+                    {field("grantQty", "qty", 60)}
+                    <button type="button" onClick={write("merge::grant_items (to self)", () => sigil.merge.walletPayloadGrantItems({ player: me(), itemId: big("grantItem"), qty: big("grantQty") }))}>grant_items → me</button>
+                  </>)}
+                  {row(<>
+                    {field("adminAddr", "admin address", 320)}
+                    <button type="button" onClick={write("roles::init", () => sigil.roles.walletPayloadInit())}>init_roles</button>
+                    <button type="button" onClick={write("roles::add_admin", () => sigil.roles.walletPayloadAddAdmin({ admin: f("adminAddr").trim() }))}>add_admin</button>
+                    <button type="button" onClick={write("guilds::init", () => sigil.guilds.walletPayloadInit())}>init_guilds</button>
+                  </>)}
+                </>)}
+              </>
+            )}
+
+            {tab === "views" && (
+              <>
+                <p style={{ color: "#666", fontSize: 13 }}>
+                  Read-only — no wallet signature. Uses <code>game_id</code> / ids from the fields above and your connected address.
+                </p>
+                {card("game_platform", "Games, your registration, and your scores.", row(<>
+                  <button type="button" onClick={view("game_count", () => sigil.gamePlatform.viewGameCount())}>game_count</button>
+                  <button type="button" onClick={view("has_game", () => sigil.gamePlatform.viewHasGame(big("gameId")))}>has_game</button>
+                  <button type="button" onClick={view("score_summary (me)", () => sigil.gamePlatform.viewScoreSummary({ player: me(), gameId: big("gameId") }))}>score_summary</button>
+                  <button type="button" onClick={view("get_scores (me)", () => sigil.gamePlatform.viewPlayerGameScores({ player: me(), gameId: big("gameId") }))}>get_scores</button>
+                </>))}
+                {card("leaderboard", "Ranked top-N per game, plus sequential-id reads.", row(<>
+                  <button type="button" onClick={view("leaderboard_count", () => sigil.leaderboard.viewLeaderboardCount())}>count</button>
+                  <button type="button" onClick={view("top_entries_for_game", () => sigil.leaderboard.viewTopEntriesForGame(big("gameId")))}>top (game_id)</button>
+                  <button type="button" onClick={view("top_entries (lb 0)", () => sigil.leaderboard.viewTopEntries(0))}>top (lb 0)</button>
+                  <button type="button" onClick={view("config (lb 0)", () => sigil.leaderboard.viewLeaderboardConfig(0))}>config (lb 0)</button>
+                </>))}
+                {card("achievements", "Catalog + your unlocks.", row(<>
+                  <button type="button" onClick={view("achievement_count", () => sigil.achievements.viewAchievementCount())}>count</button>
+                  <button type="button" onClick={view("list_catalog", () => sigil.achievements.viewCatalog())}>catalog</button>
+                  <button type="button" onClick={view("unlocked_for (me)", () => sigil.achievements.viewUnlockedFor({ player: me() }))}>unlocked (me)</button>
+                </>))}
+                {card("rewards", "Reward inventory.", row(<>
+                  <button type="button" onClick={view("list_rewarded", () => sigil.rewards.viewRewardedAchievements())}>rewarded list</button>
+                  <button type="button" onClick={view("get_reward (achievement_id)", () => sigil.rewards.viewReward(big("rewardAchId")))}>get_reward</button>
+                </>))}
+                {card("quests", "Quest catalog + your progress.", row(<>
+                  <button type="button" onClick={view("quest_count", () => sigil.quests.viewQuestCount())}>count</button>
+                  <button type="button" onClick={view("get_quest (quest_id)", () => sigil.quests.viewQuest(big("questId")))}>get_quest</button>
+                  <button type="button" onClick={view("progress (me)", () => sigil.quests.viewQuestProgress({ questId: big("questId"), player: me() }))}>my progress</button>
+                  <button type="button" onClick={view("active_quests (me)", () => sigil.quests.viewActiveQuests({ player: me() }))}>active (me)</button>
+                </>))}
+                {card("seasons", "Season state.", row(<>
+                  <button type="button" onClick={view("season_count", () => sigil.seasons.viewSeasonCount())}>count</button>
+                  <button type="button" onClick={view("current_season", () => sigil.seasons.viewCurrentSeason())}>current</button>
+                  <button type="button" onClick={view("get_season (season_id)", () => sigil.seasons.viewSeason(big("seasonId")))}>get_season</button>
+                </>))}
+                {card("guilds / merge", "Guild membership and item inventory.", row(<>
+                  <button type="button" onClick={view("guild_count", () => sigil.guilds.viewGuildCount())}>guild_count</button>
+                  <button type="button" onClick={view("player_guild_id (me)", () => sigil.guilds.viewPlayerGuildId({ player: me() }))}>my guild</button>
+                  <button type="button" onClick={view("recipe_count", () => sigil.merge.viewRecipeCount())}>recipe_count</button>
+                  <button type="button" onClick={view("item_qty (me, grant item)", () => sigil.merge.viewItemQty({ player: me(), itemId: big("grantItem") }))}>my item_qty</button>
+                </>))}
+                {card("treasury / roles / attest", "Vault balance, your role, and module init flags.", row(<>
+                  <button type="button" onClick={view("treasury balance", () => sigil.treasury.viewBalance())}>treasury balance</button>
+                  <button type="button" onClick={view("treasury stats", () => sigil.treasury.viewStats())}>treasury stats</button>
+                  <button type="button" onClick={view("role_summary (me)", () => sigil.roles.viewRoleSummary({ addr: me() }))}>my role</button>
+                  <button type="button" onClick={view("attest initialized", () => sigil.attest.viewIsInitialized())}>attest init?</button>
+                </>))}
+              </>
+            )}
           </div>
         </section>
       )}
 
       <h2>Log</h2>
+      <div style={{ marginBottom: 6 }}>
+        <button type="button" onClick={() => setLog([])}>Clear log</button>
+      </div>
       <pre
         style={{
           background: "#111",

@@ -10,6 +10,28 @@ export class TreasuryModule extends SigilModule {
     return this.buildEntry({ ...args, module: M, func: "init_treasury", functionArguments: [] });
   }
 
+  /** @see {@link buildInit} */
+  walletPayloadInit() {
+    return this.payload(M, "init_treasury", []);
+  }
+
+  /** @see {@link buildDeposit} */
+  walletPayloadDeposit(args: { amount: AnyNumber; faMetadataAddress?: AddressInput; publisher?: AddressInput }) {
+    const publisher = args.publisher ? normalizeAddress(args.publisher) : this.moduleAddress;
+    const meta = args.faMetadataAddress
+      ? normalizeAddress(args.faMetadataAddress)
+      : AccountAddress.from(APTOS_COIN_METADATA_ADDRESS);
+    return this.payload(M, "deposit", [publisher, meta, BigInt(args.amount as never)]);
+  }
+
+  /** @see {@link buildWithdraw} */
+  walletPayloadWithdraw(args: { recipient: AddressInput; amount: AnyNumber; faMetadataAddress?: AddressInput }) {
+    const meta = args.faMetadataAddress
+      ? normalizeAddress(args.faMetadataAddress)
+      : AccountAddress.from(APTOS_COIN_METADATA_ADDRESS);
+    return this.payload(M, "withdraw", [meta, normalizeAddress(args.recipient), BigInt(args.amount as never)]);
+  }
+
   /** Deposit `amount` of an FA (defaults to native APT) into a publisher's treasury. */
   buildDeposit(args: {
     sender: Account;

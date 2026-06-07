@@ -9,6 +9,17 @@ export class RolesModule extends SigilModule {
     return this.buildEntry({ ...args, module: M, func: "init_roles", functionArguments: [] });
   }
 
+  /** @see {@link buildInit} */
+  walletPayloadInit() {
+    return this.payload(M, "init_roles", []);
+  }
+
+  /** @see {@link buildAddAdmin} */
+  walletPayloadAddAdmin(args: { admin: AddressInput; publisher?: AddressInput }) {
+    const publisher = args.publisher ? normalizeAddress(args.publisher) : this.moduleAddress;
+    return this.payload(M, "add_admin", [publisher, normalizeAddress(args.admin)]);
+  }
+
   buildAddAdmin(args: { sender: Account; admin: AddressInput; publisher?: AddressInput; options?: InputGenerateTransactionOptions }) {
     const publisher = args.publisher ? normalizeAddress(args.publisher) : this.moduleAddress;
     return this.buildEntry({ ...args, module: M, func: "add_admin", functionArguments: [publisher, normalizeAddress(args.admin)] });

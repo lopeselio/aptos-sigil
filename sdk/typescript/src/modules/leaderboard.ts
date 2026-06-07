@@ -10,6 +10,35 @@ export class LeaderboardModule extends SigilModule {
     return this.buildEntry({ ...args, module: M, func: "init_leaderboards", functionArguments: [] });
   }
 
+  /** @see {@link buildInit} */
+  walletPayloadInit() {
+    return this.payload(M, "init_leaderboards", []);
+  }
+
+  /** @see {@link buildCreateLeaderboard} */
+  walletPayloadCreateLeaderboard(args: {
+    gameId: AnyNumber;
+    decimals: AnyNumber;
+    minScore: AnyNumber;
+    maxScore: AnyNumber;
+    isAscending: boolean;
+    allowMultiple: boolean;
+    scoresToRetain: AnyNumber;
+    publisher?: AddressInput;
+  }) {
+    const publisher = args.publisher ? normalizeAddress(args.publisher) : this.moduleAddress;
+    return this.payload(M, "create_leaderboard", [
+      publisher,
+      BigInt(args.gameId as never),
+      BigInt(args.decimals as never),
+      BigInt(args.minScore as never),
+      BigInt(args.maxScore as never),
+      args.isAscending,
+      args.allowMultiple,
+      BigInt(args.scoresToRetain as never),
+    ]);
+  }
+
   /**
    * Create a board bound to `gameId`. `submit_score` then updates it automatically.
    * `actor` may be the owner or a roles-authorized operator; `publisher` owns the resource.
