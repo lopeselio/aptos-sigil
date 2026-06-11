@@ -257,7 +257,13 @@ export function App() {
   const submitOrLog = async (label: string, tx: Parameters<typeof signAndSubmitTransaction>[0]) => {
     try {
       const res = await signAndSubmitTransaction(tx);
-      push(`${label}: ${res.hash}`);
+      // A returned hash only means "submitted" — wait for execution, an aborted tx has a hash too.
+      const committed = await sigil.aptos.waitForTransaction({ transactionHash: res.hash });
+      if (committed.success) {
+        push(`${label}: OK ${res.hash}`);
+      } else {
+        push(`ERROR ${label}: aborted on-chain — ${committed.vm_status} (${res.hash})`);
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       const name = e instanceof Error ? e.name : "";
