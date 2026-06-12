@@ -561,9 +561,10 @@ export function App() {
                   <button type="button" onClick={write("rewards::claim_reward", () => sigil.rewards.walletPayloadClaimReward({ achievementId: big("rewardAchId") }))}>claim_reward</button>
                 </>))}
 
-                {card("quests", "Opt into a quest, then push your progress (score-driven quests also advance via submit_score).", row(<>
+                {card("quests", "Opt into a quest, then advance it: score quests via submit_score_with_quest (uses game_id/score above), achievement/rank quests via update_progress.", row(<>
                   {field("questId", "quest_id", 80)}
                   <button type="button" onClick={write("quests::start_quest", () => sigil.quests.walletPayloadStartQuest({ questId: big("questId") }))}>start_quest</button>
+                  <button type="button" onClick={write("quests::submit_score_with_quest", () => sigil.quests.walletPayloadSubmitScoreWithQuest({ gameId: big("gameId"), score: big("score") }))}>submit_score_with_quest</button>
                   <button type="button" onClick={write("quests::update_quest_progress", () => sigil.quests.walletPayloadUpdateQuestProgress({ questId: big("questId") }))}>update_progress</button>
                 </>))}
 
