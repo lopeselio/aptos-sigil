@@ -138,10 +138,10 @@ export default function ArcadePage() {
 
   return (
     <main style={{ maxWidth: 880, margin: "0 auto", padding: "24px 16px 64px" }}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/logo.png" alt="Aptos Sigil" height={110} style={{ display: "block", margin: "0 auto 18px" }} />
       <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
         <div>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="Aptos Sigil" height={56} style={{ display: "block", marginBottom: 6 }} />
           <h1 style={{ margin: 0, fontSize: 30, letterSpacing: 1 }}>🕹️ Sigil Arcade</h1>
           <p style={{ margin: "4px 0 0", color: "#9aa6c4", fontSize: 14 }}>
             Reaction grid · scores live on Aptos {NETWORK_LABEL} · powered by <code style={{ color: "#cdd6f4" }}>@sigil-aptos/sdk</code>
