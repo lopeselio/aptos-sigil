@@ -30,7 +30,9 @@ export class LeaderboardModule extends SigilModule {
     return this.payload(M, "create_leaderboard", [
       publisher,
       BigInt(args.gameId as never),
-      BigInt(args.decimals as never),
+      // `decimals` is a Move u8 — the ts-sdk argument checker rejects BigInt for
+      // u8 client-side (only number|string allowed below u64). Pass a Number.
+      Number(args.decimals as never),
       BigInt(args.minScore as never),
       BigInt(args.maxScore as never),
       args.isAscending,
