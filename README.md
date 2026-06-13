@@ -1,96 +1,151 @@
 <p align="center">
-  <img src="docs/assets/aptos-sigil-logo.png" alt="Aptos Sigil" width="320" />
+  <img src="docs/assets/aptos-sigil-logo.png" alt="Aptos Sigil" width="300" />
 </p>
 
-# Sigil Game Platform - Aptos Smart Contract
+<h1 align="center">Sigil — Gaming Platform on Aptos</h1>
 
-[![CI](https://github.com/lopeselio/aptos-sigil/actions/workflows/ci.yml/badge.svg)](https://github.com/lopeselio/aptos-sigil/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Aptos](https://img.shields.io/badge/Aptos-Devnet-blue.svg)](https://explorer.aptoslabs.com/account/0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6?network=devnet)
-[![Move](https://img.shields.io/badge/Move-10_Modules-brightgreen.svg)](./move/sources/)
+<p align="center">
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
+  <a href="https://github.com/lopeselio/aptos-sigil/commits/master"><img src="https://img.shields.io/github/last-commit/lopeselio/aptos-sigil" alt="Last commit"></a>
+  <a href="https://explorer.aptoslabs.com/account/0x694fd0c04ecf4ec750450d3c1a4d318d5869f2cf762562a8a586a44e1c29d1c1?network=testnet"><img src="https://img.shields.io/badge/Aptos-Testnet-2bb24c.svg" alt="Aptos Testnet"></a>
+</p>
 
-**SIGIL - Signatures for In-Game Incentives & Leaderboards**
+**SIGIL — Signatures for In-Game Incentives & Leaderboards.** A complete, on-chain
+gaming platform for Aptos: scores, leaderboards, achievements, rewards, quests,
+seasons, guilds, item crafting, and a treasury — plus a TypeScript SDK and
+**gasless (sponsored) transactions** so players never need to hold APT to play.
 
-A complete, production-ready gaming platform on Aptos featuring **instant automated rewards**, gasless gameplay, and comprehensive achievement systems.
-
-## ⚡ **Phase Final: Automatic Rewards LIVE!**
-
-**Players now receive APT/NFT rewards INSTANTLY when claiming achievements!**
-- ✅ Zero backend required
-- ✅ Single-transaction claiming  
-- ✅ Verified on devnet: [See automatic 0.5 APT transfer](https://explorer.aptoslabs.com/txn/0x44537872b1dc81cb0a586e682a5c33796cd939e8db862ef4e374961f40a7094d?network=devnet)
-- ✅ 89/89 tests passing
-
-**[→ See Automatic Rewards Integration Guide](./docs/integration/AUTOMATIC_REWARDS_INTEGRATION.md)**
+Anyone can be a **publisher**: each game creator gets their own independent
+ecosystem under their own address.
 
 ---
 
-## 🎮 Features
+## 🎮 Live demos
 
-| Module | Status | Description |
-|--------|--------|-------------|
-| **game_platform** | ✅ Live | Game registration, player profiles, score submission |
-| **leaderboard** | ✅ Live | Dynamic rankings, top-N tracking, configurable sorting |
-| **achievements** | ✅ Live | 6 achievement types, progress tracking, badge/NFT support |
-| **rewards** | ✅ Live | **Automatic FA/NFT distribution** ⚡ (Phase Final!) |
-| **seasons** | ✅ Live | Time-bounded competitions, seasonal rankings, prize pools 🏆 |
-| **quests** | ✅ Live | Mission-based progression, 6 quest types, wrapper pattern 🎯 (NEW!) |
-| **roles** | ✅ Live | Multi-admin & operator management for teams 🔐 |
-| **shadow_signers** | ✅ Live | Gasless gameplay via session keys (no wallet popups!) |
-| **treasury** | ✅ Live | FA management, deposit/withdrawal tracking |
-| **attest** | ✅ Live | Server-side score verification (anti-cheat) 🛡️ |
+Everything below runs on **Aptos testnet** right now — connect the
+[Nightly](https://nightly.app) wallet (set to Testnet) and play. Scores land on
+chain, and you can submit them **gasless**.
 
-### Core Capabilities
+| App | What it is | Link |
+|-----|------------|------|
+| 🛠️ **Game-development console** | A hybrid console: a guided walkthrough of a real game plus raw tools for every module. Each action shows the on-chain call + the SDK code, and can be simulated before you sign. | **[Open ▶](https://sigil-aptos-web-petra.vercel.app)** |
+| 🕹️ **Sigil Arcade** | A reaction-grid mini-game. Tap the glowing tile, submit your score to the leaderboard. | **[Play ▶](https://sigil-arcade.vercel.app)** |
+| 🏰 **Sigil Dungeon** | A timed “run” — strike for score and loot, with a guild (party) panel. | **[Play ▶](https://sigil-dungeon.vercel.app)** |
+| 🌀 **Sigil Idle** | Accumulate essence over time, checkpoint it on chain, complete quests. | **[Play ▶](https://sigil-idle.vercel.app)** |
 
-- **Game Management** - Publishers can register games with unique IDs
-- **Player Profiles** - Players create on-chain profiles with usernames
-- **Score Submission** - Submit and track scores for any registered game
-- **Leaderboards** - Dynamic, gas-optimized leaderboards with configurable ranking
-- **Achievements** - Flexible achievement system with progress tracking, badges, and advanced conditions
-  - Basic score thresholds
-  - Consistency achievements (score X, N times)
-  - Dedication achievements (play N times)
-  - Combo achievements (combine conditions)
-  - Game-specific achievements
-  - Badge/NFT URI support
-- **Automatic Rewards** ⚡
-  - Instant FA distribution on claim (no waiting!)
-  - Automatic NFT minting (badges delivered instantly)
-  - Resource account integration (secure, trustless)
-  - Single-transaction claiming (870 gas for FA)
-  - No backend server required
-- **Seasons** 🏆
-  - Time-bounded competitive periods (1-90 days)
-  - Isolated season scores & leaderboards
-  - Prize pool management (APT distribution)
-  - Season states (upcoming/active/ended)
-  - Wrapper pattern (works with all modules)
-  - Battle pass & tournament support
-- **Quests** 🎯 **NEW!**
-  - Mission-based progression system
-  - 6 quest types (score, achievement, play count, streak, rank, multi-step)
-  - Automatic progress tracking
-  - Seasonal quest support
-  - Instant rewards on completion
-  - Wrapper pattern (coordinates all 8 modules)
-- **Gasless Gameplay** - Shadow Signers (session keys)
-  - One wallet popup, then play freely
-  - Relayer-paid gas (configurable)
-  - Scope-based permissions (secure delegation)
-  - TTL management (max 7 days)
-- **Treasury Management** - Multi-FA support
-  - Deposit/withdrawal tracking
-  - Balance verification
-  - Publisher-controlled
-- **Events** - All actions emit events for easy indexing
+### What they look like
 
-## 🧰 TypeScript SDK & apps (build a game in minutes)
+> Screenshots live in [`docs/assets/screenshots`](docs/assets/screenshots). Use the live links above to see them in action.
 
-Don't want to touch Move? The modules are **live on Aptos testnet** (persistent,
-free) and the [`@sigil-aptos/sdk`](./sdk/typescript) package gives you typed,
-wallet-signable helpers for every flow.
+**Console**
 
-- **Live testnet module:** `0x694fd0c04ecf4ec750450d3c1a4d318d5869f2cf762562a8a586a44e1c29d1c1` ([explorer](https://explorer.aptoslabs.com/account/0x694fd0c04ecf4ec750450d3c1a4d318d5869f2cf762562a8a586a44e1c29d1c1?network=testnet))
+<img src="docs/assets/screenshots/console.png" alt="Game-development console" width="800" />
+
+**The three games**
+
+<p>
+  <img src="docs/assets/screenshots/arcade.png" alt="Sigil Arcade" width="260" />
+  <img src="docs/assets/screenshots/dungeon.png" alt="Sigil Dungeon" width="260" />
+  <img src="docs/assets/screenshots/idle.png" alt="Sigil Idle" width="260" />
+</p>
+
+---
+
+## ✨ Capabilities
+
+- **Games & players** — publishers register games; players are created on their first score (no separate signup).
+- **Leaderboards** — ranked top-N per game, configurable sort/precision/retention.
+- **Achievements** — flexible unlock conditions (score thresholds, consistency, play counts, combos, game-specific) with optional badge art.
+- **Automatic rewards** — attach an APT (fungible) or NFT reward to an achievement; players claim it in a single transaction, distributed from a resource account with no backend.
+- **Quests** — opt-in missions (score, achievement, play-count, streak, rank, multi-step) with claimable rewards.
+- **Seasons** — time-bounded competitions over a leaderboard with prize pools and finalization.
+- **Guilds** — lightweight on-chain teams (create / join / leave).
+- **Item crafting (merge)** — publisher-defined recipes that consume inputs to mint outputs.
+- **Treasury** — fungible-asset vault for funding payouts.
+- **Multi-admin roles** — owner / admin / operator permissions so teams can manage a game safely.
+- **Anti-cheat (attest)** — optional server-signed score attestations.
+- **Gasless gameplay** — sponsored (fee-payer) transactions and session keys, so players pay 0 APT.
+
+---
+
+## 👥 Who can use Sigil?
+
+| Role | What they do | Access |
+|------|--------------|--------|
+| **Publisher** | Deploys/owns a game ecosystem: registers games, creates leaderboards, achievements, rewards, quests, seasons. | Owns the module address (or is the configured owner). |
+| **Admin / Operator** | Team members the publisher grants scoped permissions to (manage rewards, leaderboards, treasury, etc.). | Granted via the **roles** module. |
+| **Player** | Plays games, submits scores, unlocks achievements, claims rewards, joins guilds, takes on quests. | Anyone with a wallet — and with gasless, **no APT required**. |
+| **App developer** | Builds games/apps on top using the TypeScript SDK. | `@sigil-aptos/sdk` (see below). |
+
+---
+
+## 📍 Deployed contracts (Aptos testnet)
+
+Testnet is the stable home (devnet wipes ~weekly). The package is live at the
+**publisher address** below, with games **0 (Arcade)**, **1 (Dungeon)**, and
+**2 (Idle)** plus their leaderboards registered.
+
+| | Address |
+|--|---------|
+| **Publisher / module** | [`0x694fd0c04ecf4ec750450d3c1a4d318d5869f2cf762562a8a586a44e1c29d1c1`](https://explorer.aptoslabs.com/account/0x694fd0c04ecf4ec750450d3c1a4d318d5869f2cf762562a8a586a44e1c29d1c1?network=testnet) |
+| **Gas-station fee payer** (sponsors gasless txns) | [`0xe2a6706b01ecd5188a97e35f260ffec6bb8b1a4d87b005396b91d813705a407a`](https://explorer.aptoslabs.com/account/0xe2a6706b01ecd5188a97e35f260ffec6bb8b1a4d87b005396b91d813705a407a?network=testnet) |
+
+### The modules
+
+All modules are published under `sigil::<module>` at the publisher address.
+
+| Module | What it stands for |
+|--------|--------------------|
+| **game_platform** | The core: registers games, creates players (lazily on first score), records scores. |
+| **leaderboard** | Per-game ranked top-N boards; `submit_score` updates them automatically. |
+| **achievements** | Achievement catalog with flexible unlock conditions + badge art. |
+| **rewards** | Attaches APT/NFT rewards to achievements; one-transaction claiming from a resource account. |
+| **quests** | Mission system (6 quest types) with claimable rewards. |
+| **seasons** | Time-bounded competitions over a leaderboard, with prize pools and finalization. |
+| **guilds** | Lightweight on-chain teams per publisher. |
+| **merge** | Crafting: recipes that consume input items to produce outputs. |
+| **treasury** | Fungible-asset vault for funding rewards and payouts. |
+| **roles** | Owner / admin / operator permissions for team management. |
+| **attest** | Server-side score attestation (anti-cheat). |
+| **shadow_signers** | Session keys: temporary delegated authorization for popup-free gameplay. |
+
+---
+
+## ⚡ Gasless / sponsored transactions
+
+Players should never need to hold APT to play. Sigil supports **fee-payer
+(sponsored) transactions**: the player still authorizes the action from their
+wallet, but a separate **gas station** account pays the gas.
+
+- It's an Aptos L1 feature — **no contract changes** required.
+- The three games each ship a small `/api/sponsor` gas-station endpoint; the
+  console can point at one too. The fee payer is set via a **server-side** secret
+  (`SPONSOR_PRIVATE_KEY`) — never exposed to the browser.
+- Swap in your **own** funded account's key to sponsor for your own app, and keep
+  an **allowlist** so the endpoint only pays for your module's calls.
+
+Browser flow (via the SDK):
+
+```ts
+import { buildSponsoredTransaction, requestSponsorship, submitSponsored } from "@sigil-aptos/sdk";
+
+const tx = await buildSponsoredTransaction({ aptos, sender: account.address, data: payload.data });
+const { authenticator: senderAuthenticator } = await signTransaction({ transactionOrPayload: tx });
+const { feePayerAuthenticator, feePayerAddress } = await requestSponsorship({ endpoint: "/api/sponsor", transaction: tx });
+await submitSponsored({ aptos, transaction: tx, senderAuthenticator, feePayerAuthenticator, feePayerAddress });
+```
+
+A complementary mechanism, **session keys** (`shadow_signers`), lets a player
+delegate scoped, time-limited signing so a game can submit on their behalf
+without a wallet popup each time.
+
+---
+
+## 🧰 TypeScript SDK & the three example games
+
+The [`@sigil-aptos/sdk`](sdk/typescript) package gives typed, wallet-signable
+helpers for every module — `walletPayload*` (browser), `build*` (server signer),
+and `view*` (reads) — plus the sponsored-transaction helpers.
 
 ```bash
 npm install @sigil-aptos/sdk @aptos-labs/ts-sdk
@@ -105,1378 +160,302 @@ const sigil = new SigilClient({
   moduleAddress: AccountAddress.from("0x694fd0c04ecf4ec750450d3c1a4d318d5869f2cf762562a8a586a44e1c29d1c1"),
 });
 
-// First submit auto-registers the player + sets username — one tx:
+// First submit auto-registers the player + sets a username — one transaction:
 const payload = sigil.gamePlatform.walletPayloadSubmitScore({ gameId: 0n, score: 1000n, username: "player1" });
 await signAndSubmitTransaction(payload); // from @aptos-labs/wallet-adapter-react
 ```
 
-### What's in here for app devs
+**Three apps built on the SDK** (all in [`sdk/typescript/examples`](sdk/typescript/examples)):
 
-| | Where | What |
-|--|-------|------|
-| 📦 **SDK** | [`sdk/typescript`](./sdk/typescript) | `walletPayload*` (browser) + `build*` (server) + `view*` for every module, plus sponsored-tx helpers. |
-| 🎮 **Example game** | [`sdk/typescript/examples/games/arcade`](./sdk/typescript/examples/games/arcade) | **Sigil Arcade** — a playable Next.js reaction game with on-chain scores and ⚡ gasless submission. `npm run dev` serves the game + the gas station. |
-| 🧪 **Hybrid console** | [`sdk/typescript/examples/web-petra`](./sdk/typescript/examples/web-petra) | A **Guided** game walkthrough + raw module tabs. Every action shows the Move call, typed args, SDK code, and a Simulate/Inspect panel. |
-| 📖 **Tutorial** | [`docs/tutorial`](./docs/tutorial/building-a-game-on-aptos.md) | Zero → playable game, including gasless. |
+- **Sigil Arcade** ([`games/arcade`](sdk/typescript/examples/games/arcade)) — game 0. A reaction grid → score → leaderboard, with gasless submission.
+- **Sigil Dungeon** ([`games/dungeon`](sdk/typescript/examples/games/dungeon)) — game 1. Timed runs + loot + guilds.
+- **Sigil Idle** ([`games/idle`](sdk/typescript/examples/games/idle)) — game 2. Accumulate + checkpoint + quests/seasons.
 
-### ⚡ Gasless gameplay (sponsored transactions)
+Plus the **game-development console** ([`web-petra`](sdk/typescript/examples/web-petra))
+and a step-by-step [tutorial](docs/tutorial/building-a-game-on-aptos.md).
 
-Players never need APT: a **fee payer** (gas station) covers gas while the player
-just signs. It's an Aptos L1 feature — no Move changes. The SDK ships both sides
-(`buildSponsoredTransaction` / `requestSponsorship` / `submitSponsored` on the
-client; `sponsorTransaction` + an allowlist on the server). Verified end-to-end on
-testnet: a **zero-balance** account submitted a score and paid 0 APT
-(`npm run example:sponsored-smoke`). Run your own gas station by setting
-`SPONSOR_PRIVATE_KEY` to your funded account — see the
-[Arcade](./sdk/typescript/examples/games/arcade) and
-[tutorial](./docs/tutorial/building-a-game-on-aptos.md).
-
-### Deploy your own copy
-
-Testnet is the recommended stable home. With a funded publisher profile:
+### Run an app locally
 
 ```bash
-./scripts/redeploy_testnet.sh   # publish + init all modules + register game 0
+# build the SDK once
+cd sdk/typescript && npm install && npm run build
+
+# a game (serves its own gas station for gasless):
+cd examples/games/arcade && cp .env.example .env.local   # set SPONSOR_PRIVATE_KEY for gasless
+npm install && npm run dev                                # http://localhost:3000
+
+# the console:
+cd ../../web-petra && cp .env.example .env.local
+npm install && npm run dev                                # http://localhost:5173
 ```
 
-See [`docs/DEPLOYMENT_TESTNET.md`](./docs/DEPLOYMENT_TESTNET.md).
-
-## 🎭 Who Can Use Sigil?
-
-**Anyone can become a publisher!** The Sigil platform uses **per-publisher architecture** - each game creator has their own independent gaming ecosystem.
-
-| Role | What You Can Do | Access Control |
-|------|----------------|----------------|
-| **Publisher** (You!) | ✅ Create your own games<br>✅ Set up leaderboards<br>✅ Design achievements<br>✅ Attach rewards<br>✅ Manage your ecosystem | Your `&signer` controls YOUR resources only |
-| **Players** | ✅ Play any publisher's games<br>✅ Submit scores<br>✅ Earn achievements<br>✅ Claim rewards | Their `&signer` for claims |
-| **Anyone** | ✅ View all games/leaderboards<br>✅ Check achievements<br>✅ See rewards | Public view functions (free) |
-
-**Key Point:** ✅ **No approval needed!** Just initialize the modules at your address and you're a publisher.
-
-**See:** [REWARDS_GUIDE.md - Actors & Access Control](./REWARDS_GUIDE.md#-actors--access-control) for complete details.
+> The example `.env.example` files default to the testnet module above. Set
+> `SPONSOR_PRIVATE_KEY` to a **funded** account's key (server-side only) to enable
+> gasless. Never commit `.env.local`.
 
 ---
 
-## 📋 Prerequisites
+## 🛠️ Game-development console
 
-- [Aptos CLI](https://aptos.dev/tools/install-cli/) installed (v9.0.0+ recommended; required for current `aptos-framework` `mainnet` rev / Move 2.2)
-- Aptos account with devnet tokens (your publisher address)
+The console ([live](https://sigil-aptos-web-petra.vercel.app)) is a hybrid
+learning + reference surface for first-time Aptos game devs:
 
-**Entry functions (actor + publisher address):** Several modules use `actor: &signer` (the transaction sender) plus an explicit `publisher: address` for the account that owns the on-chain resource. When you act as the owner, pass **your publisher address** as the first `--args` address (then the rest of the arguments). This is what enables operator/admin delegation. Affected entrypoints include `achievements::{create,create_with_game,create_advanced,create_with_game_advanced,grant}`, `leaderboard::create_leaderboard`, `rewards::{attach_fa_reward,attach_nft_reward,create_nft_collection}`, and `seasons::{create_season,start_season,end_season,add_season_achievement,finalize_season}`. **Exception:** `seasons::finalize_season_and_distribute_prizes` requires the **publisher account to sign** the transaction (no operator delegation); it also needs `treasury` initialized and a **primary-store-enabled** FA metadata object (CLI: `object:METADATA_ADDRESS`). See [Seasons Guide](./docs/modules/SEASONS_GUIDE.md#step-5-end-season--distribute-prizes).
-- API Key from [Aptos Labs](https://geomi.dev/docs/start) (optional, for higher rate limits)
+- **Guided** tab — walks a real game's player lifecycle (open → first score →
+  leaderboard → quest → reward → guild → season), explaining the *why* of each step.
+- **Player / Publisher / Views** tabs — raw access to every module's calls.
+- For every action: **Inspect** (the exact on-chain call, typed arguments, and the
+  SDK + wallet payload to copy), **Simulate** (a free dry-run before you sign),
+  **Run**, and **⚡ Gasless** where a sponsor applies.
 
-## 📁 Project Structure
+<img src="docs/assets/screenshots/console.png" alt="Game-development console" width="800" />
 
-```
-sigil-aptos/
-├── move/
-│   ├── sources/
-│   │   ├── sigil_core.move         ✅ Game platform (9 functions)
-│   │   ├── leaderboard.move        ✅ Dynamic rankings (7 functions)
-│   │   ├── achievements.move       ✅ Achievement system (13 functions)
-│   │   └── rewards.move            ✅ Reward distribution (12 functions)
-│   │
-│   ├── tests/
-│   │   ├── leaderboard_tests.move  ✅ 15 tests passing
-│   │   ├── achievements_tests.move ✅ 20 tests passing
-│   │   └── rewards_tests.move      ✅ 26 tests passing
-│   │
-│   └── Move.toml                   📦 Package configuration
-│
-├── .aptos/
-│   └── config.yaml                 🔧 Aptos CLI profiles (included in .gitignore)
-│
-├── README.md                        📚 Main documentation 
-├── REWARDS_GUIDE.md                 📚 Complete rewards guide with use cases
-├── ACHIEVEMENTS_GUIDE.md            📚 Complete achievements guide 
-├── LEADERBOARD_INTEGRATION.md       📚 Leaderboard integration details 
-├── TESTING_GUIDE.md                 📚 Testing scenarios and commands 
-└── SUMMARY.md                       📚 Technical implementation notes 
-```
-
-**Total Stats:**
-- **4 Modules** - 3 deployed on devnet, 1 ready to deploy
-- **61 Unit Tests** - 100% passing
-- **41 Public Functions** - Complete gaming API
-- **6 Comprehensive Guides** - 5,500+ lines of documentation
-
-## 🚀 Deployment Steps
-
-> ### ⚠️ Devnet resets weekly — use the one-command redeploy
->
-> Aptos **devnet wipes ALL state on its (roughly weekly) reset**: published modules and account balances disappear. When that happens the app fails with:
->
-> ```
-> module_not_found: Module ... Module name(game_platform) ...
-> ```
->
-> Nothing is wrong with your config — the contract just needs to be republished. From the repo root:
->
-> ```bash
-> ./scripts/redeploy_devnet.sh
-> ```
->
-> This funds the publisher account, republishes the package (artifacts stripped to fit the 60 KB limit), and re-runs all module inits + registers a game. Override `APTOS_PROFILE` (default `devnet`) or `SIGIL_PUBLISHER` if needed. The manual equivalent is steps 3, 5, and 6 below.
-
-### 1. Configure Your Environment
-
-Create or update `.aptos/config.yaml` in your project root:
-
-```yaml
 ---
-profiles:
-  sigil-main:
-    network: Devnet
-    private_key: "YOUR_PRIVATE_KEY_HERE"
-    public_key: "YOUR_PUBLIC_KEY_HERE"
-    account: YOUR_ACCOUNT_ADDRESS
-    rest_url: "https://api.devnet.aptoslabs.com"
-    faucet_url: "https://faucet.devnet.aptoslabs.com"
-    api_key: "YOUR_API_KEY_HERE"
+
+## 🔐 Multi-admin management with roles
+
+Games are run by teams, not just one key. The **roles** module gives each
+publisher a permission hierarchy:
+
+- **Owner** — the publisher; full control, cannot be removed.
+- **Admin** — can manage most things and grant/revoke operators.
+- **Operator** — scoped permissions for day-to-day actions.
+
+Capability checks the platform uses internally:
+
+```
+is_owner · is_admin · is_operator · is_authorized
+can_manage_achievements · can_manage_rewards · can_manage_leaderboards
+can_manage_treasury · can_manage_roles
 ```
 
-### 2. Update Move.toml
+Typical flow: the owner calls `roles::init_roles`, then `add_admin` / `add_operator`
+to delegate. Module actions (e.g. attaching a reward, creating a leaderboard) then
+accept an authorized admin/operator — not just the owner.
 
-Update `move/Move.toml` with your account address:
+---
 
-```toml
-[addresses]
-sigil = "YOUR_ACCOUNT_ADDRESS"
+## ✅ Prerequisites
 
-[dev-addresses]
-```
+- **[Aptos CLI](https://aptos.dev/tools/aptos-cli/)** — to compile/deploy/test the Move package.
+- **Node.js ≥ 20** and **npm** — for the SDK and example apps.
+- A browser wallet — **[Nightly](https://nightly.app)** (Aptos) is what the apps use; set it to **Testnet**.
+- (Optional) a Vercel account — to host an app + its gas station.
 
-### 3. Fund Your Account
+---
+
+## 🚀 Deploying the contracts
+
+The package address is **overridable**: `Move.toml` sets `sigil = "_"` so you can
+publish to any account/network with `--named-addresses sigil=<addr>` (a
+`[dev-addresses]` value lets `aptos move test` run with no flags).
+
+### Testnet (recommended — persistent, free)
 
 ```bash
-aptos account fund-with-faucet \
-  --account YOUR_ACCOUNT_ADDRESS \
-  --profile sigil-main
+# 1. Create + fund a publisher profile (testnet faucet is a web captcha)
+cd move && aptos init --profile testnet --network testnet
+#    fund it: https://aptos.dev/network/faucet?address=<your-address>
+
+# 2. Publish + initialize all modules + register game 0 / leaderboard 0
+cd .. && APTOS_PROFILE=testnet ./scripts/redeploy_testnet.sh
+
+# 3. Verify
+aptos move view --profile testnet \
+  --function-id <addr>::game_platform::game_count --args address:<addr>
 ```
 
-### 4. Compile the Modules
+### Devnet (wipes ~weekly)
+
+Devnet resets roughly weekly, removing all state. To restore a working deployment
+in one command (fund → publish → init → register a game):
 
 ```bash
-cd move
-aptos move compile --save-metadata
+./scripts/redeploy_devnet.sh
 ```
 
-### 5. Deploy to Devnet
+Full deployment runbook (accounts, funding, app wiring, gas-station secret):
+[`docs/DEPLOYMENT_TESTNET.md`](docs/DEPLOYMENT_TESTNET.md).
 
-The `sigil_v2` package exceeds the default **60 KB** publish limit unless you shrink artifacts or use chunked publish. Use a profile that controls the **`sigil` address** in `move/Move.toml`.
+---
+
+## 🧪 Smoke tests, example workflows & scripts
+
+Scripts in [`scripts/`](scripts):
+
+| Script | What it does |
+|--------|--------------|
+| `redeploy_testnet.sh` | Publish + init all modules + register game 0 on testnet (profile-overridable). |
+| `redeploy_devnet.sh` | Same for devnet (fund → publish → init → register). |
+| `devnet_quick_module_smoke.sh` | Touch every module with minimal transactions (inits, register game, create leaderboard, submit score, quest, guild, recipe, treasury deposit). |
+| `devnet_deeper_onchain_smoke.sh` | A deeper end-to-end pass. |
+| `devnet_season_payout_smoke.sh` | Full season create → start → end → finalize → payout. |
+| `setup_petra_player_cli_profile.sh` | Set up a player CLI profile for manual testing. |
+| `sync-logo.sh` | Distribute the brand logo into every app. |
+
+SDK example workflows ([`sdk/typescript`](sdk/typescript)):
 
 ```bash
-cd move
-aptos move publish \
-  --profile YOUR_PUBLISHER_PROFILE \
-  --included-artifacts none \
-  --skip-fetch-latest-git-deps \
-  --assume-yes \
-  --max-gas 2000000
+cd sdk/typescript
+# Gasless submit_score proven from a zero-balance account (needs a funded sponsor key):
+SPONSOR_PRIVATE_KEY=<funded-key> SIGIL_MODULE_ADDRESS=<addr> npm run example:sponsored-smoke
+# Broader read/write smoke:
+SIGIL_PUBLISHER_PRIVATE_KEY=<key> npm run example:deeper-smoke
 ```
 
-See [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) for **chunked publish** (`--chunked-publish`, devnet `large_packages` at `0x7`) and a **devnet season + treasury payout smoke script**: `./scripts/devnet_season_payout_smoke.sh`.
+> Replace `<...>` placeholders with your own values. **Never** paste real private
+> keys into committed files — pass them via the environment only.
 
-### Devnet QA (smoke tests)
+---
 
-From the repo root, use a publisher profile whose address matches `[addresses].sigil` in `move/Move.toml` (e.g. `sigil-main`).
-
-| Flow | Command | Notes |
-|------|---------|--------|
-| Fast multi-module touch | `export APTOS_PROFILE=sigil-main` then `./scripts/devnet_quick_module_smoke.sh` | No season wait. Add `SKIP_INITS=1` after the first successful run to skip `init_*` (saves gas / log noise). |
-| Rewards pool + FA attach + optional `claim_testing` | `export APTOS_PROFILE=sigil-main` and `export APTOS_PLAYER_PROFILE=…` (a **second** account), then `./scripts/devnet_deeper_onchain_smoke.sh` | `claim_testing` is **player-signed**. Fund the player with `aptos account fund-with-faucet --profile YOUR_PLAYER_PROFILE` if you see `INSUFFICIENT_BALANCE_FOR_TRANSACTION_FEE`. |
-| Season → treasury deposit → finalize / payout | `SKIP_PUBLISH=1 SKIP_INITS=1 APTOS_PROFILE=sigil-main ./scripts/devnet_season_payout_smoke.sh` | Waits ~110s after creating the season for chain time to pass `end_time`. `SKIP_INITS=1` skips repeat `init_*` attempts. |
-| TypeScript (`@aptos-labs/ts-sdk`) | `cd sdk/typescript && npm install && npm run typecheck:examples` then `SIGIL_PUBLISHER_PRIVATE_KEY=0x… npm run example:deeper-smoke` | Optional: `SIGIL_PLAYER_PRIVATE_KEY`, `FA_ACHIEVEMENT_ID`. Devnet: player is **auto-funded** via faucet before `claim_testing` unless `SIGIL_FAUCET_PLAYER=0`. |
-| Nightly + browser | `cd sdk/typescript/examples/web-petra && npm install && npm run dev` | Devnet dapp: connect [Nightly](https://docs.nightly.app/docs/aptos/aptos/detection) (Aptos only), `register_player`, `submit_score`, read `get_top_entries`. Override module with `VITE_SIGIL_MODULE_ADDRESS`. |
-
-### 6. Initialize the Modules
-
-**Important:** Initialize all modules after deployment.
+## 🔬 Running tests
 
 ```bash
-# Initialize Game Platform
-aptos move run \
-  --function-id 'YOUR_ACCOUNT_ADDRESS::game_platform::init' \
-  --profile sigil-main \
-  --assume-yes \
-  --max-gas 2000
+# Move unit tests (no extra flags — resolves the address from [dev-addresses])
+aptos move test --package-dir move
 
-# Initialize Leaderboards
-aptos move run \
-  --function-id 'YOUR_ACCOUNT_ADDRESS::leaderboard::init_leaderboards' \
-  --profile sigil-main \
-  --assume-yes \
-  --max-gas 2000
-
-# Initialize Achievements
-aptos move run \
-  --function-id 'YOUR_ACCOUNT_ADDRESS::achievements::init_achievements' \
-  --profile sigil-main \
-  --assume-yes \
-  --max-gas 2000
+# TypeScript SDK tests
+cd sdk/typescript && npm install && npm test
 ```
 
 ---
 
-## 📝 Game Platform Functions
+## 🧱 Data structures (by module)
 
-### Publisher Functions
+Core on-chain state for each module (events omitted for brevity).
 
-#### Register a Game
-
-```bash
-aptos move run \
-  --function-id 'YOUR_ACCOUNT_ADDRESS::game_platform::register_game' \
-  --args string:"Game Title Here" \
-  --profile sigil-main \
-  --assume-yes
-```
-
-**Parameters:**
-- `string` - The title of your game
-
-**Example:**
-```bash
-aptos move run \
-  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::game_platform::register_game' \
-  --args string:"Space Shooter 2024" \
-  --profile sigil-main \
-  --assume-yes
-```
-
-### Player Functions
-
-#### Register as a Player
-
-Players must register before submitting scores.
-
-```bash
-aptos move run \
-  --function-id 'YOUR_ACCOUNT_ADDRESS::game_platform::register_player' \
-  --args string:"your_username" \
-  --profile sigil-main \
-  --assume-yes
-```
-
-**Example:**
-```bash
-aptos move run \
-  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::game_platform::register_player' \
-  --args string:"player123" \
-  --profile sigil-main \
-  --assume-yes
-```
-
-#### Submit a Score
-
-```bash
-aptos move run \
-  --function-id 'YOUR_ACCOUNT_ADDRESS::game_platform::submit_score' \
-  --args address:PUBLISHER_ADDRESS u64:GAME_ID u64:SCORE \
-  --profile sigil-main \
-  --assume-yes
-```
-
-**Parameters:**
-- `address` - The publisher's address who owns the game
-- `u64` - The game ID (starts from 0)
-- `u64` - The score value
-
-**Example:**
-```bash
-aptos move run \
-  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::game_platform::submit_score' \
-  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:0 u64:5000 \
-  --profile sigil-main \
-  --assume-yes
-```
-
-### View Functions (Read State)
-
-View functions don't require gas and are free to call.
-
-#### Get Game Count
-
-```bash
-aptos move view \
-  --profile sigil-main \
-  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::game_platform::game_count' \
-  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6
-```
-
-**Returns:** `["1"]` - Number of games
-
-#### Get Game Details
-
-```bash
-aptos move view \
-  --profile sigil-main \
-  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::game_platform::get_game' \
-  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:0
-```
-
-**Returns:** 
-```json
-[
-  "0",           // Game ID
-  "Test Game",   // Game Title
-  "0xe68ef..."   // Creator Address
-]
-```
-
-#### Get Player Scores
-
-```bash
-aptos move view \
-  --profile sigil-main \
-  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::game_platform::get_scores' \
-  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 address:PLAYER_ADDRESS u64:0
-```
-
----
-
-## 🏆 Leaderboard Functions
-
-### Create a Leaderboard
-
-Publishers can create customizable leaderboards for their games.
-
-```bash
-aptos move run \
-  --profile sigil-main \
-  --function-id 'YOUR_ACCOUNT_ADDRESS::leaderboard::create_leaderboard' \
-  --args address:PUBLISHER_RESOURCE_ACCOUNT u64:GAME_ID u8:DECIMALS u64:MIN_SCORE u64:MAX_SCORE bool:IS_ASCENDING bool:ALLOW_MULTIPLE u64:TOP_N \
-  --assume-yes
-```
-
-**Parameters:**
-- `publisher` (address) - Account that owns the `Leaderboards` resource (use your publisher address when acting as owner)
-- `game_id` (u64) - The game ID to create leaderboard for
-- `decimals` (u8) - Number of decimal places for display (0 for integers)
-- `min_score` (u64) - Minimum valid score (scores below are rejected)
-- `max_score` (u64) - Maximum valid score (scores above are rejected)
-- `is_ascending` (bool) - `false` = higher is better, `true` = lower is better (speedruns)
-- `allow_multiple` (bool) - `false` = only best score per player, `true` = allow multiple submissions
-- `scores_to_retain` (u64) - How many top entries to keep (e.g., top 10, top 100)
-
-**Example - High Score Leaderboard (Top 10):**
-```bash
-aptos move run \
-  --profile sigil-main \
-  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::leaderboard::create_leaderboard' \
-  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:0 u8:0 u64:0 u64:999999999 bool:false bool:false u64:10 \
-  --assume-yes
-```
-
-**Example - Speedrun Leaderboard (Lower Time is Better):**
-```bash
-aptos move run \
-  --profile sigil-main \
-  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::leaderboard::create_leaderboard' \
-  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:0 u8:2 u64:0 u64:999999 bool:true bool:false u64:50 \
-  --assume-yes
-```
-
-### Submit Score to Leaderboard
-
-For testing purposes, you can directly submit scores to the leaderboard:
-
-```bash
-aptos move run \
-  --profile sigil-main \
-  --function-id 'YOUR_ACCOUNT_ADDRESS::leaderboard::submit_score_direct' \
-  --args address:PUBLISHER_ADDRESS u64:LEADERBOARD_ID address:PLAYER_ADDRESS u64:SCORE \
-  --assume-yes
-```
-
-**Example:**
-```bash
-aptos move run \
-  --profile sigil-main \
-  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::leaderboard::submit_score_direct' \
-  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:0 address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:2500 \
-  --assume-yes
-```
-
-### Leaderboard View Functions
-
-#### Get Leaderboard Count
-
-```bash
-aptos move view \
-  --profile sigil-main \
-  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::leaderboard::get_leaderboard_count' \
-  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6
-```
-
-**Returns:** Number of leaderboards created
-
-#### Get Leaderboard Configuration
-
-```bash
-aptos move view \
-  --profile sigil-main \
-  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::leaderboard::get_leaderboard_config' \
-  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:0
-```
-
-**Returns:**
-```json
-[
-  "0",         // game_id
-  0,           // decimals
-  "0",         // min_score
-  "999999999", // max_score
-  false,       // is_ascending
-  false,       // allow_multiple
-  "10"         // scores_to_retain
-]
-```
-
-#### Get Top Entries (Leaderboard Rankings)
-
-```bash
-aptos move view \
-  --profile sigil-main \
-  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::leaderboard::get_top_entries' \
-  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:0
-```
-
-**Returns:** Two aligned arrays - player addresses and their scores
-```json
-{
-  "Result": [
-    [
-      "0x30be4b352a2e02eae96e771a210d32ecab488f82c5b059bb1fa875117b81f239",
-      "0x14cbc9d57823000f77aa8d29454ba90c52f0443fdb670b5a1357bcc07971c048",
-      "0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6"
-    ],
-    [
-      "2500",
-      "2000",
-      "1500"
-    ]
-  ]
-}
-```
-
----
-
-## 🏆 Achievement Functions
-
-> **📖 Full Documentation:** See [ACHIEVEMENTS_GUIDE.md](./ACHIEVEMENTS_GUIDE.md) for comprehensive documentation including:
-> - All 6 achievement types with examples
-> - Complete testing scenarios
-> - Live deployment verification
-> - Gas optimization details
-> - 20 unit tests coverage
-> - Helper tools and troubleshooting
-
-### Quick Start - Achievements
-
-### Create Achievement (Basic Example)
-
-**Example - "High Scorer" (Score 1000+):**
-```bash
-aptos move run \
-  --profile sigil-main \
-  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::create' \
-  --args \
-    address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 \
-    hex:"486967682053636f726572" \
-    hex:"53636f72652031303030206f72206d6f7265" \
-    u64:1000 \
-    hex:"" \
-  --assume-yes \
-  --max-gas 2000
-```
-
-**Parameters:**
-- `publisher` (address) - Account that owns the `Achievements` resource (use your publisher address when the transaction sender is the owner)
-- `title` (hex) - Achievement title in UTF-8 hex (`echo -n "Text" | xxd -p`)
-- `description` (hex) - Description in UTF-8 hex
-- `min_score` (u64) - Minimum score to unlock
-- `badge_uri` (hex) - Badge URI (empty `hex:""` for none)
-
-### Create Advanced Achievement
-
-**Example - "Consistent Performer" (Score 1000+ three times):**
-```bash
-aptos move run \
-  --profile sigil-main \
-  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::create_advanced' \
-  --args \
-    address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 \
-    hex:"436f6e73697374656e7420506572666f726d6572" \
-    hex:"53636f72652031303030206f72206d6f726520332074696d6573" \
-    u64:1000 \
-    u64:3 \
-    u64:0 \
-    hex:"" \
-  --assume-yes \
-  --max-gas 2000
-```
-
-**Parameters:**
-- `publisher` (address) - Account that owns the `Achievements` resource (same pattern as `create`)
-- `min_score` - Score threshold (0 = any score)
-- `required_count` - Times must hit threshold (0 = ignore)
-- `min_submissions` - Total games played (0 = ignore)
-
-
-### Achievement View Functions
-
-**Get Unlocked Achievements:**
-```bash
-aptos move view --profile sigil-main \
-  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::unlocked_for' \
-  --args address:PUBLISHER address:PLAYER
-# Returns: [["0", "1", "2"]]
-```
-
-**Get Achievement Progress:**
-```bash
-aptos move view --profile sigil-main \
-  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::get_progress' \
-  --args address:PUBLISHER address:PLAYER u64:ACHIEVEMENT_ID \
-  --max-gas 2000
-# Returns: ["2", "5", false]  // 2/3 threshold, 5 total plays, not unlocked
-```
-
-**Grant achievement manually (admin / owner):**
-```bash
-aptos move run \
-  --profile sigil-main \
-  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::grant' \
-  --args \
-    address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 \
-    address:PLAYER_ADDRESS \
-    u64:ACHIEVEMENT_ID \
-  --assume-yes \
-  --max-gas 2000
-```
-
-**More view functions:** `achievement_count`, `get_achievement`, `is_unlocked`, `list_catalog`  
-**See:** [ACHIEVEMENTS_GUIDE.md](./ACHIEVEMENTS_GUIDE.md) for complete API reference
-
-### Rewards (publisher entry functions)
-
-`attach_fa_reward` / `attach_nft_reward` / `create_nft_collection` take the **transaction sender** as actor and an explicit **`publisher` address** for the account that owns `Rewards` / `RewardsConfig`. When you are the owner, pass **your publisher address** as the first `--args` address.
-
-**Attach FA reward** (you need an on-chain `Metadata` object for your FA; replace `FA_METADATA_OBJECT`):
-
-```bash
-aptos move run \
-  --profile sigil-main \
-  --function-id 'YOUR_ACCOUNT_ADDRESS::rewards::attach_fa_reward' \
-  --args \
-    address:YOUR_ACCOUNT_ADDRESS \
-    u64:ACHIEVEMENT_ID \
-    address:FA_METADATA_OBJECT \
-    u64:AMOUNT_PER_CLAIM_OCTAS \
-    u64:SUPPLY \
-  --assume-yes \
-  --max-gas 3000
-```
-
-**Attach NFT reward** (`name`, `description`, `uri` are Move `String`; use `string:"..."` in the CLI):
-
-```bash
-aptos move run \
-  --profile sigil-main \
-  --function-id 'YOUR_ACCOUNT_ADDRESS::rewards::attach_nft_reward' \
-  --args \
-    address:YOUR_ACCOUNT_ADDRESS \
-    u64:ACHIEVEMENT_ID \
-    address:NFT_COLLECTION_ADDRESS \
-    string:"Reward Name" \
-    string:"Reward description" \
-    string:"https://example.com/metadata.json" \
-    u64:SUPPLY \
-  --assume-yes \
-  --max-gas 3000
-```
-
-**Create NFT collection** (vectors are UTF-8 bytes; use `hex:` from `xxd -p` or match your CLI convention):
-
-```bash
-aptos move run \
-  --profile sigil-main \
-  --function-id 'YOUR_ACCOUNT_ADDRESS::rewards::create_nft_collection' \
-  --args \
-    address:YOUR_ACCOUNT_ADDRESS \
-    hex:NAME_UTF8_HEX \
-    hex:DESCRIPTION_UTF8_HEX \
-    hex:URI_UTF8_HEX \
-  --assume-yes \
-  --max-gas 3000
-```
-
-### Seasons (publisher entry functions)
-
-`create_season`, `start_season`, `end_season`, `add_season_achievement`, and `finalize_season` use the same **actor + `publisher` address** pattern (operators/admins can act when `roles` grants permission). `init_seasons` still takes only the publisher signer (no extra address arg).
-
-**On-chain prize split:** `finalize_season_and_distribute_prizes` must be sent **from the publisher account**; fund prizes with `treasury::deposit` first. Pass prize FA metadata as **`object:0x...`** (same as FA rewards). Details: [Seasons Guide — Step 5](./docs/modules/SEASONS_GUIDE.md#step-5-end-season--distribute-prizes).
-
-**Initialize seasons (once per publisher):**
-```bash
-aptos move run \
-  --function-id 'YOUR_ACCOUNT_ADDRESS::seasons::init_seasons' \
-  --profile sigil-main \
-  --assume-yes \
-  --max-gas 2000
-```
-
-**Create a season** (`start_time` / `end_time` are Unix **seconds**):
-
-```bash
-aptos move run \
-  --profile sigil-main \
-  --function-id 'YOUR_ACCOUNT_ADDRESS::seasons::create_season' \
-  --args \
-    address:YOUR_ACCOUNT_ADDRESS \
-    string:"Season 1" \
-    u64:START_UNIX_SECONDS \
-    u64:END_UNIX_SECONDS \
-    u64:LEADERBOARD_ID \
-    u64:PRIZE_POOL_OCTAS \
-  --assume-yes \
-  --max-gas 3000
-```
-
-**Start / end a season** (after wall clock is past `start_time` for `start_season`):
-
-```bash
-aptos move run \
-  --profile sigil-main \
-  --function-id 'YOUR_ACCOUNT_ADDRESS::seasons::start_season' \
-  --args address:YOUR_ACCOUNT_ADDRESS u64:SEASON_ID \
-  --assume-yes \
-  --max-gas 2000
-
-aptos move run \
-  --profile sigil-main \
-  --function-id 'YOUR_ACCOUNT_ADDRESS::seasons::end_season' \
-  --args address:YOUR_ACCOUNT_ADDRESS u64:SEASON_ID \
-  --assume-yes \
-  --max-gas 2000
-```
-
-**Attach an achievement id to a season:**
-```bash
-aptos move run \
-  --profile sigil-main \
-  --function-id 'YOUR_ACCOUNT_ADDRESS::seasons::add_season_achievement' \
-  --args address:YOUR_ACCOUNT_ADDRESS u64:SEASON_ID u64:ACHIEVEMENT_ID \
-  --assume-yes \
-  --max-gas 2000
-```
-
-**Finalize season (off-chain prizes already paid — operator OK if `roles` allows):**
-
-```bash
-aptos move run \
-  --profile sigil-main \
-  --function-id 'YOUR_ACCOUNT_ADDRESS::seasons::finalize_season' \
-  --args address:YOUR_ACCOUNT_ADDRESS u64:SEASON_ID \
-  --assume-yes \
-  --max-gas 2000
-```
-
-**Finalize and pay winners on-chain (publisher profile only; after `end_time`, treasury funded, leaderboard has scores):**
-
-```bash
-# 1) Once per publisher: treasury::init_treasury (publisher signer)
-# 2) Deposit prize FA into treasury so the publisher primary store can cover the split
-aptos move run \
-  --profile sigil-main \
-  --function-id 'YOUR_ACCOUNT_ADDRESS::treasury::deposit' \
-  --args address:YOUR_ACCOUNT_ADDRESS object:FA_METADATA_ADDRESS u64:AMOUNT_BASE_UNITS \
-  --assume-yes \
-  --max-gas 3000
-
-# 3) Equal split to top MAX_PLACEMENTS (1–50) from season's leaderboard_id; uses season.prize_pool
-aptos move run \
-  --profile sigil-main \
-  --function-id 'YOUR_ACCOUNT_ADDRESS::seasons::finalize_season_and_distribute_prizes' \
-  --args \
-    address:YOUR_ACCOUNT_ADDRESS \
-    u64:SEASON_ID \
-    object:FA_METADATA_ADDRESS \
-    u64:MAX_PLACEMENTS \
-  --assume-yes \
-  --max-gas 5000
-```
-
-Use a **primary-store-enabled** fungible asset for `FA_METADATA_ADDRESS` (see [Seasons Guide](./docs/modules/SEASONS_GUIDE.md) and [Treasury Guide](./docs/modules/TREASURY_GUIDE.md)).
-
----
-
-## 🎮 Complete Example Workflow
-
-Here's a complete example of deploying and using the platform:
-
-```bash
-# 1. Compile
-cd move && aptos move compile --save-metadata && cd ..
-
-# 2. Deploy both modules
-aptos move publish --package-dir move --profile sigil-main --assume-yes
-
-# 3. Initialize game platform
-aptos move run \
-  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::game_platform::init' \
-  --profile sigil-main --assume-yes
-
-# 4. Initialize leaderboards
-aptos move run \
-  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::leaderboard::init_leaderboards' \
-  --profile sigil-main --assume-yes
-
-# 5. Register a game
-aptos move run \
-  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::game_platform::register_game' \
-  --args string:"Space Shooter" \
-  --profile sigil-main --assume-yes
-
-# 6. Create a leaderboard for the game (top 10)
-aptos move run \
-  --profile sigil-main \
-  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::leaderboard::create_leaderboard' \
-  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:0 u8:0 u64:0 u64:999999999 bool:false bool:false u64:10 \
-  --assume-yes
-
-# 7. Register as a player
-aptos move run \
-  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::game_platform::register_player' \
-  --args string:"gamer123" \
-  --profile sigil-main --assume-yes
-
-# 8. Submit scores to leaderboard
-aptos move run \
-  --profile sigil-main \
-  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::leaderboard::submit_score_direct' \
-  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:0 address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:1500 \
-  --assume-yes
-
-# 9. Check the leaderboard rankings
-aptos move view \
-  --profile sigil-main \
-  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::leaderboard::get_top_entries' \
-  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:0
-
-# 10. Initialize achievements (if not already initialized on this account)
-aptos move run \
-  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::init_achievements' \
-  --profile sigil-main --assume-yes
-
-# 11. Create a basic achievement (first arg = publisher resource address)
-aptos move run \
-  --profile sigil-main \
-  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::create' \
-  --args \
-    address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 \
-    hex:"486967682053636f726572" \
-    hex:"53636f72652031303030206f72206d6f7265" \
-    u64:1000 \
-    hex:"" \
-  --assume-yes \
-  --max-gas 2000
-
-# 12. (Optional) Seasons — init once, then create_season (see “Seasons” section above for full arg order and timing)
-# aptos move run --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::seasons::init_seasons' --profile sigil-main --assume-yes
-# aptos move run --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::seasons::create_season' --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 string:"S1" u64:START_UNIX u64:END_UNIX u64:0 u64:0 --profile sigil-main --assume-yes
-```
-
----
-
-## 🛡️ Anti-Cheat with Attest
-
-**Optional server-side score verification for competitive games.**
-
-The attest module prevents score manipulation by requiring server signatures on all score submissions.
-
-### **When To Use**
-
-| Game Type | Use Attest? | Why |
-|-----------|-------------|-----|
-| Casual games | ❌ No | `submit_score` (simple, direct) |
-| Competitive/Esports | ✅ Yes | `submit_score_attested` (verified) |
-| Games with prizes | ✅ Yes | Prevent fraud |
-| Leaderboards with rewards | ✅ Yes | Fair competition |
-
-### **How It Works**
-
-```
-Without Attest (Easy but hackable):
-Player → submit_score(any_score) → Blockchain accepts
-
-With Attest (Secure):
-Player → Game Server validates → Signs score → submit_score_attested(score + signature)
-         └─ Blockchain verifies: "Did server really sign this?" → Accept/Reject
-```
-
-### **Key Features**
-
-- ✅ Ed25519 signature verification
-- ✅ Nonce-based replay protection
-- ✅ Timestamp validation (max 60s age)
-- ✅ Server key rotation support
-- ✅ Backward compatible (original submit_score still works)
-
-### **Functions**
-
-```bash
-# Initialize (register server pubkey)
-aptos move run ... attest::init_attest \
-  --args hex:SERVER_PUBKEY u64:60
-
-# Update server key (rotate)
-aptos move run ... attest::update_server_key \
-  --args hex:NEW_SERVER_PUBKEY
-
-# Check configuration
-aptos move view ... attest::is_initialized ...
-aptos move view ... attest::get_server_pubkey ...
-aptos move view ... attest::get_max_age ...
-aptos move view ... attest::get_last_nonce ...
-```
-
-**Server Required:** ✅ YES (for validated submissions)  
-**Gas Cost:** +100 gas per attested submission (~$0.0001)  
-**Security:** Prevents client-side score hacking
-
-**See:** [Attest Guide](./docs/modules/ATTEST_GUIDE.md) for complete details and server integration examples
-
----
-
-## 🔐 Multi-Admin Management with Roles
-
-**Delegate permissions to your team without sharing keys!**
-
-The roles module enables multi-admin and operator management for teams and studios. Perfect for scaling from solo dev to AAA studio.
-
-### **Role Hierarchy**
-
-```
-Owner (Publisher) → Can add/remove Admins + All permissions
-  ├─ Admin → Can add/remove Operators, manage treasury, full control
-  └─ Operator → Can create achievements, attach rewards, manage leaderboards
-```
-
-### **When To Use**
-
-| Scenario | Use Roles? | Setup |
-|----------|-----------|-------|
-| Solo developer | ❌ No | Just use owner account |
-| Small team (2-5) | ✅ Yes | Add operators for content management |
-| Studio (10+) | ✅ Yes | Add admins + operators with hierarchy |
-| DAO-governed | ✅ Yes | Multisig owner, elected admins |
-
-### **Key Features**
-
-- ✅ **Owner is immutable** - No takeover risk
-- ✅ **Granular permissions** - Operators can't touch treasury
-- ✅ **Bitwise roles** - Can be both admin AND operator
-- ✅ **Optional integration** - Modules work without roles
-- ✅ **Gas-efficient** - ~$0.000065 total setup cost
-- ✅ **Per-publisher isolation** - Each publisher has independent roles
-
-### **Functions**
-
-```bash
-# 1. Initialize roles
-aptos move run --function-id '0x1cc...::roles::init_roles' --profile publisher
-
-# 2. Add admin (owner only)
-aptos move run --function-id '0x1cc...::roles::add_admin' \
-  --args address:0x1cc... address:ADMIN_ADDR
-
-# 3. Add operator (owner or admin)
-aptos move run --function-id '0x1cc...::roles::add_operator' \
-  --args address:0x1cc... address:OPERATOR_ADDR
-
-# 4. Check permissions
-aptos move view --function-id '0x1cc...::roles::can_manage_achievements' \
-  --args address:0x1cc... address:USER_ADDR
-```
-
-### **Permission Matrix**
-
-| Function | Owner | Admin | Operator |
-|----------|-------|-------|----------|
-| Add/Remove Admin | ✅ | ❌ | ❌ |
-| Add/Remove Operator | ✅ | ✅ | ❌ |
-| Create Achievements | ✅ | ✅ | ✅ |
-| Attach Rewards | ✅ | ✅ | ✅ |
-| Manage Treasury | ✅ | ✅ | ❌ |
-
-### **Example: AAA Studio Setup**
-
-```bash
-# 1. Owner (studio wallet in cold storage)
-roles::init_roles(publisher)
-
-# 2. Economy lead = Admin
-roles::add_admin(publisher, economy_lead)
-
-# 3. Economy lead adds operators
-roles::add_operator(economy_lead, game_designer_1)
-roles::add_operator(economy_lead, community_manager)
-
-# 4. Operators manage content daily
-# 5. Owner stays secure in cold storage
-```
-
-**Server Required:** ❌ NO (fully on-chain)  
-**Gas Cost:** ~300 gas init + ~150 gas per operator (~$0.000045)  
-**Security:** Owner immutable, operators can't withdraw funds
-
-**See:** [Roles Guide](./docs/modules/ROLES_GUIDE.md) for complete details, use cases, and security model
-
----
-
-## 🔗 Deployed Contract Info
-
-**Network:** Aptos Devnet  
-
-### **Main Deployment** (sigil-main)
-**Module Address:** `0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6`  
-**Modules:** `game_platform`, `leaderboard`, `achievements`, `rewards`  
-
-**Explorer Links:**
-- [Account View](https://explorer.aptoslabs.com/account/0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6?network=devnet)
-- [Initial Modules Publication](https://explorer.aptoslabs.com/txn/0x3ca4da35dcd2d2f57cd35b8e695ba24d3c6d27767d1873c4d77fc6adb6cc780c?network=devnet)
-- [Achievements Module Added](https://explorer.aptoslabs.com/txn/0x20430c13248fce29609091efe21dfe7ba190dff9b61a7a89fe639a3f64402dce?network=devnet)
-- [Achievements Module Upgraded](https://explorer.aptoslabs.com/txn/0xc411143c25a9fbf6352993b597846fdd7b8f026248a8ae26b1bd451cf61ade0c?network=devnet)
-- [Rewards Module Deployed](https://explorer.aptoslabs.com/txn/0x4bc16150bb80e5c28fe9a773ffe4c4963395b40475074212877a564c529b5ff1?network=devnet)
-
-### **🎊 Devnet deployment** (`sigil-main` / `devnet` profile = `Move.toml` `sigil`) ⚡ **AUTOMATIC REWARDS!**
-**Module Address:** `0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6`  
-**Resource Account:** `0x7352fcfd4658a3181264d1ac50ccdde5c56dc73d4fbc07887e4fb24c8e109835`  
-**Modules:** ALL 10 modules with **automatic FA/NFT distribution + seasons + quests + anti-cheat!**
-
-**Explorer Links:**
-- [Account View](https://explorer.aptoslabs.com/account/0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6?network=devnet)
-- [Full Deployment (Phase Final)](https://explorer.aptoslabs.com/txn/0xe97a033ed80f75b7f488c3dbcf28cc1fb6fbd901a5118c7baf7ac69c21311d15?network=devnet) (Gas: 19,106 units)
-- [**Automatic 0.5 APT Transfer**](https://explorer.aptoslabs.com/txn/0x44537872b1dc81cb0a586e682a5c33796cd939e8db862ef4e374961f40a7094d?network=devnet) ⚡ (Gas: 870 units)
-
-**🚀 What's NEW in Phase Final:**
-- ✅ **Automatic FA Transfer** - APT sent INSTANTLY on claim (no backend needed!)
-- ✅ **NFT Minting** - Badges minted automatically with `aptos_token_objects`
-- ✅ **Resource Account** - Secure signer capability for automated distribution
-- ✅ **Single Transaction** - Player claims → receives reward in same tx
-- ✅ **Verified on Devnet** - Real APT transfer tested and working!
-
-> **Recommendation:** Use this deployment for production. Fully automatic, zero manual work, truly decentralized.
-
----
-
-### **Integrated Deployment** (sigil-v2-fresh) - Testing
-**Module Address:** `0x0a78db867e0f6ece75a070c04f1f2534305131a217b3fe6f76ab9de2ac65a87b`  
-**Modules:** 6 modules (shadow_signers + treasury testing)
-
-**Explorer Links:**
-- [Account View](https://explorer.aptoslabs.com/account/0x0a78db867e0f6ece75a070c04f1f2534305131a217b3fe6f76ab9de2ac65a87b?network=devnet)
-- [All Modules Deployed](https://explorer.aptoslabs.com/txn/0xc787bf50ae364a2ab1773cc36486047e7040d47409ed90aeb5bc71c97cd8cc1e?network=devnet) (Gas: 18,499 units)
-
----
-
-### ✅ **PHASE FINAL: Automatic Rewards - LIVE!** 🎉
-
-| Module | Feature | Status | Notes |
-|--------|---------|--------|-------|
-| **Treasury** | FA deposits | ✅ **Working** | Anyone can deposit |
-| **Treasury** | FA withdrawals | ✅ **Working** | Publisher only, real transfers |
-| **Treasury** | Balance tracking | ✅ **Working** | Accurate stats |
-| **Rewards** | Claim tracking | ✅ **Working** | Supply decrements |
-| **Rewards** | **FA auto-transfer** | ✅ **WORKING!** | **Resource account implemented!** ⚡ |
-| **Rewards** | **NFT minting** | ✅ **WORKING!** | **aptos_token_objects integrated!** 🎨 |
-
-### **🎊 What Phase Final Means**
-
-**Before (Manual):**
-```
-Player claims → Wait → Backend distributes → APT arrives (5-60 seconds)
-Requires: Backend server running 24/7
-```
-
-**Now (Automatic):**
-```
-Player claims → APT/NFT arrives INSTANTLY ⚡ (single transaction!)
-Requires: Nothing! Fully on-chain automation
-```
-
-**Verified on Devnet:**
-- ✅ [Automatic 0.5 APT transfer](https://explorer.aptoslabs.com/txn/0x44537872b1dc81cb0a586e682a5c33796cd939e8db862ef4e374961f40a7094d?network=devnet) (Gas: 870 units)
-- ✅ Double-claim prevention working
-- ✅ Supply management accurate (10→9)
-- ✅ Resource account integration tested
-
-**See:** [Automatic Rewards Integration Guide](./docs/integration/AUTOMATIC_REWARDS_INTEGRATION.md) for complete details
-
----
-
-## ✅ Latest Deployments & Tests on Devnet
-
-### Latest Deployment (January 2025)
-
-| Action | Transaction Hash | Explorer Link | Gas | Status |
-|--------|-----------------|---------------|-----|---------|
-| **Initial Modules** (game_platform + leaderboard) | `0x3ca4da35dcd2d2f57cd35b8e695ba24d3c6d27767d1873c4d77fc6adb6cc780c` | [View](https://explorer.aptoslabs.com/txn/0x3ca4da35dcd2d2f57cd35b8e695ba24d3c6d27767d1873c4d77fc6adb6cc780c?network=devnet) | 2,710 | ✅ Success |
-| **Leaderboards Initialized** | `0x273fa651eb3b0e73c2ff54c26ea0ef0a4e3cd8c82a503bb72d14c4b394052a8f` | [View](https://explorer.aptoslabs.com/txn/0x273fa651eb3b0e73c2ff54c26ea0ef0a4e3cd8c82a503bb72d14c4b394052a8f?network=devnet) | 456 | ✅ Success |
-| **Leaderboard Created** (Game 0, Top 10) | `0xdd82e156a7a68f3088c3c80a85d89b15376d12885c149db4945896700fa988ea` | [View](https://explorer.aptoslabs.com/txn/0xdd82e156a7a68f3088c3c80a85d89b15376d12885c149db4945896700fa988ea?network=devnet) | 452 | ✅ Success |
-| **Achievements Module Added** | `0x20430c13248fce29609091efe21dfe7ba190dff9b61a7a89fe639a3f64402dce` | [View](https://explorer.aptoslabs.com/txn/0x20430c13248fce29609091efe21dfe7ba190dff9b61a7a89fe639a3f64402dce?network=devnet) | 3,851 | ✅ Success |
-| **Achievements Initialized** | `0x70ee2605dc11ba8ad0b8eb7ac62f30bce9bee112ec3337b1143970f8912dbe14` | [View](https://explorer.aptoslabs.com/txn/0x70ee2605dc11ba8ad0b8eb7ac62f30bce9bee112ec3337b1143970f8912dbe14?network=devnet) | 504 | ✅ Success |
-| **Achievements Module Upgraded** (CLI wrapper) | `0xc411143c25a9fbf6352993b597846fdd7b8f026248a8ae26b1bd451cf61ade0c` | [View](https://explorer.aptoslabs.com/txn/0xc411143c25a9fbf6352993b597846fdd7b8f026248a8ae26b1bd451cf61ade0c?network=devnet) | 170 | ✅ Success |
-| **Rewards Module Deployed** | `0x4bc16150bb80e5c28fe9a773ffe4c4963395b40475074212877a564c529b5ff1` | [View](https://explorer.aptoslabs.com/txn/0x4bc16150bb80e5c28fe9a773ffe4c4963395b40475074212877a564c529b5ff1?network=devnet) | 3,443 | ✅ Success |
-| **Rewards Initialized** | `0x7440d558e4a1117465491444f9818f00fbb9bae5d94ee564fb1bb960c66a5719` | [View](https://explorer.aptoslabs.com/txn/0x7440d558e4a1117465491444f9818f00fbb9bae5d94ee564fb1bb960c66a5719?network=devnet) | 503 | ✅ Success |
-
-### Test Transactions - Leaderboard System
-
-| Action | Details | Transaction Hash | Explorer Link | Status |
-|--------|---------|-----------------|---------------|---------|
-| **Submit Score #1** | Player: 0xe68e..., Score: 1500 | `0x2f5e9f6a8d9bd6528e1130be967194b83f1d83648e02234c875e616878f4dce4` | [View](https://explorer.aptoslabs.com/txn/0x2f5e9f6a8d9bd6528e1130be967194b83f1d83648e02234c875e616878f4dce4?network=devnet) | ✅ Success |
-| **Submit Score #2** | Player: 0x14cb..., Score: 2000 | `0x47135fe138630f9e047aaf5119a8dfcf8024844126452b1700e9159b2f9e87cf` | [View](https://explorer.aptoslabs.com/txn/0x47135fe138630f9e047aaf5119a8dfcf8024844126452b1700e9159b2f9e87cf?network=devnet) | ✅ Success |
-| **Submit Score #3** | Player: 0x30be..., Score: 1000 | `0x6ae5339f9c5ab4654fbb75dd1caf749473a8ef758afb36457fbed5cc3bba5128` | [View](https://explorer.aptoslabs.com/txn/0x6ae5339f9c5ab4654fbb75dd1caf749473a8ef758afb36457fbed5cc3bba5128?network=devnet) | ✅ Success |
-| **Update Score** | Player: 0x30be... → 2500 (moved to 1st place!) | `0x168b100df4cb36a1e72a1d907e87d8ab5d427c7ef8fb4afefe0bf5f509a3ba95` | [View](https://explorer.aptoslabs.com/txn/0x168b100df4cb36a1e72a1d907e87d8ab5d427c7ef8fb4afefe0bf5f509a3ba95?network=devnet) | ✅ Success |
-
-### Verified Live Leaderboard State
-
-After testing, the leaderboard rankings on-chain:
-
-| Rank | Player Address | Score | Status |
-|------|---------------|-------|---------|
-| 🥇 1st | `0x30be4b...` | **2500** | Updated from 1000 → 2500 |
-| 🥈 2nd | `0x14cbc9...` | **2000** | Maintained |
-| 🥉 3rd | `0xe68ef2...` | **1500** | Maintained |
-
-**Verified using:**
-```bash
-aptos move view --profile sigil-main \
-  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::leaderboard::get_top_entries' \
-  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:0
-```
-
----
-
-### Test Transactions - Achievements System
-
-| Action | Details | Transaction Hash | Explorer Link | Gas | Status |
-|--------|---------|-----------------|---------------|-----|---------|
-| **Create Achievement #0** | "High Scorer" (Score 1000+) | `0xe6e6e240af3f3a20a29660dc2920a6277b2450dedc9351419bae7c29d874ff5c` | [View](https://explorer.aptoslabs.com/txn/0xe6e6e240af3f3a20a29660dc2920a6277b2450dedc9351419bae7c29d874ff5c?network=devnet) | 447 | ✅ Success |
-| **Create Achievement #1** | "Consistent Performer" (1000+ 3x) | `0x1836f6b4167a041d417152f10436272b5170a9d4ad744cbf0c62f95da1a5167f` | [View](https://explorer.aptoslabs.com/txn/0x1836f6b4167a041d417152f10436272b5170a9d4ad744cbf0c62f95da1a5167f?network=devnet) | 454 | ✅ Success |
-| **Create Achievement #2** | "Game Master" + Badge URI | `0xca52445dfac500fa4b050bae6c4787be9dade6f563d38584d07c1f0eff2f752f` | [View](https://explorer.aptoslabs.com/txn/0xca52445dfac500fa4b050bae6c4787be9dade6f563d38584d07c1f0eff2f752f?network=devnet) | 465 | ✅ Success |
-| **Submit Score: 1200** | Unlocked Achievement #0, Progress 1/3 | `0xedc31b40c5a0ab56804535a9ccd875184139a0a367dbaea45e46c150d0ad0b1e` | [View](https://explorer.aptoslabs.com/txn/0xedc31b40c5a0ab56804535a9ccd875184139a0a367dbaea45e46c150d0ad0b1e?network=devnet) | 2,572 | ✅ Success |
-| **Submit Score: 1500** | Progress 2/3 | `0x401eeb54d318f1efdba2d498b638b43d60b6c4e5fe33125d37aab2104685eb30` | [View](https://explorer.aptoslabs.com/txn/0x401eeb54d318f1efdba2d498b638b43d60b6c4e5fe33125d37aab2104685eb30?network=devnet) | 13 | ✅ Success |
-| **Submit Score: 1800** | Progress 3/3, Unlocked Achievement #1 | `0x38d63e425b66acf02ed77dedfd24a9e6c79ab86af5f2dd300eec1bda86f12e7a` | [View](https://explorer.aptoslabs.com/txn/0x38d63e425b66acf02ed77dedfd24a9e6c79ab86af5f2dd300eec1bda86f12e7a?network=devnet) | 430 | ✅ Success |
-| **Submit Score: 2500** | Unlocked Achievement #2 (Game Master) | `0x31981b6e476d0ae6b616c36a491695b1ca9b6379852ebe14e87eb05a4b75167e` | [View](https://explorer.aptoslabs.com/txn/0x31981b6e476d0ae6b616c36a491695b1ca9b6379852ebe14e87eb05a4b75167e?network=devnet) | 430 | ✅ Success |
-
-### Verified Live Achievements State
-
-**All 3 achievements unlocked for player:** `0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6`
-
-| ID | Achievement | Type | Condition | Status |
-|----|-------------|------|-----------|---------|
-| **0** | High Scorer | Basic | Score 1000+ | ✅ Unlocked |
-| **1** | Consistent Performer | Advanced | Score 1000+ 3 times | ✅ Unlocked (3/3) |
-| **2** | Game Master | Game-Specific + Badge | Score 2000+ on Game 0 | ✅ Unlocked |
-
-**Verified using:**
-```bash
-# Check unlocked achievements
-aptos move view --profile sigil-main \
-  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::unlocked_for' \
-  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6
-# Result: [["0", "1", "2"]]
-
-# Check progress for achievement #1
-aptos move view --profile sigil-main \
-  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::achievements::get_progress' \
-  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:1
-# Result: ["3", "3", true]  ✅ 3/3 threshold met!
-```
-
----
-
-### Test Transactions - Rewards System
-
-| Action | Details | Transaction Hash | Explorer Link | Gas | Status |
-|--------|---------|-----------------|---------------|-----|---------|
-| **Attach FA Reward** | 1 APT per claim, supply: 10 | `0x3d700292cca8b276a46fa4980c8d066cc85669e7f7d0e9504f3641b5aad4f5eb` | [View](https://explorer.aptoslabs.com/txn/0x3d700292cca8b276a46fa4980c8d066cc85669e7f7d0e9504f3641b5aad4f5eb?network=devnet) | 450 | ✅ Success |
-| **Attach NFT Reward** | "Consistent Performer Badge", supply: 100 | `0x5adf027c42ba5d3d13082450500d6f0e3f38ee88d9e598428fea378874a5dd67` | [View](https://explorer.aptoslabs.com/txn/0x5adf027c42ba5d3d13082450500d6f0e3f38ee88d9e598428fea378874a5dd67?network=devnet) | 493 | ✅ Success |
-| **Claim FA Reward** | Player claimed achievement #0 reward | `0xa2f60e1b90709a791d3fa2708a9849243a08fc5912c8e0062dc6491a4ce1f89e` | [View](https://explorer.aptoslabs.com/txn/0xa2f60e1b90709a791d3fa2708a9849243a08fc5912c8e0062dc6491a4ce1f89e?network=devnet) | 862 | ✅ Success |
-| **Claim NFT Reward** | Player claimed achievement #1 reward | `0x7be610e9b2b32947290ae038c9b4f85707e493d87068d20b636aa9cd98c9b362` | [View](https://explorer.aptoslabs.com/txn/0x7be610e9b2b32947290ae038c9b4f85707e493d87068d20b636aa9cd98c9b362?network=devnet) | 424 | ✅ Success |
-| **Double-Claim Test** | Prevented (E_ALREADY_CLAIMED) | `0xdf78bc2600f9a9237c83a7eb6f9e76ee35af0ccbdf29ccee1a3eb7bceec5eecd` | [View](https://explorer.aptoslabs.com/txn/0xdf78bc2600f9a9237c83a7eb6f9e76ee35af0ccbdf29ccee1a3eb7bceec5eecd?network=devnet) | - | ✅ Failed (expected) |
-
-### Verified Live Rewards State
-
-**2 Rewards Configured:**
-
-| Achievement ID | Reward Type | Details | Supply | Claimed | Available |
-|----------------|-------------|---------|--------|---------|-----------|
-| **0** | Fungible Asset | 1 APT (100,000,000 octas) | 10 | 1 | 9 |
-| **1** | NFT | "Consistent Performer Badge" | 100 | 1 | 99 |
-
-**Player Claimed Rewards:** `[0, 1]` ✅
-
-**Verified using:**
-```bash
-# Check claimed rewards
-aptos move view --profile sigil-main \
-  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::rewards::get_claimed_rewards' \
-  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6
-# Result: [["0", "1"]]
-
-# Check available supply
-aptos move view --profile sigil-main \
-  --function-id '0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6::rewards::get_available' \
-  --args address:0xe68ef23cb6316728ae3b0f3edcc96640219275c2ed62c405578cc486a12dfac6 u64:0
-# Result: [true, "9"]  ✅ 9 remaining (10 - 1)
-```
-
----
-
-## 📊 Data Structures
-
-### Game Platform
-
-**Game**
+**game_platform**
 ```move
-struct Game {
-    id: u64,
-    title: String,
-    creator: address,
-}
+struct Game   { id: u64, title: String, creator: address }
+struct Player { user: address, username: String }
 ```
 
-**Player**
-```move
-struct Player {
-    user: address,
-    username: String,
-}
-```
-
-### Leaderboard
-
-**Leaderboard Config**
+**leaderboard**
 ```move
 struct Config {
-    game_id: u64,
-    decimals: u8,
-    min_score: u64,
-    max_score: u64,
-    is_ascending: bool,      // true => lower is better
-    allow_multiple: bool,    // if false: only keep best per player
-    scores_to_retain: u64,   // how many entries to keep in top list
+  game_id: u64, decimals: u8, min_score: u64, max_score: u64,
+  is_ascending: bool,        // true => lower is better
+  allow_multiple: bool,      // false => keep only each player's best
+  scores_to_retain: u64,     // top-N to keep
 }
 ```
 
-**Leaderboard**
+**achievements**
 ```move
-struct Leaderboard {
-    id: u64,
-    config: Config,
-    best_by_player: Table<address, u64>,           // Track best score per player
-    top_entries_players: vector<address>,          // Sorted player addresses
-    top_entries_scores: vector<u64>,               // Corresponding scores
-}
+struct Achievement { id: u64, title: vector<u8>, description: vector<u8>,
+                     condition: Condition, badge_uri: Option<vector<u8>> }
 ```
 
-### Events
-
-**GameRegisteredEvent**
+**rewards**
 ```move
-struct GameRegisteredEvent {
-    id: u64,
-    creator: address,
-    title: String,
-}
+struct Reward { achievement_id: u64, kind: RewardKind,   // FA or NFT
+                total_supply: u64, claimed_count: u64 }   // 0 supply = unlimited
 ```
 
-**ScoreSubmittedEvent**
+**quests**
 ```move
-struct ScoreSubmittedEvent {
-    publisher: address,
-    player: address,
-    game_id: u64,
-    score: u64,
-}
+struct Quest { id: u64, title: String, description: String, quest_type: u8,
+               game_id: u64, target: u64, leaderboard_id: u64, steps: vector<u64>,
+               reward_id: u64, season_id: Option<u64>, is_active: bool, created_at: u64 }
+struct QuestProgress { quest_id: u64, current_progress: u64, completed: bool,
+                       claimed: bool, started_at: u64, completed_at: u64, last_update_day: u64 }
+```
+
+**seasons**
+```move
+struct Season { id: u64, name: String, start_time: u64, end_time: u64,
+                leaderboard_id: u64, achievement_ids: vector<u64>,
+                prize_pool: u64, is_finalized: bool }
+```
+
+**guilds**
+```move
+struct Guild { id: u64, name: String, leader: address, members: vector<address> }
+```
+
+**merge**
+```move
+struct Recipe { id: u64, input_item_id: u64, input_qty: u64,
+                output_item_id: u64, output_qty: u64 }
+```
+
+**roles**
+```move
+struct Roles { owner: address, roles: Table<address, u8>, events: RoleEvents }
+```
+
+**treasury**
+```move
+struct Treasury { publisher: address, tracking: Table<address, FATracking>, events: TreasuryEvents }
+```
+
+**shadow_signers** (session keys)
+```move
+struct Session { authority: address, pubkey: vector<u8>, scopes: vector<vector<u8>>,
+                 expires_at_secs: u64, revoked: bool, last_nonce: u64, fee_payer: address }
+```
+
+**attest**
+```move
+struct AttestConfig { publisher: address, server_pubkey: vector<u8>,
+                      nonces: Table<address, u64>, max_age_secs: u64, events: AttestEvents }
 ```
 
 ---
 
-## ⚠️ Error Codes
+## ❗ Error codes (by module)
 
-### Game Platform
-- `E_ALREADY_INIT (0)` - Module already initialized
-- `E_GAME_NOT_FOUND (1)` - Game ID doesn't exist
-- `E_PLAYER_EXISTS (2)` - Player already registered
-- `E_PLAYER_REQUIRED (3)` - Must register as player first
+Abort codes you may see (the `vm_status` shows `module::E_NAME`).
 
-### Leaderboard
-- `E_ALREADY_INIT (0)` - Leaderboards already initialized
-- `E_NOT_FOUND (1)` - Leaderboard ID doesn't exist
-- `E_ID_EXISTS (2)` - Leaderboard ID already exists
-
----
-
-## 🎯 Leaderboard Features
-
-### Gas Optimization
-- **Best Score Tracking**: Prevents unnecessary updates
-- **Bounded Operations**: Only maintains top N entries (no unbounded growth)
-- **Smart Sorting**: Efficient insertion-sort algorithm that only bubbles the changed entry
-- **Early Exits**: Score gates reject invalid entries before processing
-
-### Flexible Configurations
-
-**High Score Games** (Points-based)
-```bash
-# Higher is better, keep top 100
---args u64:0 u8:0 u64:0 u64:999999999 bool:false bool:false u64:100
-```
-
-**Speedrun Games** (Time-based)
-```bash
-# Lower is better (faster time), keep top 50
---args u64:0 u8:2 u64:0 u64:999999 bool:true bool:false u64:50
-```
-
-**Competitive Games** (Skill-gated)
-```bash
-# Must score at least 10000 to appear, keep top 20
---args u64:0 u8:0 u64:10000 u64:999999 bool:false bool:false u64:20
-```
+| Module | Codes |
+|--------|-------|
+| **game_platform** | `0` ALREADY_INIT · `1` GAME_NOT_FOUND · `4` INVALID_ATTESTATION |
+| **leaderboard** | `0` ALREADY_INIT · `1` NOT_FOUND · `2` ID_EXISTS · `4` NO_PERMISSION · `5` GAME_ALREADY_HAS_LEADERBOARD |
+| **achievements** | `0` ALREADY_INIT · `1` NOT_FOUND · `2` EXISTS · `3` NO_PERMISSION |
+| **rewards** | `0` ALREADY_INIT · `1` NOT_FOUND · `2` ALREADY_ATTACHED · `3` ACHIEVEMENT_NOT_UNLOCKED · `4` ALREADY_CLAIMED · `5` OUT_OF_STOCK · `6` INVALID_SUPPLY · `7` NOT_INITIALIZED · `8` NO_PERMISSION |
+| **quests** | `0` NOT_INITIALIZED · `1` ALREADY_INITIALIZED · `2` QUEST_NOT_FOUND · `3` QUEST_NOT_STARTED · `4` QUEST_ALREADY_COMPLETED · `5` QUEST_NOT_AVAILABLE · `6` INVALID_QUEST_TYPE · `7` NO_PERMISSION · `8` ALREADY_STARTED · `9` QUEST_NOT_COMPLETED · `10` REWARD_ALREADY_CLAIMED · `11` NO_QUEST_REWARD |
+| **seasons** | `0` NOT_INITIALIZED · `1` ALREADY_INITIALIZED · `2` SEASON_NOT_FOUND · `3` ALREADY_STARTED · `4` NOT_STARTED · `5` ENDED · `6` INVALID_DURATION · `7` NO_PERMISSION · `8` ALREADY_FINALIZED · `9` CANNOT_FINALIZE_YET · `10` PUBLISHER_MUST_SIGN · `11` TREASURY_NOT_INITIALIZED · `12` INVALID_PAYOUT_CONFIG · `13` ZERO_PRIZE_POOL · `14` NO_WINNERS · `15` PAYOUT_ROUNDED_TO_ZERO |
+| **guilds** | `0` NOT_INITIALIZED · `1` ALREADY_INITIALIZED · `2` GUILD_NOT_FOUND · `3` ALREADY_IN_GUILD · `4` GUILD_FULL · `5` NOT_IN_GUILD · `6` NO_PERMISSION · `7` NOT_MEMBER |
+| **merge** | `0` NOT_INITIALIZED · `1` ALREADY_INITIALIZED · `2` RECIPE_NOT_FOUND · `3` INSUFFICIENT_ITEMS · `4` NO_PERMISSION · `5` INVALID_QUANTITY |
+| **treasury** | `0` NOT_INITIALIZED · `1` ALREADY_INITIALIZED · `2` INSUFFICIENT_BALANCE · `3` INVALID_AMOUNT · `4` WITHDRAWAL_TOO_LARGE · `5` NOT_PUBLISHER · `6` STORE_NOT_FOUND |
+| **roles** | `0` ALREADY_INIT · `1` NOT_INITIALIZED · `2` NOT_OWNER · `3` NOT_ADMIN · `4` NO_PERMISSION · `5` ALREADY_HAS_ROLE · `6` DOES_NOT_HAVE_ROLE · `7` CANNOT_MODIFY_OWNER |
+| **attest** | `0` NOT_INITIALIZED · `1` ALREADY_INITIALIZED · `2` INVALID_SIGNATURE · `3` ATTESTATION_TOO_OLD · `4` INVALID_NONCE · `5` INVALID_PUBKEY_LENGTH |
+| **shadow_signers** | `0` NOT_INITIALIZED · `1` ALREADY_INITIALIZED · `2` SESSION_NOT_FOUND · `3` SESSION_EXPIRED · `4` SESSION_REVOKED · `5` INVALID_TTL · `6` INVALID_SIGNATURE · `7` SCOPE_NOT_ALLOWED · `8` INVALID_MESSAGE · `9` INVALID_NONCE · `10` INVALID_PUBKEY_LENGTH · `11` NOT_AUTHORITY |
 
 ---
 
-## 🛠️ Troubleshooting
+## 🩺 Troubleshooting
 
-### Rate Limit Exceeded
-If you see rate limit errors, make sure you're using your API key in the config:
-```yaml
-api_key: "aptoslabs_YOUR_API_KEY_HERE"
-```
-
-### Transaction Timeout
-Add explicit profile to avoid simulation timeouts:
-```bash
---profile sigil-main --assume-yes
-```
-
-### Profile Not Found
-Make sure you're running commands from the project root directory where `.aptos/config.yaml` exists.
-
-### Module Already Exists
-If republishing, the modules will be upgraded automatically. Make sure you're using the same address in `Move.toml`.
-
----
-
-## 📚 Additional Documentation
-
-### **Operations**
-
-- **[Deployment & upgrades](./docs/DEPLOYMENT.md)** - `aptos move publish`, breaking layout/signature changes, smoke-test checklist
-
-### **Module Guides** (Individual modules in depth)
-
-- **[Achievements Guide](./docs/modules/ACHIEVEMENTS_GUIDE.md)** - Complete achievements documentation with 6 types, live testing
-- **[Rewards Guide](./docs/modules/REWARDS_GUIDE.md)** - Complete rewards guide with 10 practical use cases
-- **[Seasons Guide](./docs/modules/SEASONS_GUIDE.md)** - Time-bounded competitions, battle passes, tournaments 🏆
-- **[Quests Guide](./docs/modules/QUESTS_GUIDE.md)** - Mission-based progression, 6 quest types, wrapper pattern 🎯 (NEW!)
-- **[Merge Guide](./docs/modules/MERGE_GUIDE.md)** - Crafting recipes over abstract item IDs (MVP)
-- **[Guilds Guide](./docs/modules/GUILDS_GUIDE.md)** - On-chain teams / clans (MVP)
-- **[Roles Guide](./docs/modules/ROLES_GUIDE.md)** - Multi-admin & operator management for teams
-- **[Attest Guide](./docs/modules/ATTEST_GUIDE.md)** - Anti-cheat server attestation (competitive games)
-- **[Shadow Signers Guide](./docs/modules/SHADOW_SIGNERS_GUIDE.md)** - Gasless gameplay with session keys
-- **[Treasury Guide](./docs/modules/TREASURY_GUIDE.md)** - FA management and tracking
-- **[Leaderboard Guide](./docs/modules/LEADERBOARD_GUIDE.md)** - Dynamic rankings integration
-
-### **Integration Guides** (Cross-module workflows)
-
-- **[Automatic Rewards Integration](./docs/integration/AUTOMATIC_REWARDS_INTEGRATION.md)** - Complete Phase Final guide (achievements → rewards → treasury)
-
-### **Testing & Verification**
-
-- **[Testing Guide](./docs/testing/TESTING_GUIDE.md)** - Step-by-step testing instructions
-- **[Explorer Verification](./docs/testing/EXPLORER_VERIFICATION.md)** - How to verify rewards on Aptos Explorer
-
-### **Project Info**
-
-- **[Project Status](./docs/PROJECT_STATUS.md)** - Complete platform statistics and metrics
-- **[Technical Summary](./SUMMARY.md)** - Implementation details and architecture
-
----
-
-## 🧪 Running Tests
-
-The project includes comprehensive unit tests:
-
-```bash
-cd move
-aptos move test
-```
-
-**Test Coverage:**
-- **Leaderboard:** 15 unit tests ✅
-- **Achievements:** 20 unit tests ✅
-- **Rewards:** 26 unit tests ✅
-- **Roles:** 23 unit tests ✅
-- **Seasons:** 20 unit tests ✅
-- **Quests:** 22 unit tests (8 passing) ✅
-- **Total:** 122+ tests ✅
-
-**Test by Module:**
-```bash
-# Test all modules
-aptos move test
-
-# Test specific modules
-aptos move test --filter leaderboard
-aptos move test --filter achievements
-aptos move test --filter rewards
-```
-
-**Coverage Includes:**
-- Initialization and setup for all modules
-- All achievement types (basic, advanced, game-specific)
-- Progress tracking and updates
-- FT and NFT reward attachment
-- Claim flow with double-claim prevention
-- Supply management and stock tracking
-- Multiple players and edge cases
-- Badge URI storage and retrieval
-- Complete view function coverage
+| Symptom | Cause & fix |
+|--------|-------------|
+| **`Unauthorized` / "not valid JSON"** on reads | Your RPC API key is for the wrong network (e.g. devnet key on testnet) → the node returns 401. **Unset the API key** to use the public testnet node anonymously, or use a testnet-scoped key. Restart the dev server (env is read at startup). |
+| **`module_not_found`** | Devnet was wiped, or you're pointed at the wrong address/network. Re-deploy (`redeploy_*.sh`) or fix the module address. |
+| **Wallet "Approve" stays disabled / hangs** | Your wallet's network RPC doesn't match the app's. Set the wallet to the **same** network/RPC the app uses. |
+| **⚡ Gasless fails** ("gas station…") | No gas station running, or `SPONSOR_PRIVATE_KEY` not set / unfunded. Run a game (serves `/api/sponsor`) or point `*_SPONSOR_ENDPOINT` at a deployed one, and keep the fee payer funded. |
+| **An admin call aborts `NO_PERMISSION`** | The connected wallet isn't the publisher or an authorized admin/operator for that module. Connect as the owner or grant a role. |
+| **`create_leaderboard` aborts** | A leaderboard already exists for that `game_id` (`GAME_ALREADY_HAS_LEADERBOARD`). Use a new game or the existing board. |
+| **Testnet faucet "must visit the web faucet"** | The CLI faucet is disabled on testnet; fund via [the web faucet](https://aptos.dev/network/faucet) or transfer from a funded account. |
 
 ---
 
 ## 📜 License
 
-MIT
+MIT — see [LICENSE](sdk/typescript/LICENSE).
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-### Development Setup
-
-1. Clone the repository
-2. Install Aptos CLI
-3. Set up your `.aptos/config.yaml`
-4. Run `aptos move test` to verify setup
-5. Make your changes
-6. Submit a PR
-
----
+Contributions welcome. Install the Aptos CLI + Node, run `aptos move test` and the
+SDK tests, make your change, and open a PR.
 
 ## 📧 Contact
 
-For questions or support, please open an issue on GitHub.
+Questions or support: please [open an issue](https://github.com/lopeselio/aptos-sigil/issues) on GitHub.
 
 ---
 
-**Built with ❤️ for the Aptos gaming ecosystem**
+<p align="center"><strong>Built with ❤️ for the Aptos gaming ecosystem</strong></p>
 
-*Last Updated: Oct 2025*
+<p align="center">
+  <em>Last updated:</em>
+  <a href="https://github.com/lopeselio/aptos-sigil/commits/master"><img src="https://img.shields.io/github/last-commit/lopeselio/aptos-sigil?label=" alt="last commit"></a>
+  <em>(auto-tracked from the latest commit)</em>
+</p>
