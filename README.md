@@ -86,7 +86,7 @@ Don't want to touch Move? The modules are **live on Aptos testnet** (persistent,
 free) and the [`@sigil-aptos/sdk`](./sdk/typescript) package gives you typed,
 wallet-signable helpers for every flow.
 
-- **Live testnet module:** `0x568721f98162f03aa564384f15d7ead24b9825a3f35e4c2dba8265bd126ce787` ([explorer](https://explorer.aptoslabs.com/account/0x568721f98162f03aa564384f15d7ead24b9825a3f35e4c2dba8265bd126ce787?network=testnet))
+- **Live testnet module:** `0x694fd0c04ecf4ec750450d3c1a4d318d5869f2cf762562a8a586a44e1c29d1c1` ([explorer](https://explorer.aptoslabs.com/account/0x694fd0c04ecf4ec750450d3c1a4d318d5869f2cf762562a8a586a44e1c29d1c1?network=testnet))
 
 ```bash
 npm install @sigil-aptos/sdk @aptos-labs/ts-sdk
@@ -98,7 +98,7 @@ import { SigilClient, createAptosClient } from "@sigil-aptos/sdk";
 
 const sigil = new SigilClient({
   aptos: createAptosClient({ network: Network.TESTNET }),
-  moduleAddress: AccountAddress.from("0x568721f98162f03aa564384f15d7ead24b9825a3f35e4c2dba8265bd126ce787"),
+  moduleAddress: AccountAddress.from("0x694fd0c04ecf4ec750450d3c1a4d318d5869f2cf762562a8a586a44e1c29d1c1"),
 });
 
 // First submit auto-registers the player + sets username — one tx:

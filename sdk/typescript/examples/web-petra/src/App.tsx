@@ -10,7 +10,7 @@ import {
 
 const DEFAULT_MODULE =
   import.meta.env.VITE_SIGIL_MODULE_ADDRESS ??
-  "0x568721f98162f03aa564384f15d7ead24b9825a3f35e4c2dba8265bd126ce787";
+  "0x694fd0c04ecf4ec750450d3c1a4d318d5869f2cf762562a8a586a44e1c29d1c1";
 
 /** Aptos chain (AIP-62) name in `@aptos-labs/wallet-adapter-core` registry — not “Nightly (Solana)”. */
 const NIGHTLY_APTOS_WALLET_NAME = "Nightly";
