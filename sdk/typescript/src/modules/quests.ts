@@ -150,6 +150,12 @@ export class QuestsModule extends SigilModule {
     return this.buildEntry({ ...args, module: M, func: "submit_score_with_quest", functionArguments: [publisher, args.gameId, args.score] });
   }
 
+  /** @see {@link buildSubmitScoreWithQuest} */
+  walletPayloadSubmitScoreWithQuest(args: { gameId: AnyNumber; score: AnyNumber; publisher?: AddressInput }) {
+    const publisher = args.publisher ? normalizeAddress(args.publisher) : this.moduleAddress;
+    return this.payload(M, "submit_score_with_quest", [publisher, BigInt(args.gameId as never), BigInt(args.score as never)]);
+  }
+
   buildUpdateQuestProgress(args: { sender: Account; questId: AnyNumber; publisher?: AddressInput; options?: InputGenerateTransactionOptions }) {
     const publisher = args.publisher ? normalizeAddress(args.publisher) : this.moduleAddress;
     return this.buildEntry({ ...args, module: M, func: "update_quest_progress", functionArguments: [publisher, args.questId] });
