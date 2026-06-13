@@ -797,7 +797,8 @@ export function App() {
         <img src="/logo.png" alt="Aptos Sigil" height={128} style={{ display: "inline-block" }} />
         <h1 style={{ margin: "10px 0 0", fontSize: 26, color: T.text }}>Game-development console <span style={{ color: "#7be08a" }}>(Aptos {NETWORK_LABEL})</span></h1>
       </div>
-      <p style={{ color: T.code }}>
+      <div style={{ background: T.panel, border: `1px solid ${T.border}`, borderTop: `4px solid ${T.green}`, borderRadius: 16, padding: "20px 24px", boxShadow: "0 10px 30px rgba(0,0,0,0.35)" }}>
+      <p style={{ color: T.code, marginTop: 0 }}>
         A hybrid console for Aptos game devs: a <strong>Guided</strong> walkthrough of a real game (Sigil Arcade) plus the raw
         technical tabs. Every action shows the Move call, typed args, and the exact SDK + wallet payload - and can be{" "}
         <strong>simulated</strong> before you sign.
@@ -1164,6 +1165,7 @@ export function App() {
       >
         {log.length ? log.join("\n") : "…"}
       </pre>
+      </div>
     </div>
     </div>
   );
