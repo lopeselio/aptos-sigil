@@ -18,6 +18,21 @@ export {
   type WalletPayload,
 } from "./modules/base.js";
 
+// Sponsored (fee-payer) transactions — gasless gameplay
+export {
+  buildSponsoredTransaction,
+  signSponsoredAsFeePayer,
+  submitSponsored,
+  serializeTransaction,
+  deserializeTransaction,
+  serializeAuthenticator,
+  deserializeAuthenticator,
+  sponsoredFunctionId,
+  sponsorTransaction,
+  requestSponsorship,
+  type SponsorResponse,
+} from "./sponsor.js";
+
 // Per-module wrappers (also reachable via client.<module>)
 export { AchievementsModule } from "./modules/achievements.js";
 export { AttestModule } from "./modules/attest.js";
