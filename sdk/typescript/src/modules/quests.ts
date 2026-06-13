@@ -156,6 +156,18 @@ export class QuestsModule extends SigilModule {
     return this.payload(M, "submit_score_with_quest", [publisher, BigInt(args.gameId as never), BigInt(args.score as never)]);
   }
 
+  /** Claim a completed quest's reward, flipping its `claimed` flag to true. */
+  buildClaimQuestReward(args: { sender: Account; questId: AnyNumber; publisher?: AddressInput; options?: InputGenerateTransactionOptions }) {
+    const publisher = args.publisher ? normalizeAddress(args.publisher) : this.moduleAddress;
+    return this.buildEntry({ ...args, module: M, func: "claim_quest_reward", functionArguments: [publisher, args.questId] });
+  }
+
+  /** @see {@link buildClaimQuestReward} */
+  walletPayloadClaimQuestReward(args: { questId: AnyNumber; publisher?: AddressInput }) {
+    const publisher = args.publisher ? normalizeAddress(args.publisher) : this.moduleAddress;
+    return this.payload(M, "claim_quest_reward", [publisher, BigInt(args.questId as never)]);
+  }
+
   buildUpdateQuestProgress(args: { sender: Account; questId: AnyNumber; publisher?: AddressInput; options?: InputGenerateTransactionOptions }) {
     const publisher = args.publisher ? normalizeAddress(args.publisher) : this.moduleAddress;
     return this.buildEntry({ ...args, module: M, func: "update_quest_progress", functionArguments: [publisher, args.questId] });
