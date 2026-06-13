@@ -1,23 +1,21 @@
 # Brand assets
 
-## `aptos-sigil-logo.png`  ← save the logo here
+## `aptos-sigil-logo.png`
 
 The Aptos Sigil logo (silver winged crest + green crystal, "APTOS SIGIL"
-wordmark). **Save the provided PNG at this exact path:**
+wordmark) — full-resolution master (1024×1024).
 
-```
-docs/assets/aptos-sigil-logo.png
-```
-
-Then distribute it to every app:
+The console + all three games reference `/logo.png` (header) and use it as the
+favicon / app icon. To (re)distribute after replacing the master, run:
 
 ```bash
 ./scripts/sync-logo.sh
 ```
 
-That copies it into the console and all three games (`public/logo.png` for the
-header, `app/icon.png` for the Next.js favicon), which already reference it.
-Commit the generated PNGs so deploys include them.
+That copies a 256px-downscaled version into each app's `public/logo.png` and
+`app/icon.png` (the master here stays full-res). Commit the generated PNGs so
+deploys include them.
 
-> A transparent background (the logo is on white here) works best on the apps'
-> dark themes — export a transparent-PNG version if you have one.
+> The master has a light background. For the apps' dark themes a transparent-PNG
+> version reads best — drop a transparent `aptos-sigil-logo.png` here and re-run
+> the sync to swap it everywhere.

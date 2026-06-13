@@ -765,9 +765,12 @@ export function App() {
   ];
 
   return (
-    <div style={{ fontFamily: "system-ui", maxWidth: 1100, margin: "2rem auto", padding: 16 }}>
-      <img src="/logo.png" alt="Aptos Sigil" height={64} style={{ display: "block", marginBottom: 8 }} />
-      <h1>Sigil — game-dev console (Aptos {NETWORK_LABEL})</h1>
+    <div style={{ minHeight: "100vh", fontFamily: "system-ui", background: "linear-gradient(160deg, #eef2fb 0%, #f6f8ff 45%, #eafbf0 100%)" }}>
+    <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 16px 56px" }}>
+      <div style={{ textAlign: "center", background: "#ffffff", border: "1px solid #e3e8f3", borderTop: "4px solid #2bb24c", borderRadius: 16, padding: "22px 16px", marginBottom: 22, boxShadow: "0 8px 26px rgba(20,30,80,0.07)" }}>
+        <img src="/logo.png" alt="Aptos Sigil" height={128} style={{ display: "inline-block" }} />
+        <h1 style={{ margin: "10px 0 0", fontSize: 26, color: "#1c2333" }}>Sigil — game-dev console <span style={{ color: "#2bb24c" }}>(Aptos {NETWORK_LABEL})</span></h1>
+      </div>
       <p style={{ color: "#444" }}>
         A hybrid console for Aptos game devs: a <strong>Guided</strong> walkthrough of a real game (Sigil Arcade) plus the raw
         technical tabs. Every action shows the Move call, typed args, and the exact SDK + wallet payload — and can be{" "}
@@ -1138,6 +1141,7 @@ export function App() {
       >
         {log.length ? log.join("\n") : "…"}
       </pre>
+    </div>
     </div>
   );
 }
