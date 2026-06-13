@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/aptos-sigil-logo.png" alt="Aptos Sigil" width="320" />
+</p>
+
 # Sigil Game Platform - Aptos Smart Contract
 
 [![CI](https://github.com/lopeselio/aptos-sigil/actions/workflows/ci.yml/badge.svg)](https://github.com/lopeselio/aptos-sigil/actions/workflows/ci.yml)
