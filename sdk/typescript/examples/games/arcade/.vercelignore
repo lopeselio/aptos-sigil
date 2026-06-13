@@ -1,0 +1,10 @@
+# Never upload local env (holds SPONSOR_PRIVATE_KEY) — set it in Vercel project env instead.
+.env*.local
+
+# Build output / deps (Vercel installs + builds fresh).
+node_modules
+.next
+.vercel
+
+# NOTE: lib/vendor (the vendored SDK build) IS uploaded on purpose — it makes the
+# app self-contained. It is .gitignored but deliberately not excluded here.

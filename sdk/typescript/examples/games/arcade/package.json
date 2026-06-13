@@ -5,7 +5,9 @@
   "description": "Sigil Arcade — a playable Aptos game wired to @sigil-aptos/sdk with gasless (sponsored) score submission.",
   "type": "module",
   "scripts": {
+    "predev": "node scripts/copy-sdk.mjs",
     "dev": "next dev -p 3000",
+    "prebuild": "node scripts/copy-sdk.mjs",
     "build": "next build",
     "start": "next start -p 3000"
   },
