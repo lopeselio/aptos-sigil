@@ -160,6 +160,31 @@ type SigilWalletPayload = {
   data: { function: string; typeArguments?: string[]; functionArguments: unknown[] };
 };
 
+/** Dark theme palette — matches the Sigil Arcade game. */
+const T = {
+  bg: "linear-gradient(180deg, #0b1020 0%, #0e1430 60%, #0b1322 100%)",
+  panel: "#0f1530",
+  panel2: "#0b1020",
+  border: "#1d2746",
+  text: "#e8ecf6",
+  muted: "#9aa6c4",
+  faint: "#6b769c",
+  code: "#cdd6f4",
+  accent: "#5566ff",
+  blue: "#3b82f6",
+  green: "#2bb24c",
+  amber: "#f59e0b",
+  red: "#f0719a",
+  btn: "#2a3354",
+} as const;
+const inputStyle: React.CSSProperties = {
+  background: T.panel2,
+  color: T.text,
+  border: `1px solid ${T.btn}`,
+  borderRadius: 6,
+  padding: "5px 8px",
+};
+
 /** A single contract write, with everything Inspect/Run/Simulate/Gasless need from one source of truth. */
 type ActionDesc = {
   id: string;
@@ -511,20 +536,20 @@ export function App() {
 
   // ---- tiny render helpers (functions, not components, to avoid input remount/focus loss) ----
   const field = (k: string, label: string, width = 96) => (
-    <label style={{ marginRight: 10, fontSize: 14 }}>
-      {label} <input value={f(k)} onChange={(e) => setF(k, e.target.value)} style={{ width }} />
+    <label style={{ marginRight: 10, fontSize: 14, color: T.muted }}>
+      {label} <input value={f(k)} onChange={(e) => setF(k, e.target.value)} style={{ ...inputStyle, width }} />
     </label>
   );
   const check = (k: string, label: string) => (
-    <label style={{ marginRight: 10, fontSize: 14 }}>
+    <label style={{ marginRight: 10, fontSize: 14, color: T.muted }}>
       <input type="checkbox" checked={flag(k)} onChange={(e) => setFlag(k, e.target.checked)} /> {label}
     </label>
   );
   const row = (children: React.ReactNode) => <div style={{ margin: "8px 0", display: "flex", flexWrap: "wrap", alignItems: "center", gap: 6 }}>{children}</div>;
   const card = (title: string, note: string, children: React.ReactNode) => (
-    <div style={{ border: "1px solid #ddd", borderRadius: 8, padding: 12, marginBottom: 12 }}>
-      <h4 style={{ margin: "0 0 4px" }}>{title}</h4>
-      <p style={{ color: "#666", fontSize: 13, margin: "0 0 8px" }}>{note}</p>
+    <div style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 12, padding: 14, marginBottom: 14 }}>
+      <h4 style={{ margin: "0 0 4px", color: T.text }}>{title}</h4>
+      <p style={{ color: T.muted, fontSize: 13, margin: "0 0 8px" }}>{note}</p>
       {children}
     </div>
   );
@@ -533,10 +558,11 @@ export function App() {
       type="button"
       onClick={() => setTab(id)}
       style={{
-        padding: "6px 14px",
-        border: "1px solid #ccc",
-        borderBottom: tab === id ? "2px solid #2563eb" : "1px solid #ccc",
-        background: tab === id ? "#eef2ff" : "#fff",
+        padding: "8px 16px",
+        border: `1px solid ${T.border}`,
+        borderBottom: tab === id ? `2px solid ${T.accent}` : `1px solid ${T.border}`,
+        background: tab === id ? "#18204a" : T.panel2,
+        color: tab === id ? T.text : T.muted,
         fontWeight: tab === id ? 600 : 400,
         cursor: "pointer",
       }}
@@ -545,8 +571,8 @@ export function App() {
     </button>
   );
 
-  const btn = (label: string, onClick: () => void, title?: string, bg = "#fff") => (
-    <button type="button" onClick={onClick} title={title} style={{ padding: "4px 10px", border: "1px solid #ccc", borderRadius: 6, background: bg, cursor: "pointer", fontSize: 13 }}>
+  const btn = (label: string, onClick: () => void, title?: string, bg: string = T.btn) => (
+    <button type="button" onClick={onClick} title={title} style={{ padding: "6px 12px", border: "none", borderRadius: 8, background: bg, color: "#fff", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
       {label}
     </button>
   );
@@ -571,45 +597,45 @@ export function App() {
       buildErr = e instanceof Error ? e.message : String(e);
     }
     return (
-      <div key={a.id} style={{ border: "1px solid #eee", borderRadius: 6, padding: "6px 8px", margin: "6px 0" }}>
+      <div key={a.id} style={{ border: `1px solid ${T.border}`, borderRadius: 8, padding: "8px 10px", margin: "6px 0", background: T.panel2 }}>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
-          {btn(`▶ ${a.label}`, () => void write(a.label, a.build)(), "sign & submit", "#eef2ff")}
-          {btn("Simulate", () => void simulate(a.label, a.build), "dry-run: gas + vm_status, no signature")}
+          {btn(`▶ ${a.label}`, () => void write(a.label, a.build)(), "sign & submit", T.accent)}
+          {btn("Simulate", () => void simulate(a.label, a.build), "dry-run: gas + vm_status, no signature", T.btn)}
           {a.sponsorable && SPONSOR_ENDPOINT
-            ? btn("⚡ Gasless", () => void sponsoredSubmit(a.label, a.build), "submit sponsored — you pay 0 gas", "#fef9e7")
+            ? btn("⚡ Gasless", () => void sponsoredSubmit(a.label, a.build), "submit sponsored — you pay 0 gas", T.amber)
             : null}
-          {btn(isOpen ? "▾ Inspect" : "▸ Inspect", () => setOpen((o) => ({ ...o, [a.id]: !isOpen })), "see the Move call + payload")}
+          {btn(isOpen ? "▾ Inspect" : "▸ Inspect", () => setOpen((o) => ({ ...o, [a.id]: !isOpen })), "see the Move call + payload", T.btn)}
         </div>
         {isOpen && (
-          <div style={{ marginTop: 8, fontSize: 12, background: "#fafafa", border: "1px solid #eee", borderRadius: 6, padding: 8 }}>
+          <div style={{ marginTop: 8, fontSize: 12, background: "#070b18", border: `1px solid ${T.border}`, borderRadius: 6, padding: 10, color: T.code }}>
             {buildErr ? (
-              <div style={{ color: "#a22" }}>Fill in the fields to preview the call ({buildErr}).</div>
+              <div style={{ color: T.red }}>Fill in the fields to preview the call ({buildErr}).</div>
             ) : (
               <>
-                <div style={{ marginBottom: 4 }}>
-                  <strong>Move function</strong>
-                  <div><code style={{ wordBreak: "break-all" }}>{fnId}</code></div>
+                <div style={{ marginBottom: 6 }}>
+                  <strong style={{ color: T.text }}>Move function</strong>
+                  <div><code style={{ wordBreak: "break-all", color: "#9ae6b4" }}>{fnId}</code></div>
                 </div>
-                <div style={{ marginBottom: 4 }}>
-                  <strong>Arguments</strong>
+                <div style={{ marginBottom: 6 }}>
+                  <strong style={{ color: T.text }}>Arguments</strong>
                   <ol style={{ margin: "2px 0 2px 18px", padding: 0 }}>
                     {args.map((v, i) => (
                       <li key={i}>
-                        <code>{typeof v === "bigint" ? v.toString() : JSON.stringify(v)}</code>{" "}
-                        <span style={{ color: "#888" }}>({argTypeHint(v)})</span>
+                        <code style={{ color: T.code }}>{typeof v === "bigint" ? v.toString() : JSON.stringify(v)}</code>{" "}
+                        <span style={{ color: T.faint }}>({argTypeHint(v)})</span>
                       </li>
                     ))}
-                    {args.length === 0 ? <li style={{ color: "#888" }}>none</li> : null}
+                    {args.length === 0 ? <li style={{ color: T.faint }}>none</li> : null}
                   </ol>
                 </div>
-                <div style={{ marginBottom: 4 }}>
-                  <strong>SDK call</strong> {btn("copy", () => copy(a.sdk))}
-                  <pre style={{ margin: "2px 0", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{a.sdk}</pre>
+                <div style={{ marginBottom: 6 }}>
+                  <strong style={{ color: T.text }}>SDK call</strong> {btn("copy", () => copy(a.sdk))}
+                  <pre style={{ margin: "2px 0", whiteSpace: "pre-wrap", wordBreak: "break-word", color: "#a7f3d0" }}>{a.sdk}</pre>
                 </div>
                 <div>
-                  <strong>Wallet payload</strong> {btn("copy", () => copy(payloadJson))}
-                  <pre style={{ margin: "2px 0", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{payloadJson}</pre>
-                  <div style={{ color: "#888" }}>Pass this object to <code>signAndSubmitTransaction(payload)</code>.</div>
+                  <strong style={{ color: T.text }}>Wallet payload</strong> {btn("copy", () => copy(payloadJson))}
+                  <pre style={{ margin: "2px 0", whiteSpace: "pre-wrap", wordBreak: "break-word", color: T.code }}>{payloadJson}</pre>
+                  <div style={{ color: T.faint }}>Pass this object to <code>signAndSubmitTransaction(payload)</code>.</div>
                 </div>
               </>
             )}
@@ -765,36 +791,36 @@ export function App() {
   ];
 
   return (
-    <div style={{ minHeight: "100vh", fontFamily: "system-ui", background: "linear-gradient(160deg, #eef2fb 0%, #f6f8ff 45%, #eafbf0 100%)" }}>
+    <div style={{ minHeight: "100vh", fontFamily: "system-ui", color: T.text, background: T.bg }}>
     <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 16px 56px" }}>
-      <div style={{ textAlign: "center", background: "#ffffff", border: "1px solid #e3e8f3", borderTop: "4px solid #2bb24c", borderRadius: 16, padding: "22px 16px", marginBottom: 22, boxShadow: "0 8px 26px rgba(20,30,80,0.07)" }}>
+      <div style={{ textAlign: "center", background: T.panel, border: `1px solid ${T.border}`, borderTop: `4px solid ${T.green}`, borderRadius: 16, padding: "22px 16px", marginBottom: 22, boxShadow: "0 10px 30px rgba(0,0,0,0.35)" }}>
         <img src="/logo.png" alt="Aptos Sigil" height={128} style={{ display: "inline-block" }} />
-        <h1 style={{ margin: "10px 0 0", fontSize: 26, color: "#1c2333" }}>Sigil — game-dev console <span style={{ color: "#2bb24c" }}>(Aptos {NETWORK_LABEL})</span></h1>
+        <h1 style={{ margin: "10px 0 0", fontSize: 26, color: T.text }}>Sigil — game-dev console <span style={{ color: "#7be08a" }}>(Aptos {NETWORK_LABEL})</span></h1>
       </div>
-      <p style={{ color: "#444" }}>
+      <p style={{ color: T.code }}>
         A hybrid console for Aptos game devs: a <strong>Guided</strong> walkthrough of a real game (Sigil Arcade) plus the raw
         technical tabs. Every action shows the Move call, typed args, and the exact SDK + wallet payload — and can be{" "}
         <strong>simulated</strong> before you sign.
       </p>
-      <p style={{ color: "#444" }}>
-        Module: <code>{DEFAULT_MODULE}</code>. Override with <code>VITE_SIGIL_MODULE_ADDRESS</code>.
+      <p style={{ color: T.muted, fontSize: 14 }}>
+        Module: <code style={{ color: T.code }}>{DEFAULT_MODULE}</code>. Override with <code style={{ color: T.code }}>VITE_SIGIL_MODULE_ADDRESS</code>.
       </p>
-      <p style={{ color: "#444", fontSize: 14 }}>
+      <p style={{ color: T.muted, fontSize: 14 }}>
         App fullnode (views + simulate):{" "}
-        <code style={{ fontSize: 12 }}>{APP_FULLNODE ?? `TS SDK default for ${NETWORK_LABEL}`}</code>
-        {APTOS_API_KEY ? <span style={{ color: "#284", marginLeft: 8 }}>API key: on</span> : null}
-        <span style={{ marginLeft: 8 }}>Gas station: <code style={{ fontSize: 12 }}>{SPONSOR_ENDPOINT || "(disabled)"}</code></span>
+        <code style={{ fontSize: 12, color: T.code }}>{APP_FULLNODE ?? `TS SDK default for ${NETWORK_LABEL}`}</code>
+        {APTOS_API_KEY ? <span style={{ color: "#7be08a", marginLeft: 8 }}>API key: on</span> : null}
+        <span style={{ marginLeft: 8 }}>Gas station: <code style={{ fontSize: 12, color: T.code }}>{SPONSOR_ENDPOINT || "(disabled)"}</code></span>
       </p>
-      <p style={{ color: "#a60", fontSize: 13 }}>
+      <p style={{ color: T.amber, fontSize: 13 }}>
         Your wallet’s <strong>{NETWORK_LABEL}</strong> RPC must match this app’s fullnode, or simulate (and Approve) will fail.
       </p>
 
       {!connected && (
         <section>
-          <h2>Connect Nightly</h2>
-          <p style={{ color: "#666", fontSize: 13 }}>
+          <h2 style={{ color: T.text }}>Connect Nightly</h2>
+          <p style={{ color: T.muted, fontSize: 13 }}>
             This console uses{" "}
-            <a href="https://docs.nightly.app/docs/aptos/aptos/detection" target="_blank" rel="noreferrer">
+            <a href="https://docs.nightly.app/docs/aptos/aptos/detection" target="_blank" rel="noreferrer" style={{ color: "#8aa0ff" }}>
               Nightly on Aptos
             </a>{" "}
             ({NETWORK_LABEL}). Install the extension and select the <strong>Aptos</strong> account.
@@ -812,35 +838,31 @@ export function App() {
               <WalletItem.InstallLink />
             </WalletItem>
           ) : (
-            <p style={{ color: "#666" }}>Loading Nightly…</p>
+            <p style={{ color: T.muted }}>Loading Nightly…</p>
           )}
         </section>
       )}
 
       {connected && account && (
         <section>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
-            <div style={{ fontSize: 14, color: "#666" }}>
-              {wallet?.name ? <strong>{wallet.name}</strong> : null}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8, background: T.panel, border: `1px solid ${T.border}`, borderRadius: 12, padding: "10px 14px" }}>
+            <div style={{ fontSize: 14, color: T.muted }}>
+              {wallet?.name ? <strong style={{ color: T.text }}>{wallet.name}</strong> : null}
               {network ? (
-                <span style={{ color: onWrongNetwork ? "#a60" : "#666", marginLeft: 8 }}>
+                <span style={{ color: onWrongNetwork ? T.amber : T.muted, marginLeft: 8 }}>
                   {String(network.name)}
                   {network.chainId != null ? ` (chain ${network.chainId})` : ""}
                 </span>
               ) : null}
               <div>
-                <code style={{ fontSize: 12 }}>{account.address.toString()}</code>
+                <code style={{ fontSize: 12, color: T.code }}>{account.address.toString()}</code>
               </div>
             </div>
             <div>
               {onWrongNetwork ? (
-                <button type="button" onClick={() => void onSwitchNetwork()} style={{ marginRight: 8 }}>
-                  Switch to {NETWORK_LABEL}
-                </button>
+                <span style={{ marginRight: 8 }}>{btn(`Switch to ${NETWORK_LABEL}`, () => void onSwitchNetwork(), undefined, T.amber)}</span>
               ) : null}
-              <button type="button" onClick={() => disconnect()}>
-                Disconnect
-              </button>
+              {btn("Disconnect", () => disconnect(), undefined, T.btn)}
             </div>
           </div>
 
@@ -850,11 +872,11 @@ export function App() {
             {tabBtn("publisher", "Publisher (admin)")}
             {tabBtn("views", "Views (read-only)")}
           </div>
-          <div style={{ border: "1px solid #ccc", borderTop: "none", padding: 16 }}>
+          <div style={{ border: `1px solid ${T.border}`, borderTop: "none", padding: 16, background: "rgba(15,21,48,0.5)", borderRadius: "0 0 12px 12px" }}>
 
             {tab === "guided" && (
               <>
-                <p style={{ color: "#444", fontSize: 14 }}>
+                <p style={{ color: T.code, fontSize: 14 }}>
                   Follow <strong>Maya</strong> through a real game's on-chain lifecycle. Each step explains the <em>why</em>, then
                   lets you <strong>Simulate</strong> (free dry-run), <strong>Run</strong> (sign &amp; submit), or go{" "}
                   <strong>⚡ Gasless</strong>, and <strong>Inspect</strong> the exact Move call + SDK code.
@@ -866,13 +888,14 @@ export function App() {
                       type="button"
                       onClick={() => setStep(i)}
                       style={{
-                        padding: "4px 9px",
-                        border: "1px solid #ccc",
+                        padding: "5px 11px",
+                        border: `1px solid ${step === i ? T.accent : T.border}`,
                         borderRadius: 14,
-                        background: step === i ? "#2563eb" : "#fff",
-                        color: step === i ? "#fff" : "#333",
+                        background: step === i ? T.accent : T.panel2,
+                        color: step === i ? "#fff" : T.muted,
                         cursor: "pointer",
                         fontSize: 12,
+                        fontWeight: 600,
                       }}
                     >
                       {i + 1}
@@ -882,18 +905,18 @@ export function App() {
                 {(() => {
                   const s = guidedSteps[step];
                   return (
-                    <div style={{ border: "1px solid #ddd", borderRadius: 8, padding: 14 }}>
-                      <h3 style={{ margin: "0 0 6px" }}>{s.title}</h3>
-                      <p style={{ margin: "0 0 8px", color: "#333" }}>{s.story}</p>
+                    <div style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 12, padding: 16 }}>
+                      <h3 style={{ margin: "0 0 6px", color: T.text }}>{s.title}</h3>
+                      <p style={{ margin: "0 0 8px", color: T.code }}>{s.story}</p>
                       {s.why ? (
-                        <p style={{ margin: "0 0 10px", color: "#555", fontSize: 13, borderLeft: "3px solid #2563eb", paddingLeft: 10 }}>
-                          <strong>Why:</strong> {s.why}
+                        <p style={{ margin: "0 0 10px", color: T.muted, fontSize: 13, borderLeft: `3px solid ${T.accent}`, paddingLeft: 10 }}>
+                          <strong style={{ color: T.text }}>Why:</strong> {s.why}
                         </p>
                       ) : null}
                       {s.body}
                       <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
-                        {btn("← Prev", () => setStep((n) => Math.max(0, n - 1)))}
-                        {btn("Next →", () => setStep((n) => Math.min(guidedSteps.length - 1, n + 1)), undefined, "#eef2ff")}
+                        {btn("← Prev", () => setStep((n) => Math.max(0, n - 1)), undefined, T.btn)}
+                        {btn("Next →", () => setStep((n) => Math.min(guidedSteps.length - 1, n + 1)), undefined, T.accent)}
                       </div>
                     </div>
                   );
@@ -903,7 +926,7 @@ export function App() {
 
             {tab === "player" && (
               <>
-                <p style={{ color: "#666", fontSize: 13 }}>
+                <p style={{ color: T.muted, fontSize: 13 }}>
                   Player write flows — each with <strong>Run / Simulate / Inspect</strong> (and ⚡ Gasless where a sponsor applies).
                   Shared <code>game_id</code> / <code>score</code> / <code>username</code> below feed the calls.
                 </p>
@@ -947,7 +970,7 @@ export function App() {
 
             {tab === "publisher" && (
               <>
-                <p style={{ color: "#a22", fontSize: 13, borderLeft: "3px solid #c44", paddingLeft: 10 }}>
+                <p style={{ color: T.red, fontSize: 13, borderLeft: `3px solid ${T.red}`, paddingLeft: 10 }}>
                   These are <strong>owner/admin</strong> calls. They abort unless the connected wallet is the publisher (or a
                   roles-authorized admin/operator) for the module address above. Most are already initialized on the shared demo
                   module — re-running <code>init_*</code> there will abort (expected).
@@ -1066,7 +1089,7 @@ export function App() {
 
             {tab === "views" && (
               <>
-                <p style={{ color: "#666", fontSize: 13 }}>
+                <p style={{ color: T.muted, fontSize: 13 }}>
                   Read-only — no wallet signature. Uses <code>game_id</code> / ids from the fields above and your connected address.
                 </p>
                 {card("game_platform", "Games, your registration, and your scores.", row(<>
