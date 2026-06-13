@@ -80,6 +80,63 @@ A complete, production-ready gaming platform on Aptos featuring **instant automa
   - Publisher-controlled
 - **Events** - All actions emit events for easy indexing
 
+## 🧰 TypeScript SDK & apps (build a game in minutes)
+
+Don't want to touch Move? The modules are **live on Aptos testnet** (persistent,
+free) and the [`@sigil-aptos/sdk`](./sdk/typescript) package gives you typed,
+wallet-signable helpers for every flow.
+
+- **Live testnet module:** `0x568721f98162f03aa564384f15d7ead24b9825a3f35e4c2dba8265bd126ce787` ([explorer](https://explorer.aptoslabs.com/account/0x568721f98162f03aa564384f15d7ead24b9825a3f35e4c2dba8265bd126ce787?network=testnet))
+
+```bash
+npm install @sigil-aptos/sdk @aptos-labs/ts-sdk
+```
+
+```ts
+import { AccountAddress, Network } from "@aptos-labs/ts-sdk";
+import { SigilClient, createAptosClient } from "@sigil-aptos/sdk";
+
+const sigil = new SigilClient({
+  aptos: createAptosClient({ network: Network.TESTNET }),
+  moduleAddress: AccountAddress.from("0x568721f98162f03aa564384f15d7ead24b9825a3f35e4c2dba8265bd126ce787"),
+});
+
+// First submit auto-registers the player + sets username — one tx:
+const payload = sigil.gamePlatform.walletPayloadSubmitScore({ gameId: 0n, score: 1000n, username: "player1" });
+await signAndSubmitTransaction(payload); // from @aptos-labs/wallet-adapter-react
+```
+
+### What's in here for app devs
+
+| | Where | What |
+|--|-------|------|
+| 📦 **SDK** | [`sdk/typescript`](./sdk/typescript) | `walletPayload*` (browser) + `build*` (server) + `view*` for every module, plus sponsored-tx helpers. |
+| 🎮 **Example game** | [`sdk/typescript/examples/games/arcade`](./sdk/typescript/examples/games/arcade) | **Sigil Arcade** — a playable Next.js reaction game with on-chain scores and ⚡ gasless submission. `npm run dev` serves the game + the gas station. |
+| 🧪 **Hybrid console** | [`sdk/typescript/examples/web-petra`](./sdk/typescript/examples/web-petra) | A **Guided** game walkthrough + raw module tabs. Every action shows the Move call, typed args, SDK code, and a Simulate/Inspect panel. |
+| 📖 **Tutorial** | [`docs/tutorial`](./docs/tutorial/building-a-game-on-aptos.md) | Zero → playable game, including gasless. |
+
+### ⚡ Gasless gameplay (sponsored transactions)
+
+Players never need APT: a **fee payer** (gas station) covers gas while the player
+just signs. It's an Aptos L1 feature — no Move changes. The SDK ships both sides
+(`buildSponsoredTransaction` / `requestSponsorship` / `submitSponsored` on the
+client; `sponsorTransaction` + an allowlist on the server). Verified end-to-end on
+testnet: a **zero-balance** account submitted a score and paid 0 APT
+(`npm run example:sponsored-smoke`). Run your own gas station by setting
+`SPONSOR_PRIVATE_KEY` to your funded account — see the
+[Arcade](./sdk/typescript/examples/games/arcade) and
+[tutorial](./docs/tutorial/building-a-game-on-aptos.md).
+
+### Deploy your own copy
+
+Testnet is the recommended stable home. With a funded publisher profile:
+
+```bash
+./scripts/redeploy_testnet.sh   # publish + init all modules + register game 0
+```
+
+See [`docs/DEPLOYMENT_TESTNET.md`](./docs/DEPLOYMENT_TESTNET.md).
+
 ## 🎭 Who Can Use Sigil?
 
 **Anyone can become a publisher!** The Sigil platform uses **per-publisher architecture** - each game creator has their own independent gaming ecosystem.
