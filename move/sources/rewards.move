@@ -11,7 +11,7 @@ module sigil::rewards {
     use aptos_framework::primary_fungible_store;
     use aptos_token_objects::collection;
     use aptos_token_objects::token;
-    // use sigil::achievements;  // Temporarily disabled for independent deployment
+    use sigil::achievements;
     use sigil::roles;
 
     /*************
@@ -302,16 +302,20 @@ module sigil::rewards {
         achievement_id: u64
     ) acquires Rewards, RewardsConfig {
         let player_addr = signer::address_of(player);
-        
-        // Check if achievement is unlocked
-        // TODO: Uncomment when enabling cross-module integration
-        // assert!(achievements::is_unlocked(publisher, player_addr, achievement_id), E_ACHIEVEMENT_NOT_UNLOCKED);
-        
+
+        // Player must have actually unlocked the achievement this reward is attached to.
+        assert!(
+            achievements::is_unlocked(publisher, player_addr, achievement_id),
+            E_ACHIEVEMENT_NOT_UNLOCKED,
+        );
+
         do_claim(player, publisher, player_addr, achievement_id);
     }
 
-    /// Testing-only claim that skips achievement unlock check
-    /// WARNING: Remove or restrict in production!
+    /// Testing-only claim that skips the achievement unlock check.
+    /// `#[test_only]` so it is NOT part of the published module — it can never be
+    /// called on chain, only from Move unit tests.
+    #[test_only]
     public entry fun claim_testing(
         player: &signer,
         publisher: address,
