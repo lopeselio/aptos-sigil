@@ -795,7 +795,7 @@ export function App() {
     <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 16px 56px" }}>
       <div style={{ textAlign: "center", background: T.panel, border: `1px solid ${T.border}`, borderTop: `4px solid ${T.green}`, borderRadius: 16, padding: "22px 16px", marginBottom: 22, boxShadow: "0 10px 30px rgba(0,0,0,0.35)" }}>
         <img src="/logo.png" alt="Aptos Sigil" height={128} style={{ display: "inline-block" }} />
-        <h1 style={{ margin: "10px 0 0", fontSize: 26, color: T.text }}>Sigil - game-dev console <span style={{ color: "#7be08a" }}>(Aptos {NETWORK_LABEL})</span></h1>
+        <h1 style={{ margin: "10px 0 0", fontSize: 26, color: T.text }}>Game-development console <span style={{ color: "#7be08a" }}>(Aptos {NETWORK_LABEL})</span></h1>
       </div>
       <p style={{ color: T.code }}>
         A hybrid console for Aptos game devs: a <strong>Guided</strong> walkthrough of a real game (Sigil Arcade) plus the raw
