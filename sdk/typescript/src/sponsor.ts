@@ -71,14 +71,24 @@ export function signSponsoredAsFeePayer(args: {
  * Submit a sponsored transaction with both authenticators. Waits for the
  * transaction to commit by default; pass `waitForResult: false` to return the
  * pending response immediately.
+ *
+ * The sender signs with the fee-payer address unset (`0x0`) — they don't know
+ * the fee payer up front — so the transaction's `feePayerAddress` must be set to
+ * the real fee payer before submit, or the node rejects it as INVALID_SIGNATURE.
+ * Pass `feePayerAddress` (returned by {@link requestSponsorship}) and it's set
+ * for you; the sender's `0x0` signature still verifies under the fee-payer scheme.
  */
 export async function submitSponsored(args: {
   aptos: AptosInstance;
   transaction: SimpleTransaction;
   senderAuthenticator: AccountAuthenticator;
   feePayerAuthenticator: AccountAuthenticator;
+  feePayerAddress?: AddressInput;
   waitForResult?: boolean;
 }): Promise<PendingTransactionResponse | CommittedTransactionResponse> {
+  if (args.feePayerAddress) {
+    args.transaction.feePayerAddress = normalizeAddress(args.feePayerAddress);
+  }
   const pending = await args.aptos.transaction.submit.simple({
     transaction: args.transaction,
     senderAuthenticator: args.senderAuthenticator,

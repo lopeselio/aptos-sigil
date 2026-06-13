@@ -458,6 +458,7 @@ export function App() {
         // AccountAuthenticator is a structurally-identical but distinct type.
         senderAuthenticator: senderAuth.authenticator as never,
         feePayerAuthenticator,
+        feePayerAddress,
       });
       const ok = "success" in committed ? committed.success : false;
       if (ok) {

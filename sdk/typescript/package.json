@@ -52,6 +52,7 @@
     "test": "node --import tsx --test test/*.test.ts",
     "typecheck:examples": "tsc -p examples/tsconfig.json",
     "example:deeper-smoke": "npx tsx examples/deeper-smoke.ts",
+    "example:sponsored-smoke": "npx tsx examples/sponsored-smoke.ts",
     "prepublishOnly": "npm run build && npm test"
   },
   "peerDependencies": {
