@@ -159,6 +159,69 @@ module sigil::quests_tests {
         assert!(completed, 3); // Should be completed!
     }
 
+    /// Regression for #8: `claim_quest_reward` flips `QuestProgress.claimed` to
+    /// true (previously no entry function could, so the flag was permanently
+    /// false / dead).
+    #[test]
+    fun test_claim_quest_reward_marks_claimed() {
+        let (publisher, player1, _) = setup_accounts();
+        let pub_addr = signer::address_of(&publisher);
+        let player1_addr = signer::address_of(&player1);
+
+        setup_game_environment(&publisher, &player1);
+        // quest with a non-zero reward_id (5) so there is a reward to claim
+        quests::create_score_quest(
+            &publisher, string::utf8(b"Score Quest"), string::utf8(b"Score 100"),
+            0, 100, 5, false
+        );
+        quests::start_quest(&player1, pub_addr, 0);
+        quests::submit_score_with_quest(&player1, pub_addr, 0, 150); // completes
+
+        let (_, _, _, completed, claimed_before) = quests::get_quest_progress(pub_addr, 0, player1_addr);
+        assert!(completed, 1);
+        assert!(!claimed_before, 2); // dead-flag bug would also show false, but it's now claimable
+
+        quests::claim_quest_reward(&player1, pub_addr, 0);
+
+        let (_, _, _, _, claimed_after) = quests::get_quest_progress(pub_addr, 0, player1_addr);
+        assert!(claimed_after, 3); // now true — the fix
+    }
+
+    /// Claiming a quest reward twice aborts E_REWARD_ALREADY_CLAIMED (10).
+    #[test]
+    #[expected_failure(abort_code = 10, location = sigil::quests)]
+    fun test_claim_quest_reward_twice_fails() {
+        let (publisher, player1, _) = setup_accounts();
+        let pub_addr = signer::address_of(&publisher);
+
+        setup_game_environment(&publisher, &player1);
+        quests::create_score_quest(
+            &publisher, string::utf8(b"Q"), string::utf8(b"Score 100"),
+            0, 100, 5, false
+        );
+        quests::start_quest(&player1, pub_addr, 0);
+        quests::submit_score_with_quest(&player1, pub_addr, 0, 150);
+        quests::claim_quest_reward(&player1, pub_addr, 0);
+        quests::claim_quest_reward(&player1, pub_addr, 0); // should abort
+    }
+
+    /// Claiming before completion aborts E_QUEST_NOT_COMPLETED (9).
+    #[test]
+    #[expected_failure(abort_code = 9, location = sigil::quests)]
+    fun test_claim_quest_reward_before_completion_fails() {
+        let (publisher, player1, _) = setup_accounts();
+        let pub_addr = signer::address_of(&publisher);
+
+        setup_game_environment(&publisher, &player1);
+        quests::create_score_quest(
+            &publisher, string::utf8(b"Q"), string::utf8(b"Score 100"),
+            0, 100, 5, false
+        );
+        quests::start_quest(&player1, pub_addr, 0);
+        quests::submit_score_with_quest(&player1, pub_addr, 0, 50); // not enough → not completed
+        quests::claim_quest_reward(&player1, pub_addr, 0); // should abort
+    }
+
     #[test]
     fun test_score_quest_progress_tracking() {
         let (publisher, player1, _) = setup_accounts();

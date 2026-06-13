@@ -47,6 +47,9 @@ module sigil::quests {
     const E_INVALID_QUEST_TYPE: u64 = 6;
     const E_NO_PERMISSION: u64 = 7;
     const E_ALREADY_STARTED: u64 = 8;
+    const E_QUEST_NOT_COMPLETED: u64 = 9;
+    const E_REWARD_ALREADY_CLAIMED: u64 = 10;
+    const E_NO_QUEST_REWARD: u64 = 11;
 
     /************
      * Structs
@@ -116,6 +119,17 @@ module sigil::quests {
     }
 
     struct QuestCompletedEvent has drop, store {
+        publisher: address,
+        quest_id: u64,
+        player: address,
+        reward_id: u64,
+    }
+
+    /// Emitted when a player claims a completed quest's reward (module event —
+    /// no EventHandle needed). `reward_id` is the quest's reward id for the
+    /// publisher's reward pipeline.
+    #[event]
+    struct QuestRewardClaimedEvent has drop, store {
         publisher: address,
         quest_id: u64,
         player: address,
@@ -699,6 +713,41 @@ module sigil::quests {
         };
     }
 
+    /// Claim a completed quest's reward, flipping `QuestProgress.claimed` to true
+    /// (previously no entry function ever set it, so the flag was permanently
+    /// false). Validates the quest is completed and not already claimed, then
+    /// emits {@link QuestRewardClaimedEvent}. The quest's `reward_id` is exposed
+    /// in the event for the publisher's reward pipeline; asset payout itself
+    /// remains the rewards module's concern (intentionally decoupled so quest
+    /// claiming is not gated on unlocking a separate achievement).
+    public entry fun claim_quest_reward(
+        player: &signer,
+        publisher: address,
+        quest_id: u64
+    ) acquires Quests {
+        assert!(exists<Quests>(publisher), E_NOT_INITIALIZED);
+        let player_addr = signer::address_of(player);
+        let quests = borrow_global_mut<Quests>(publisher);
+
+        assert!(table::contains(&quests.quests, quest_id), E_QUEST_NOT_FOUND);
+        let reward_id = {
+            let quest = table::borrow(&quests.quests, quest_id);
+            quest.reward_id
+        };
+        assert!(reward_id != 0, E_NO_QUEST_REWARD);
+
+        assert!(table::contains(&quests.player_progress, player_addr), E_QUEST_NOT_STARTED);
+        let player_quests = table::borrow_mut(&mut quests.player_progress, player_addr);
+        assert!(table::contains(player_quests, quest_id), E_QUEST_NOT_STARTED);
+        let progress = table::borrow_mut(player_quests, quest_id);
+
+        assert!(progress.completed, E_QUEST_NOT_COMPLETED);
+        assert!(!progress.claimed, E_REWARD_ALREADY_CLAIMED);
+        progress.claimed = true;
+
+        event::emit(QuestRewardClaimedEvent { publisher, quest_id, player: player_addr, reward_id });
+    }
+
     /// Complete a quest and distribute rewards
     fun complete_quest_internal(
         quests: &mut Quests,
@@ -725,13 +774,10 @@ module sigil::quests {
             }
         );
 
-        // Auto-claim reward if available
-        if (quest.reward_id != 0) {
-            // Note: Reward claiming would be handled by a separate function
-            // that calls rewards::claim_reward() with proper permissions
-            // For now, just mark as ready to claim
-            progress.claimed = false; // Will be true after manual claim
-        };
+        // Reward stays unclaimed until the player calls `claim_quest_reward`
+        // (which sets `claimed = true`). `reward_id` is surfaced via the
+        // completion event for the publisher's reward pipeline.
+        progress.claimed = false;
     }
 
     /// Emit progress event
