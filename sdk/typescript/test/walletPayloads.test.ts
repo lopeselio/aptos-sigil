@@ -74,6 +74,10 @@ test("quests: walletPayloadCreateScoreQuest + walletPayloadUpdateQuestProgress",
   const up = client.quests.walletPayloadUpdateQuestProgress({ questId: 3 });
   assert.equal(up.data.function, `${MOD}::quests::update_quest_progress`);
   assert.deepEqual(normArgs(up.data.functionArguments), [MOD, "3"]);
+
+  const claim = client.quests.walletPayloadClaimQuestReward({ questId: 2 });
+  assert.equal(claim.data.function, `${MOD}::quests::claim_quest_reward`);
+  assert.deepEqual(normArgs(claim.data.functionArguments), [MOD, "2"]);
 });
 
 test("guilds: create / join / leave wallet payloads", () => {
