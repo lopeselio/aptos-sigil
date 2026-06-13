@@ -12,10 +12,10 @@ const DEFAULT_MODULE =
   import.meta.env.VITE_SIGIL_MODULE_ADDRESS ??
   "0x694fd0c04ecf4ec750450d3c1a4d318d5869f2cf762562a8a586a44e1c29d1c1";
 
-/** Aptos chain (AIP-62) name in `@aptos-labs/wallet-adapter-core` registry — not “Nightly (Solana)”. */
+/** Aptos chain (AIP-62) name in `@aptos-labs/wallet-adapter-core` registry - not “Nightly (Solana)”. */
 const NIGHTLY_APTOS_WALLET_NAME = "Nightly";
 
-/** Network the app targets (default testnet — the stable home; devnet wipes weekly). */
+/** Network the app targets (default testnet - the stable home; devnet wipes weekly). */
 function parseNetwork(raw: string | null): Network {
   switch ((raw ?? "").trim().toLowerCase()) {
     case "mainnet":
@@ -80,10 +80,10 @@ function rpcParseErrorHints(message: string): string[] {
     m.includes("timeout")
   ) {
     lines.push(
-      "→ Network/RPC error reaching the fullnode — commonly an overloaded simulate endpoint. This is infrastructure, NOT your transaction.",
+      "→ Network/RPC error reaching the fullnode - commonly an overloaded simulate endpoint. This is infrastructure, NOT your transaction.",
     );
     lines.push(
-      "→ The submit path is usually still healthy: click the action and Approve in your wallet. If Approve stays disabled, the wallet ran the same simulate against its own RPC — switch the wallet’s Custom RPC or retry in a minute.",
+      "→ The submit path is usually still healthy: click the action and Approve in your wallet. If Approve stays disabled, the wallet ran the same simulate against its own RPC - switch the wallet’s Custom RPC or retry in a minute.",
     );
   }
 
@@ -160,7 +160,7 @@ type SigilWalletPayload = {
   data: { function: string; typeArguments?: string[]; functionArguments: unknown[] };
 };
 
-/** Dark theme palette — matches the Sigil Arcade game. */
+/** Dark theme palette - matches the Sigil Arcade game. */
 const T = {
   bg: "linear-gradient(180deg, #0b1020 0%, #0e1430 60%, #0b1322 100%)",
   panel: "#0f1530",
@@ -287,7 +287,7 @@ export function App() {
   const copy = (text: string) => {
     void navigator.clipboard?.writeText(text).then(
       () => push("Copied to clipboard."),
-      () => push("Clipboard blocked — select & copy from the Inspect panel."),
+      () => push("Clipboard blocked - select & copy from the Inspect panel."),
     );
   };
 
@@ -336,12 +336,12 @@ export function App() {
   const submitOrLog = async (label: string, tx: Parameters<typeof signAndSubmitTransaction>[0]) => {
     try {
       const res = await signAndSubmitTransaction(tx);
-      // A returned hash only means "submitted" — wait for execution, an aborted tx has a hash too.
+      // A returned hash only means "submitted" - wait for execution, an aborted tx has a hash too.
       const committed = await sigil.aptos.waitForTransaction({ transactionHash: res.hash });
       if (committed.success) {
         push(`${label}: OK ${res.hash}`);
       } else {
-        push(`ERROR ${label}: aborted on-chain — ${committed.vm_status} (${res.hash})`);
+        push(`ERROR ${label}: aborted on-chain - ${committed.vm_status} (${res.hash})`);
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -371,7 +371,7 @@ export function App() {
     try {
       payload = build();
     } catch (e) {
-      push(`ERROR ${label}: ${e instanceof Error ? e.message : String(e)} — check that numeric fields are integers.`);
+      push(`ERROR ${label}: ${e instanceof Error ? e.message : String(e)} - check that numeric fields are integers.`);
       return;
     }
     await submitOrLog(label, walletTx(payload));
@@ -402,7 +402,7 @@ export function App() {
     try {
       payload = build();
     } catch (e) {
-      push(`Simulate ${label}: ${e instanceof Error ? e.message : String(e)} — check numeric fields.`);
+      push(`Simulate ${label}: ${e instanceof Error ? e.message : String(e)} - check numeric fields.`);
       return;
     }
     push(`Simulate ${label}: building + simulating…`);
@@ -443,7 +443,7 @@ export function App() {
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       if (isNetworkSimError(msg)) {
-        push(`Simulate ${label}: RPC unreachable (${msg}) — non-blocking; the transaction itself is fine.`);
+        push(`Simulate ${label}: RPC unreachable (${msg}) - non-blocking; the transaction itself is fine.`);
       } else {
         push(`ERROR simulate ${label}: ${msg}`);
       }
@@ -487,7 +487,7 @@ export function App() {
       });
       const ok = "success" in committed ? committed.success : false;
       if (ok) {
-        push(`${label} (gasless): OK ${committed.hash} — gas paid by fee payer ${feePayerAddress}`);
+        push(`${label} (gasless): OK ${committed.hash} - gas paid by fee payer ${feePayerAddress}`);
       } else {
         push(`ERROR ${label} (gasless): ${JSON.stringify(committed).slice(0, 300)}`);
       }
@@ -518,7 +518,7 @@ export function App() {
         push("→ If has_game is false, register a game for this publisher (Publisher tab → register_game) or fix game_id.");
       }
       if (!playerOk) {
-        push("→ Not registered yet — that's fine: your first submit_score registers you. Enter a username and submit (one tx).");
+        push("→ Not registered yet - that's fine: your first submit_score registers you. Enter a username and submit (one tx).");
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -602,7 +602,7 @@ export function App() {
           {btn(`▶ ${a.label}`, () => void write(a.label, a.build)(), "sign & submit", T.accent)}
           {btn("Simulate", () => void simulate(a.label, a.build), "dry-run: gas + vm_status, no signature", T.btn)}
           {a.sponsorable && SPONSOR_ENDPOINT
-            ? btn("⚡ Gasless", () => void sponsoredSubmit(a.label, a.build), "submit sponsored — you pay 0 gas", T.amber)
+            ? btn("⚡ Gasless", () => void sponsoredSubmit(a.label, a.build), "submit sponsored - you pay 0 gas", T.amber)
             : null}
           {btn(isOpen ? "▾ Inspect" : "▸ Inspect", () => setOpen((o) => ({ ...o, [a.id]: !isOpen })), "see the Move call + payload", T.btn)}
         </div>
@@ -708,7 +708,7 @@ export function App() {
     }),
   };
 
-  // ---- Guided scenario: "Sigil Arcade" — a real game's player lifecycle ----
+  // ---- Guided scenario: "Sigil Arcade" - a real game's player lifecycle ----
   type Step = {
     title: string;
     story: string;
@@ -719,7 +719,7 @@ export function App() {
     {
       title: "1 · A player opens Sigil Arcade",
       story:
-        "Maya launches your arcade game. Before she can appear on a leaderboard, the game needs a registered game_id on chain. As the publisher you registered game 0 at deploy time — let's confirm it exists.",
+        "Maya launches your arcade game. Before she can appear on a leaderboard, the game needs a registered game_id on chain. As the publisher you registered game 0 at deploy time - let's confirm it exists.",
       why: "Reads are free and need no wallet signature. Always check prerequisites before a write so you can give players a clear error instead of an on-chain abort.",
       body: row(<>
         {field("gameId", "game_id", 60)}
@@ -730,7 +730,7 @@ export function App() {
     {
       title: "2 · Maya scores for the first time",
       story:
-        "Maya hits 1000. Your game records it on chain with submit_score. Her first score also auto-registers her as a player and sets her username — no separate signup transaction. Try ⚡ Gasless: she pays 0 gas, a sponsor covers it.",
+        "Maya hits 1000. Your game records it on chain with submit_score. Her first score also auto-registers her as a player and sets her username - no separate signup transaction. Try ⚡ Gasless: she pays 0 gas, a sponsor covers it.",
       why: "Lazy registration on first score removes an onboarding step. The same call updates the leaderboard for game_id automatically.",
       body: <>
         {row(<>{field("username", "username", 130)}{field("score", "score", 90)}</>)}
@@ -740,7 +740,7 @@ export function App() {
     {
       title: "3 · Maya checks the leaderboard",
       story: "Her score is now ranked. Pull the top entries for the game and her personal score summary.",
-      why: "View functions return the same data your game UI renders — leaderboards, ranks, and a player's best/last score.",
+      why: "View functions return the same data your game UI renders - leaderboards, ranks, and a player's best/last score.",
       body: row(<>
         {btn("top entries (game_id)", () => void view("top_entries_for_game", () => sigil.leaderboard.viewTopEntriesForGame(big("gameId")))())}
         {btn("my score_summary", () => void view("score_summary (me)", () => sigil.gamePlatform.viewScoreSummary({ player: me(), gameId: big("gameId") }))())}
@@ -760,7 +760,7 @@ export function App() {
     {
       title: "5 · Maya claims her reward",
       story:
-        "Completing the achievement tied to a reward lets her claim it — an FA (APT) or NFT lands in her wallet in a single transaction. Claiming twice aborts with E_ALREADY_CLAIMED.",
+        "Completing the achievement tied to a reward lets her claim it - an FA (APT) or NFT lands in her wallet in a single transaction. Claiming twice aborts with E_ALREADY_CLAIMED.",
       why: "Rewards are attached to achievements by the publisher; claim_reward distributes from the rewards resource account with no backend.",
       body: <>
         {row(field("rewardAchId", "achievement_id", 110))}
@@ -782,7 +782,7 @@ export function App() {
       title: "7 · The season standings",
       story:
         "Your game runs timed seasons over a leaderboard. While a season is active, Maya's scores count toward it. Check the current season and her standing.",
-      why: "Seasons are publisher-managed (create/start/finalize in the Publisher tab). Players just play — their scores land on the season's board automatically.",
+      why: "Seasons are publisher-managed (create/start/finalize in the Publisher tab). Players just play - their scores land on the season's board automatically.",
       body: row(<>
         {btn("current season", () => void view("current_season", () => sigil.seasons.viewCurrentSeason())())}
         {btn("top entries (game_id)", () => void view("top_entries_for_game", () => sigil.leaderboard.viewTopEntriesForGame(big("gameId")))())}
@@ -795,11 +795,11 @@ export function App() {
     <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 16px 56px" }}>
       <div style={{ textAlign: "center", background: T.panel, border: `1px solid ${T.border}`, borderTop: `4px solid ${T.green}`, borderRadius: 16, padding: "22px 16px", marginBottom: 22, boxShadow: "0 10px 30px rgba(0,0,0,0.35)" }}>
         <img src="/logo.png" alt="Aptos Sigil" height={128} style={{ display: "inline-block" }} />
-        <h1 style={{ margin: "10px 0 0", fontSize: 26, color: T.text }}>Sigil — game-dev console <span style={{ color: "#7be08a" }}>(Aptos {NETWORK_LABEL})</span></h1>
+        <h1 style={{ margin: "10px 0 0", fontSize: 26, color: T.text }}>Sigil - game-dev console <span style={{ color: "#7be08a" }}>(Aptos {NETWORK_LABEL})</span></h1>
       </div>
       <p style={{ color: T.code }}>
         A hybrid console for Aptos game devs: a <strong>Guided</strong> walkthrough of a real game (Sigil Arcade) plus the raw
-        technical tabs. Every action shows the Move call, typed args, and the exact SDK + wallet payload — and can be{" "}
+        technical tabs. Every action shows the Move call, typed args, and the exact SDK + wallet payload - and can be{" "}
         <strong>simulated</strong> before you sign.
       </p>
       <p style={{ color: T.muted, fontSize: 14 }}>
@@ -927,7 +927,7 @@ export function App() {
             {tab === "player" && (
               <>
                 <p style={{ color: T.muted, fontSize: 13 }}>
-                  Player write flows — each with <strong>Run / Simulate / Inspect</strong> (and ⚡ Gasless where a sponsor applies).
+                  Player write flows - each with <strong>Run / Simulate / Inspect</strong> (and ⚡ Gasless where a sponsor applies).
                   Shared <code>game_id</code> / <code>score</code> / <code>username</code> below feed the calls.
                 </p>
                 {row(<>
@@ -936,7 +936,7 @@ export function App() {
                   {field("score", "score", 90)}
                 </>)}
 
-                {card("game_platform", "First submit_score registers you (sets username) and records the score — one tx, no separate register step.", <>
+                {card("game_platform", "First submit_score registers you (sets username) and records the score - one tx, no separate register step.", <>
                   {row(btn("Check game exists", () => void onCheckPrereqs()))}
                   {action(A.submitScore())}
                 </>)}
@@ -961,7 +961,7 @@ export function App() {
                   {action(A.leaveGuild())}
                 </>)}
 
-                {card("merge", "Consume a recipe's inputs from your inventory to mint its output (needs granted items — see Publisher tab).", <>
+                {card("merge", "Consume a recipe's inputs from your inventory to mint its output (needs granted items - see Publisher tab).", <>
                   {row(field("recipeId", "recipe_id", 80))}
                   {action(A.executeMerge())}
                 </>)}
@@ -973,7 +973,7 @@ export function App() {
                 <p style={{ color: T.red, fontSize: 13, borderLeft: `3px solid ${T.red}`, paddingLeft: 10 }}>
                   These are <strong>owner/admin</strong> calls. They abort unless the connected wallet is the publisher (or a
                   roles-authorized admin/operator) for the module address above. Most are already initialized on the shared demo
-                  module — re-running <code>init_*</code> there will abort (expected).
+                  module - re-running <code>init_*</code> there will abort (expected).
                 </p>
 
                 {card("game_platform", "One-time publisher init, then register a game (returns a new game_id).", row(<>
@@ -1090,7 +1090,7 @@ export function App() {
             {tab === "views" && (
               <>
                 <p style={{ color: T.muted, fontSize: 13 }}>
-                  Read-only — no wallet signature. Uses <code>game_id</code> / ids from the fields above and your connected address.
+                  Read-only - no wallet signature. Uses <code>game_id</code> / ids from the fields above and your connected address.
                 </p>
                 {card("game_platform", "Games, your registration, and your scores.", row(<>
                   <button type="button" onClick={view("game_count", () => sigil.gamePlatform.viewGameCount())}>game_count</button>

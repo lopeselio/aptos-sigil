@@ -2,10 +2,12 @@
   "name": "sigil-dungeon",
   "version": "0.1.0",
   "private": true,
-  "description": "Sigil Dungeon — a run-based Aptos game (loot + guilds) on @sigil-aptos/sdk with gasless score submission.",
+  "description": "Sigil Dungeon \u2014 a run-based Aptos game (loot + guilds) on @sigil-aptos/sdk with gasless score submission.",
   "type": "module",
   "scripts": {
+    "predev": "node scripts/copy-sdk.mjs",
     "dev": "next dev -p 3001",
+    "prebuild": "node scripts/copy-sdk.mjs",
     "build": "next build",
     "start": "next start -p 3001"
   },

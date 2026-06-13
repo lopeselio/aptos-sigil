@@ -2,10 +2,12 @@
   "name": "sigil-idle",
   "version": "0.1.0",
   "private": true,
-  "description": "Sigil Idle — an accumulate-and-checkpoint Aptos game (quests + seasons) on @sigil-aptos/sdk with gasless submission.",
+  "description": "Sigil Idle \u2014 an accumulate-and-checkpoint Aptos game (quests + seasons) on @sigil-aptos/sdk with gasless submission.",
   "type": "module",
   "scripts": {
+    "predev": "node scripts/copy-sdk.mjs",
     "dev": "next dev -p 3002",
+    "prebuild": "node scripts/copy-sdk.mjs",
     "build": "next build",
     "start": "next start -p 3002"
   },
