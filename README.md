@@ -35,18 +35,18 @@ chain, and you can submit them **gasless**.
 
 ### What they look like
 
-> Screenshots live in [`docs/assets/screenshots`](docs/assets/screenshots). Use the live links above to see them in action.
+> Screenshots live in [`docs/assets/screenshots`](docs/assets/screenshots). **Click any screenshot to open the live app.**
 
 **Console**
 
-<img src="docs/assets/screenshots/console.png" alt="Game-development console" width="800" />
+<a href="https://sigil-aptos-web-petra.vercel.app"><img src="docs/assets/screenshots/console.png" alt="Game-development console — click to open" width="800" /></a>
 
 **The three games**
 
 <p>
-  <img src="docs/assets/screenshots/arcade.png" alt="Sigil Arcade" width="260" />
-  <img src="docs/assets/screenshots/dungeon.png" alt="Sigil Dungeon" width="260" />
-  <img src="docs/assets/screenshots/idle.png" alt="Sigil Idle" width="260" />
+  <a href="https://sigil-arcade.vercel.app"><img src="docs/assets/screenshots/arcade.png" alt="Sigil Arcade — click to play" width="260" /></a>
+  <a href="https://sigil-dungeon.vercel.app"><img src="docs/assets/screenshots/dungeon.png" alt="Sigil Dungeon — click to play" width="260" /></a>
+  <a href="https://sigil-idle.vercel.app"><img src="docs/assets/screenshots/idle.png" alt="Sigil Idle — click to play" width="260" /></a>
 </p>
 
 ---
@@ -207,7 +207,7 @@ learning + reference surface for first-time Aptos game devs:
   SDK + wallet payload to copy), **Simulate** (a free dry-run before you sign),
   **Run**, and **⚡ Gasless** where a sponsor applies.
 
-<img src="docs/assets/screenshots/console.png" alt="Game-development console" width="800" />
+<a href="https://sigil-aptos-web-petra.vercel.app"><img src="docs/assets/screenshots/console.png" alt="Game-development console — click to open" width="800" /></a>
 
 ---
 
