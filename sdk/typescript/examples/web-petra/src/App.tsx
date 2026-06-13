@@ -766,6 +766,7 @@ export function App() {
 
   return (
     <div style={{ fontFamily: "system-ui", maxWidth: 1100, margin: "2rem auto", padding: 16 }}>
+      <img src="/logo.png" alt="Aptos Sigil" height={64} style={{ display: "block", marginBottom: 8 }} />
       <h1>Sigil — game-dev console (Aptos {NETWORK_LABEL})</h1>
       <p style={{ color: "#444" }}>
         A hybrid console for Aptos game devs: a <strong>Guided</strong> walkthrough of a real game (Sigil Arcade) plus the raw
