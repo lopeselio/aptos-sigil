@@ -3,50 +3,63 @@
 Testnet is the **stable home** for the published `@sigil-aptos/sdk`, the tutorial,
 and the example games (devnet wipes weekly; testnet is persistent and free).
 
-## Accounts (generated, keys in gitignored `move/.aptos/config.yaml`)
+## Current deployment
+
+The live module is at **`0x694fd0c04ecf4ec750450d3c1a4d318d5869f2cf762562a8a586a44e1c29d1c1`**
+(profile `testnet-v2`), with games 0 (Arcade), 1 (Dungeon), 2 (Idle) + leaderboards
+registered. This is a **fresh deploy** that includes the rewards/quests bug fixes
+(#9 `claim_reward` now requires an unlocked achievement — `claim_testing` is no
+longer published; #8 `claim_quest_reward` exists). It replaces an earlier address
+that had the pre-fix bytecode (a fresh address was needed because the fixes remove
+a public function, which Aptos's compatible upgrade policy rejects in place).
+
+## Accounts (generated, keys in gitignored `move/.aptos/config.yaml` / `.aptos/config.yaml`)
 
 | Role | Profile | Address |
 |------|---------|---------|
-| Publisher (owns the modules) | `testnet` | `0x568721f98162f03aa564384f15d7ead24b9825a3f35e4c2dba8265bd126ce787` |
+| Publisher (owns the modules) | `testnet-v2` | `0x694fd0c04ecf4ec750450d3c1a4d318d5869f2cf762562a8a586a44e1c29d1c1` |
 | Sponsor (gas station fee payer) | `testnet-sponsor` | `0xe2a6706b01ecd5188a97e35f260ffec6bb8b1a4d87b005396b91d813705a407a` |
 
-> These are throwaway testnet keys. To use your own, re-run
-> `cd move && aptos init --profile testnet --network testnet` (and likewise for
-> `testnet-sponsor`), then update the addresses above.
+> These are throwaway testnet keys. To use your own, run
+> `aptos init --profile <name> --network testnet`, fund it, then point the apps at
+> your address.
 
-## One-time: fund both accounts (manual — testnet faucet is web-only)
+## One-time: fund the publisher
 
-The CLI faucet does not work on testnet. Visit the faucet for each address and
-complete the captcha:
+Testnet's CLI faucet is disabled — either complete the web faucet captcha, or
+transfer from an already-funded account:
 
-- Publisher: https://aptos.dev/network/faucet?address=0x568721f98162f03aa564384f15d7ead24b9825a3f35e4c2dba8265bd126ce787
-- Sponsor: https://aptos.dev/network/faucet?address=0xe2a6706b01ecd5188a97e35f260ffec6bb8b1a4d87b005396b91d813705a407a
+- Web faucet: https://aptos.dev/network/faucet?address=0x694fd0c04ecf4ec750450d3c1a4d318d5869f2cf762562a8a586a44e1c29d1c1
+- Or transfer: `aptos account transfer --profile <funded> --account <publisher> --amount 600000000`
+
+The Sponsor likewise needs APT to pay gas:
+https://aptos.dev/network/faucet?address=0xe2a6706b01ecd5188a97e35f260ffec6bb8b1a4d87b005396b91d813705a407a
 
 ## Deploy the modules
 
-Once the **publisher** is funded:
+Once the **publisher** is funded (using its profile, e.g. `testnet-v2`):
 
 ```bash
-./scripts/redeploy_testnet.sh
+APTOS_PROFILE=testnet-v2 ./scripts/redeploy_testnet.sh
 ```
 
 This publishes the package under the publisher address and runs all module
 `init_*` calls + registers a game (game_id 0) + leaderboard 0. Verify:
 
 ```bash
-aptos move view --profile testnet \
-  --function-id 0x568721f98162f03aa564384f15d7ead24b9825a3f35e4c2dba8265bd126ce787::game_platform::game_count \
-  --args address:0x568721f98162f03aa564384f15d7ead24b9825a3f35e4c2dba8265bd126ce787
+aptos move view --profile testnet-v2 \
+  --function-id 0x694fd0c04ecf4ec750450d3c1a4d318d5869f2cf762562a8a586a44e1c29d1c1::game_platform::game_count \
+  --args address:0x694fd0c04ecf4ec750450d3c1a4d318d5869f2cf762562a8a586a44e1c29d1c1
 ```
 
-Explorer: https://explorer.aptoslabs.com/account/0x568721f98162f03aa564384f15d7ead24b9825a3f35e4c2dba8265bd126ce787?network=testnet
+Explorer: https://explorer.aptoslabs.com/account/0x694fd0c04ecf4ec750450d3c1a4d318d5869f2cf762562a8a586a44e1c29d1c1?network=testnet
 
 ## Wire it into the apps
 
 Set in each example app's `.env.local` (and in Vercel project env for deploys):
 
 ```
-VITE_SIGIL_MODULE_ADDRESS=0x568721f98162f03aa564384f15d7ead24b9825a3f35e4c2dba8265bd126ce787
+VITE_SIGIL_MODULE_ADDRESS=0x694fd0c04ecf4ec750450d3c1a4d318d5869f2cf762562a8a586a44e1c29d1c1
 VITE_APTOS_NETWORK=testnet
 VITE_SPONSOR_ENDPOINT=/api/sponsor        # gas station route (optional, for gasless)
 ```
