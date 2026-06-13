@@ -8,6 +8,7 @@ module sigil::rewards_tests {
     use aptos_framework::object;
     use aptos_framework::fungible_asset::{Self, Metadata};
     use sigil::rewards;
+    use sigil::achievements;
 
     // Helper to create test accounts
     fun setup_test_accounts(): (signer, signer, signer) {
@@ -33,6 +34,21 @@ module sigil::rewards_tests {
         );
         
         object::object_from_constructor_ref<Metadata>(constructor_ref)
+    }
+
+    /// Regression for #9: the production `claim_reward` must reject players who
+    /// have not unlocked the achievement (previously the check was commented out,
+    /// making it equivalent to `claim_testing`). Achievements is initialized but
+    /// the player has unlocked nothing, so `is_unlocked` is false and the claim
+    /// aborts E_ACHIEVEMENT_NOT_UNLOCKED (3) before any payout.
+    #[test]
+    #[expected_failure(abort_code = 3, location = sigil::rewards)] // E_ACHIEVEMENT_NOT_UNLOCKED
+    fun test_claim_reward_requires_unlocked_achievement() {
+        let (publisher, player1, _) = setup_test_accounts();
+        rewards::init_rewards_for_test(&publisher);
+        achievements::init_achievements(&publisher);
+        // Player has not unlocked achievement 0 — claim_reward must abort.
+        rewards::claim_reward(&player1, @0x123, 0);
     }
 
     #[test]
